@@ -11,7 +11,7 @@ export default function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Signup logic will be implemented later
-    console.log("Signup with:", { name, email, password });
+    console.log("Signup attempt with name:", name, "email:", email);
   };
 
   return (
