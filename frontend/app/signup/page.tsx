@@ -1,115 +1,206 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useState } from "react";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
+import Header from '../components/Header';
 
 export default function SignupPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('buyer');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Signup logic will be implemented later
-    console.log("Signup attempt with name:", name, "email:", email);
+    setIsLoading(true);
+    setError('');
+
+    // Check if any fields are empty
+    if (!email || !password || !name || !role) {
+      setError('Please fill in all fields.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Step 1: Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUID = userCredential.user.uid;
+
+      // Optionally set display name in Firebase
+      if (userCredential.user && name) {
+        try { await updateProfile(userCredential.user, { displayName: name }); } catch {}
+      }
+
+      // Step 2: Send data to our backend API (password NOT sent; backend expects firebaseUID only)
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, role, firebaseUID }),
+      });
+
+      // Step 3: Handle backend response
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to register on backend');
+      }
+
+      // Step 4: Redirect the user
+      setIsLoading(false);
+      if (role === 'artist') {
+        router.push('/create-profile');
+      } else {
+        router.push('/');
+      }
+
+    } catch (error: any) {
+      setIsLoading(false);
+      console.error(error);
+      setError(error.message);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-gray-900">
-              Shilpohaat
-            </Link>
-            <Link href="/login" className="text-blue-600 hover:text-blue-700">
-              Login
-            </Link>
-          </div>
-        </nav>
-      </header>
-
-      {/* Signup Form */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-              Create your account
-            </h2>
-          </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="rounded-md shadow-sm space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Full Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
-
+    <main>
+      <Header />
+      
+      <div className="min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">
+          <h2 className="text-3xl font-bold text-center text-white font-heading mb-2">
+            Create Your Account
+          </h2>
+          <p className="text-center text-gray-300 mb-6">
+            Join শিল্পহাট and discover local art.
+          </p>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Full Name */}
             <div>
-              <button
-                type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              <label 
+                htmlFor="name" 
+                className="block text-sm font-medium text-gray-200 mb-1"
               >
-                Sign up
-              </button>
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-brand-gold"
+                placeholder="Enter your full name"
+              />
             </div>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                  Sign in
-                </Link>
-              </p>
+            {/* Role Radio Buttons */}
+            <fieldset>
+              <legend className="block text-sm font-medium text-gray-200 mb-2">
+                I am a:
+              </legend>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="buyer"
+                    checked={role === 'buyer'}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-4 h-4 text-brand-gold focus:ring-brand-gold focus:ring-2"
+                  />
+                  <span className="ml-2 text-gray-200">Art Lover (Buyer)</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="artist"
+                    checked={role === 'artist'}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-4 h-4 text-brand-gold focus:ring-brand-gold focus:ring-2"
+                  />
+                  <span className="ml-2 text-gray-200">Artist (Seller)</span>
+                </label>
+              </div>
+            </fieldset>
+
+            {/* Email */}
+            <div>
+              <label 
+                htmlFor="email" 
+                className="block text-sm font-medium text-gray-200 mb-1"
+              >
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-brand-gold"
+                placeholder="you@example.com"
+              />
             </div>
+
+            {/* Password */}
+            <div>
+              <label 
+                htmlFor="password" 
+                className="block text-sm font-medium text-gray-200 mb-1"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-brand-gold"
+                placeholder="Enter a secure password"
+              />
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full px-4 py-3 font-semibold text-gray-900 bg-brand-gold rounded-md hover:bg-brand-gold-antique transition-colors focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Signing Up...' : 'Sign Up'}
+            </button>
+
+            {/* Login Link */}
+            <p className="text-center text-gray-300 text-sm">
+              Already have an account?{' '}
+              <Link 
+                href="/login" 
+                className="text-brand-gold hover:text-brand-gold-antique font-semibold"
+              >
+                Log In
+              </Link>
+            </p>
           </form>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
