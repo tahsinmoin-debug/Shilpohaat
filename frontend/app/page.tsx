@@ -116,12 +116,39 @@ function ShopByCategory() {
 
 // FEATURED ARTWORKS COMPONENT
 function FeaturedArtworks() {
-  const artworks = [
-    { name: 'Clay Sculpture', artist: 'by Nasima Khatun', price: '৳11,200', imageSrc: 'https://placehold.co/400x400/555/FFF.png?text=Art+1' },
-    { name: 'Handcrafted Jewelry', artist: 'by Sohel Islam', price: '৳6,500', imageSrc: 'https://placehold.co/400x400/555/FFF.png?text=Art+2' },
-    { name: 'Watercolor Landscape', artist: 'by Meher Ali', price: '৳7,800', imageSrc: 'https://placehold.co/400x400/555/FFF.png?text=Art+3' },
-    { name: 'Modern Abstract', artist: 'by Farida Parveen', price: '৳15,000', imageSrc: 'https://placehold.co/400x400/555/FFF.png?text=Art+4' }
-  ];
+  const [artworks, setArtworks] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchFeaturedArtworks = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/artworks?featured=true');
+        const data = await res.json();
+        setArtworks(data.artworks?.slice(0, 4) || []);
+      } catch (error) {
+        console.error('Failed to fetch featured artworks:', error);
+        setArtworks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedArtworks();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (artworks.length === 0) {
+    return null; // Don't show section if no featured artworks
+  }
 
   return (
     <section className="py-16 md:py-24">
@@ -139,15 +166,16 @@ function FeaturedArtworks() {
         {/* Artworks Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {artworks.map((artwork) => (
-            <div
-              key={artwork.name}
+            <Link
+              key={artwork._id}
+              href={`/artworks/${artwork._id}`}
               className="bg-gray-800 rounded-lg overflow-hidden hover:shadow-xl transition-shadow"
             >
               {/* Artwork Image */}
               <div className="relative h-[400px] w-full">
                 <Image
-                  src={artwork.imageSrc}
-                  alt={artwork.name}
+                  src={artwork.images?.[0] || 'https://placehold.co/400x400/555/FFF.png'}
+                  alt={artwork.title}
                   width={400}
                   height={400}
                   className="object-cover w-full h-full"
@@ -157,21 +185,27 @@ function FeaturedArtworks() {
               {/* Artwork Info */}
               <div className="p-4">
                 <h3 className="font-heading text-xl text-white mb-1">
-                  {artwork.name}
+                  {artwork.title}
                 </h3>
                 <p className="font-sans text-gray-400 text-sm mb-2">
-                  {artwork.artist}
+                  by {artwork.artist?.name || 'Unknown Artist'}
                 </p>
                 <p className="font-sans text-white font-semibold text-lg mb-4">
-                  {artwork.price}
+                  ৳{artwork.price?.toLocaleString()}
                 </p>
                 
                 {/* Add to Cart Button */}
-                <button className="w-full bg-brand-gold text-gray-900 font-semibold py-2 px-4 rounded-md hover:bg-brand-gold-antique transition-colors">
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Cart functionality coming soon!');
+                  }}
+                  className="w-full bg-brand-gold text-gray-900 font-semibold py-2 px-4 rounded-md hover:bg-brand-gold-antique transition-colors"
+                >
                   Add to Cart
                 </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

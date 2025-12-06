@@ -27,6 +27,32 @@ const ArtistProfileSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // Extended fields
+    artistStory: {
+      type: String,
+      default: '',
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    website: {
+      type: String,
+      default: '',
+    },
+    instagram: {
+      type: String,
+      default: '',
+    },
+    availability: {
+      type: String,
+      enum: ['available', 'busy', 'unavailable'],
+      default: 'available',
+    },
+    isProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

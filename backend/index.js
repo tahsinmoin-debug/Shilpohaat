@@ -2,6 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.js');
+const artistRoutes = require('./routes/artist.js');
+const artworkRoutes = require('./routes/artworks.js');
 
 // Load environment variables
 dotenv.config();
@@ -12,9 +14,9 @@ connectDB();
 // Initialize Express app
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware - Increase body size limit for base64 images
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // CORS middleware (basic setup)
 app.use((req, res, next) => {
@@ -38,6 +40,12 @@ app.get('/api/health', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+
+// Artist routes
+app.use('/api/artist', artistRoutes);
+
+// Artwork routes
+app.use('/api/artworks', artworkRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
