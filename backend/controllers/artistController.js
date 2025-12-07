@@ -1,5 +1,6 @@
 const ArtistProfile = require('../models/ArtistProfile.js');
 const User = require('../models/User.js');
+const Artwork = require('../models/Artwork.js');
 
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
@@ -122,7 +123,37 @@ const getAllArtists = async (req, res) => {
   }
 };
 
+// Get single artist profile (public)
+const getArtistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Try finding by profile _id first
+    let profile = await ArtistProfile.findById(id).populate('user', 'name email role artistProfile');
+
+    // If not found, maybe id is the user id
+    if (!profile) {
+      profile = await ArtistProfile.findOne({ user: id }).populate('user', 'name email role artistProfile');
+    }
+
+    if (!profile || !profile.isProfileComplete) {
+      return res.status(404).json({ message: 'Artist not found' });
+    }
+
+    // Fetch artworks for this artist
+    const artworks = await Artwork.find({ artist: profile.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    return res.json({ success: true, artist: profile, artworks });
+  } catch (error) {
+    console.error('Get artist error:', error);
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   updateArtistProfile,
   getAllArtists,
+  getArtistById,
 };
