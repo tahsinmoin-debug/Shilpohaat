@@ -1,5 +1,6 @@
 const ArtistProfile = require('../models/ArtistProfile.js');
 const User = require('../models/User.js');
+const Artwork = require('../models/Artwork.js');
 
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
@@ -122,7 +123,112 @@ const getAllArtists = async (req, res) => {
   }
 };
 
+// NEW: Get featured artists (for homepage)
+const getFeaturedArtists = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 6;
+
+    // Find users who are artists
+    const users = await User.find({ role: 'artist' });
+    const userIds = users.map(u => u._id);
+
+    // Find complete profiles
+    let profiles = await ArtistProfile.find({
+      user: { $in: userIds },
+      isProfileComplete: true,
+    })
+      .populate('user', 'name email')
+      .limit(limit);
+
+    // Calculate score for each artist based on:
+    // 1. Admin selection (isFeatured flag - highest priority)
+    // 2. Rating (average rating)
+    // 3. Popularity (profile views, total artworks)
+    const scoredProfiles = profiles.map(profile => {
+      let score = 0;
+      
+      // Admin featured gets highest score (1000 points)
+      if (profile.isFeatured) {
+        score += 1000;
+      }
+      
+      // Rating (0-5 scale, worth up to 500 points)
+      if (profile.rating) {
+        score += profile.rating * 100;
+      }
+      
+      // Profile views (worth up to 300 points, capped at 1000 views)
+      if (profile.profileViews) {
+        score += Math.min(profile.profileViews, 1000) * 0.3;
+      }
+      
+      // Total artworks (worth up to 200 points, capped at 50 artworks)
+      if (profile.totalArtworks) {
+        score += Math.min(profile.totalArtworks, 50) * 4;
+      }
+      
+      return {
+        ...profile.toObject(),
+        score
+      };
+    });
+
+    // Sort by score (highest first)
+    scoredProfiles.sort((a, b) => b.score - a.score);
+
+    // Take top featured artists
+    const featuredArtists = scoredProfiles.slice(0, limit);
+
+    return res.json({
+      success: true,
+      count: featuredArtists.length,
+      artists: featuredArtists,
+    });
+  } catch (error) {
+    console.error('Get featured artists error:', error);
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// Get single artist profile (public)
+const getArtistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Try finding by profile _id first
+    let profile = await ArtistProfile.findById(id).populate('user', 'name email role artistProfile');
+
+    // If not found, maybe id is the user id
+    if (!profile) {
+      profile = await ArtistProfile.findOne({ user: id }).populate('user', 'name email role artistProfile');
+    }
+
+    if (!profile || !profile.isProfileComplete) {
+      return res.status(404).json({ message: 'Artist not found' });
+    }
+
+    // Fetch artworks for this artist
+    const artworks = await Artwork.find({ artist: profile.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    return res.json({ success: true, artist: profile, artworks });
+  } catch (error) {
+    console.error('Get artist error:', error);
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   updateArtistProfile,
   getAllArtists,
+  getFeaturedArtists,
+  getArtistById,
 };
+
+
+
+
+
+
+
