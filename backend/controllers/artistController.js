@@ -1,5 +1,6 @@
 const ArtistProfile = require('../models/ArtistProfile.js');
 const User = require('../models/User.js');
+const Artwork = require('../models/Artwork.js');
 
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
