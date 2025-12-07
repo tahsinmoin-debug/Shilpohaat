@@ -4,6 +4,22 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from './components/Header';
+import FeaturedArtists from './components/FeaturedArtists';
+
+// Add this interface at the top after imports
+interface Artwork {
+  _id: string;
+  title: string;
+  description?: string;
+  category: string;
+  price: number;
+  images: string[];
+  artist?: {
+    _id: string;
+    name: string;
+  };
+}
+
 
 // HERO COMPONENT
 function Hero() {
@@ -115,8 +131,9 @@ function ShopByCategory() {
 }
 
 // FEATURED ARTWORKS COMPONENT
+
 function FeaturedArtworks() {
-  const [artworks, setArtworks] = React.useState<any[]>([]);
+  const [artworks, setArtworks] = React.useState<Artwork[]>([]); // ← Fixed type
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -132,6 +149,7 @@ function FeaturedArtworks() {
         setLoading(false);
       }
     };
+
 
     fetchFeaturedArtworks();
   }, []);
@@ -194,8 +212,7 @@ function FeaturedArtworks() {
                   ৳{artwork.price?.toLocaleString()}
                 </p>
                 
-                {/* Add to Cart Button */}
-                <button 
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     alert('Cart functionality coming soon!');
@@ -319,6 +336,7 @@ export default function Home() {
       <Header />
       <Hero />
       <ShopByCategory />
+      <FeaturedArtists /> {/* NEW: Featured Artists Section */}
       <FeaturedArtworks />
       <Footer />
     </main>

@@ -53,6 +53,32 @@ const ArtistProfileSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+   
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    rating: {
+      type: Number,
+      default: 0,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
+    profileViews: {
+      type: Number,
+      default: 0,
+    },
+    totalArtworks: {
+      type: Number,
+      default: 0,
+    },
+    totalSales: {
+      type: Number,
+      default: 0,
+    },
+   
   },
   {
     timestamps: true,
