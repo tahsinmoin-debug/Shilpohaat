@@ -23,9 +23,9 @@ const DEMO_ARTISTS = [
       availability: 'available',
       profilePicture: 'https://placehold.co/400x400/8B4513/FFF.png?text=NK',
       portfolioImages: [
-        'https://placehold.co/600x600/8B4513/FFF.png?text=Clay+Sculpture+1',
-        'https://placehold.co/600x600/A0522D/FFF.png?text=Clay+Sculpture+2',
-        'https://placehold.co/600x600/654321/FFF.png?text=Clay+Sculpture+3',
+        'https://i.pinimg.com/736x/b6/6c/16/b66c16fb66a60ccae31bc95a416522be.jpg',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7-kx-t-KeCILPcJ3-qTCx7qw4n3xBQKN2fA&s',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Durga_sara_Bengal_Patachitra.jpg/640px-Durga_sara_Bengal_Patachitra.jpg',
       ],
       isProfileComplete: true,
     }
@@ -46,9 +46,9 @@ const DEMO_ARTISTS = [
       availability: 'available',
       profilePicture: 'https://placehold.co/400x400/DAA520/000.png?text=SI',
       portfolioImages: [
-        'https://placehold.co/600x600/FFD700/000.png?text=Jewelry+1',
-        'https://placehold.co/600x600/DAA520/000.png?text=Jewelry+2',
-        'https://placehold.co/600x600/B8860B/FFF.png?text=Jewelry+3',
+        'https://www.thedailystar.net/sites/default/files/styles/big_5/public/images/2024/12/14/whatsapp_image_2024-12-02_at_22.40.52_a3825b06.jpg',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRz4NUMrMr4jQHLnWDI31IkoPFpQeYh8KxgXA&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDxdfXtrgpflJ_FSMQY0IeDNvNQgBS0ELeuQ&s',
       ],
       isProfileComplete: true,
     }
@@ -69,9 +69,9 @@ const DEMO_ARTISTS = [
       availability: 'busy',
       profilePicture: 'https://placehold.co/400x400/4682B4/FFF.png?text=MA',
       portfolioImages: [
-        'https://placehold.co/600x600/87CEEB/000.png?text=Landscape+1',
-        'https://placehold.co/600x600/4682B4/FFF.png?text=Landscape+2',
-        'https://placehold.co/600x600/5F9EA0/FFF.png?text=Landscape+3',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHbYpduy1TbnQN3RXBiYw1l4P_vU1HE4M2Qw&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUvpjogQi3YUhsIcL853M-Q8RgczCQtrSgKw&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQU8MsWXXo_Cyb0-trm21q4nvzdtwchq4Aqlw&s',
       ],
       isProfileComplete: true,
     }
@@ -92,9 +92,9 @@ const DEMO_ARTISTS = [
       availability: 'available',
       profilePicture: 'https://placehold.co/400x400/DC143C/FFF.png?text=FP',
       portfolioImages: [
-        'https://placehold.co/600x600/FF6347/FFF.png?text=Abstract+1',
-        'https://placehold.co/600x600/DC143C/FFF.png?text=Abstract+2',
-        'https://placehold.co/600x600/B22222/FFF.png?text=Abstract+3',
+        'https://miro.medium.com/v2/resize:fit:1400/1*jdz8MQOtVqqYyu6q-mIohg.jpeg',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0hYMwaw0FRQLp-GUwa8AFjO2ZeFWl6O2-YQ&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHSQU70A4sl_59myMaPSPy0driK1oqpnbKQg&s',
       ],
       isProfileComplete: true,
     }
@@ -115,9 +115,9 @@ const DEMO_ARTISTS = [
       availability: 'available',
       profilePicture: 'https://placehold.co/400x400/9370DB/FFF.png?text=RC',
       portfolioImages: [
-        'https://placehold.co/600x600/9370DB/FFF.png?text=Digital+1',
-        'https://placehold.co/600x600/8A2BE2/FFF.png?text=Digital+2',
-        'https://placehold.co/600x600/9932CC/FFF.png?text=Digital+3',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwy3rsaF18cU1S_L2-c5vDjPtRZi-aidMA5Q&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQZApcqHCMWAxQiPEA3iFlxO90eQlmE8lmsqL1BMvHXQ&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdrk50d3n0D6D3g1EJYbdpobbstcy8tBwMfA&s',
       ],
       isProfileComplete: true,
     }
@@ -138,9 +138,9 @@ const DEMO_ARTISTS = [
       availability: 'available',
       profilePicture: 'https://placehold.co/400x400/228B22/FFF.png?text=AD',
       portfolioImages: [
-        'https://placehold.co/600x600/32CD32/000.png?text=Textile+1',
-        'https://placehold.co/600x600/228B22/FFF.png?text=Textile+2',
-        'https://placehold.co/600x600/006400/FFF.png?text=Textile+3',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOv5_xGpKazY0_n7yG1P_0M8NpGCSJYEFZfw&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQk4fvOBF1nDn2olf3UyKSHaKdukLH8nNw-0w&s',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaHobXsNFqfBQFr0FJ0zJYW1Y_7RDL2-n7zg&s',
       ],
       isProfileComplete: true,
     }

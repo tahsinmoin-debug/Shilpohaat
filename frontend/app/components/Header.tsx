@@ -47,6 +47,12 @@ export default function Header() {
               Artists
             </Link>
             <Link 
+              href="/blog" 
+              className="font-sans text-white hover:text-brand-gold transition-colors"
+            >
+              Blog
+            </Link>
+            <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
@@ -173,6 +179,12 @@ export default function Header() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Artists
+            </Link>
+            <Link 
+              href="/blog" 
+              className="font-sans text-white hover:text-brand-gold transition-colors"
+            >
+              Blog
             </Link>
             <Link 
               href="/categories" 
