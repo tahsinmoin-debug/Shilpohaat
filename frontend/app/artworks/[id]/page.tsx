@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header';
+import { useCart } from '../../components/CartProvider';
 
 interface ArtistProfile {
   profilePicture?: string;
@@ -47,7 +48,9 @@ interface PageProps {
 
 export default function ArtworkDetailPage({ params }: PageProps) {
   const router = useRouter();
+  const { addToCart } = useCart();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,10 +218,28 @@ export default function ArtworkDetailPage({ params }: PageProps) {
 
               <div className="mt-6 flex flex-col gap-3">
                 <button
-                  onClick={() => alert('Cart functionality coming soon!')}
-                  className="w-full bg-brand-gold text-gray-900 font-semibold py-3 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
+                  onClick={async () => {
+                    if (!artwork) return;
+                    setIsAddingToCart(true);
+                    addToCart({
+                      artworkId: artwork._id,
+                      title: artwork.title,
+                      price: artwork.price,
+                      quantity: 1,
+                      image: artwork.images?.[0],
+                    });
+                    // Show success message
+                    alert('Added to cart! 🎨');
+                    setIsAddingToCart(false);
+                  }}
+                  disabled={isAddingToCart || artwork.status !== 'available'}
+                  className={`w-full font-semibold py-3 rounded-lg transition-colors shadow-lg ${
+                    artwork.status !== 'available'
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-brand-gold text-gray-900 hover:bg-brand-gold-antique'
+                  }`}
                 >
-                  Add to Cart
+                  {artwork.status !== 'available' ? `Not Available (${artwork.status})` : isAddingToCart ? 'Adding...' : 'Add to Cart'}
                 </button>
                 <button
                   onClick={() => alert('Contact seller feature coming soon!')}

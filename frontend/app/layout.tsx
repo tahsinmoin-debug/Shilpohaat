@@ -4,6 +4,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 // This imports your globals.css file
 import "./globals.css";
 import { AuthProvider } from "./components/AuthProvider";
+import { CartProvider } from "./components/CartProvider";
 
 // Setup the font variables
 const inter = Inter({
@@ -40,7 +41,9 @@ export default function RootLayout({
       */}
       <body className={`${inter.variable} ${playfair.variable} font-sans bg-brand-maroon antialiased`}>
         <AuthProvider>
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>
