@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.js');
 const artistRoutes = require('./routes/artist.js');
 const artworkRoutes = require('./routes/artworks.js');
+const blogRoutes = require('./routes/blog.js');
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +47,9 @@ app.use('/api/artist', artistRoutes);
 
 // Artwork routes
 app.use('/api/artworks', artworkRoutes);
+
+//Blog routes
+app.use('/api/blog', blogRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

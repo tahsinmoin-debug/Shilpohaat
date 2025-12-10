@@ -15,7 +15,4 @@ router.get('/featured', getFeaturedArtists);
 // PATCH /api/artist/profile?firebaseUID=... (update artist profile)
 router.patch('/profile', updateArtistProfile);
 
-// GET /api/artist/:id (public)
-router.get('/:id', getArtistById);
-
 module.exports = router;
