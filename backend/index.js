@@ -8,9 +8,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.js');
 const artistRoutes = require('./routes/artist.js');
 const artworkRoutes = require('./routes/artworks.js');
-
-// Load environment variables
-dotenv.config();
+const orderRoutes = require('./routes/orders.js');
+const paymentRoutes = require('./routes/payments.js');
 
 // Connect to MongoDB
 connectDB();
@@ -53,6 +52,12 @@ app.use('/api/artist', artistRoutes);
 
 // Artwork routes
 app.use('/api/artworks', artworkRoutes);
+
+// Order routes
+app.use('/api/orders', orderRoutes);
+
+// Payment routes
+app.use('/api/payments', paymentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

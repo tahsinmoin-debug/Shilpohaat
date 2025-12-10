@@ -201,10 +201,9 @@ export default function Header() {
               About
             </Link>
             {/* Role-based (mobile) */}
-            {!loading && (
-              user ? (
-                <>
-                  {appUser?.role === 'artist' && (
+            {user ? (
+              <>
+                {appUser?.role === 'artist' && (
                     <Link
                       href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"
@@ -233,7 +232,7 @@ export default function Header() {
                   )}
                 </>
               ) : null
-            )}
+            }
             {!loading && (
               user ? (
                 <button
