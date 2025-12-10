@@ -3,7 +3,8 @@ const router = express.Router();
 const { 
   updateArtistProfile, 
   getAllArtists,
-  getFeaturedArtists 
+  getFeaturedArtists,
+  getArtistById
 } = require('../controllers/artistController.js');
 
 // GET /api/artist/all (public - all artists)
