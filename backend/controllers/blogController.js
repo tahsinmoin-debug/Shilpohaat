@@ -1,5 +1,51 @@
 const BlogPost = require('../models/BlogPost.js');
 
+// Create a new blog post
+const createPost = async (req, res) => {
+  try {
+    // 1. Get data from the frontend
+    const { title, slug, excerpt, content, coverImage, category, authorName, tags } = req.body;
+
+    // 2. Validate required fields (basic check)
+    if (!title || !content || !category) {
+      return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    // 3. Create the new post object
+    const newPost = new BlogPost({
+      title,
+      slug, // NOTE: In a real app, you might want to auto-generate this from the title
+      excerpt,
+      content,
+      coverImage,
+      category,
+      author: {
+        name: authorName || 'Admin', // Default name if none provided
+        avatar: ''
+      },
+      tags: tags || [],
+      status: 'published' // Default to published for now
+    });
+
+    // 4. Save to the Cloud Database
+    const savedPost = await newPost.save();
+
+    return res.status(201).json({
+      success: true,
+      post: savedPost,
+      message: 'Blog post created successfully!'
+    });
+
+  } catch (error) {
+    console.error('Create post error:', error);
+    // Check for duplicate slug error
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'A post with this slug already exists.' });
+    }
+    return res.status(500).json({ message: 'Server error while creating post.' });
+  }
+};
+
 // Get all blog posts (with filters)
 const getAllPosts = async (req, res) => {
   try {
@@ -108,6 +154,7 @@ const getLatestPosts = async (req, res) => {
 };
 
 module.exports = {
+  createPost,
   getAllPosts,
   getPostBySlug,
   getFeaturedPosts,

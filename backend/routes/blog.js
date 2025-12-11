@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  createPost,
   getAllPosts,
   getPostBySlug,
   getFeaturedPosts,
@@ -18,5 +19,7 @@ router.get('/latest', getLatestPosts);
 
 // GET /api/blog/:slug (single post by slug)
 router.get('/:slug', getPostBySlug);
+
+router.post('/', createPost);
 
 module.exports = router;
