@@ -1,4 +1,5 @@
 const BlogPost = require('../models/BlogPost.js');
+const { uploadToCloudinary } = require('../utils/cloudinary.js');
 
 // Create a new blog post
 const createPost = async (req, res) => {
@@ -11,13 +12,28 @@ const createPost = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    // 3. Create the new post object
+    // 3. Upload cover image to Cloudinary if provided as base64
+    let coverImageUrl = coverImage;
+    if (coverImage && coverImage.startsWith('data:image')) {
+      try {
+        const uploadResult = await uploadToCloudinary(coverImage, 'shilpohaat/blog');
+        coverImageUrl = uploadResult.url;
+      } catch (uploadError) {
+        console.error('Cover image upload error:', uploadError);
+        return res.status(500).json({ 
+          message: 'Failed to upload cover image', 
+          error: uploadError.message 
+        });
+      }
+    }
+
+    // 4. Create the new post object
     const newPost = new BlogPost({
       title,
       slug, // NOTE: In a real app, you might want to auto-generate this from the title
       excerpt,
       content,
-      coverImage,
+      coverImage: coverImageUrl,
       category,
       author: {
         name: authorName || 'Admin', // Default name if none provided
@@ -27,7 +43,7 @@ const createPost = async (req, res) => {
       status: 'published' // Default to published for now
     });
 
-    // 4. Save to the Cloud Database
+    // 5. Save to the Cloud Database
     const savedPost = await newPost.save();
 
     return res.status(201).json({

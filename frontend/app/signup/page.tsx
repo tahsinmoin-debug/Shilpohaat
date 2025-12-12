@@ -68,7 +68,7 @@ export default function SignupPage() {
   };
 
   return (
-    <main>
+    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
       <Header />
       
       <div className="min-h-screen flex items-center justify-center px-4 py-12">

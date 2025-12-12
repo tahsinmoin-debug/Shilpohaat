@@ -65,7 +65,7 @@ export default function ArtistsPage() {
   };
 
   return (
-    <main>
+    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
       <Header />
       <div className="min-h-screen py-12">
         <div className="container mx-auto px-4">
