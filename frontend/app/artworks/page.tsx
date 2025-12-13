@@ -6,14 +6,21 @@ import Header from '../components/Header';
 
 const CATEGORIES = [
   'All',
-  'Paintings',
-  'Sculptures',
-  'Textiles',
-  'Jewelry',
-  'Photography',
+  'Abstract',
+  'Landscape',
+  'Portrait',
+  'Modern Art',
+  'Traditional Art',
+  'Nature & Wildlife',
+  'Cityscape',
+  'Floral Art',
+  'Minimalist',
+  'Pop Art',
   'Digital Art',
+  'Acrylic',
+  'Oil',
+  'Watercolor',
   'Mixed Media',
-  'Other',
 ];
 
 interface Artwork {
@@ -171,26 +178,14 @@ export default function ArtworksPage() {
             </button>
           </div>
 
-          {/* Category Pills */}
-          <div className={`${showFilters ? 'block' : 'hidden'} md:block mt-4`}>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                    category === cat
-                      ? 'bg-brand-gold text-gray-900'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+          {/* Filters Info */}
+          <div className="mt-4 text-sm text-gray-400">
+            <p>💡 Browse categories at our <a href="/categories" className="text-brand-gold hover:underline">dedicated Categories page</a></p>
+          </div>
 
-            {/* Price Range */}
-            <div className="mt-4 flex gap-4 items-center">
+          {/* Price Range */}
+          <div className={`${showFilters ? 'block' : 'hidden'} md:block mt-4`}>
+            <div className="flex gap-4 items-center">
               <span className="text-gray-300 text-sm">Price Range (৳):</span>
               <input
                 type="number"

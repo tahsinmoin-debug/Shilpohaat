@@ -1,6 +1,7 @@
 const ArtistProfile = require('../models/ArtistProfile.js');
 const User = require('../models/User.js');
 const Artwork = require('../models/Artwork.js');
+const { uploadToCloudinary, uploadMultipleToCloudinary, replaceImages } = require('../utils/cloudinary.js');
 
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
@@ -43,8 +44,34 @@ const updateArtistProfile = async (req, res) => {
     if (bio !== undefined) profile.bio = bio;
     if (specializations !== undefined) profile.specializations = specializations;
     if (contactPhone !== undefined) profile.contactPhone = contactPhone;
-    if (profilePicture !== undefined) profile.profilePicture = profilePicture;
-    if (portfolioImages !== undefined) profile.portfolioImages = portfolioImages;
+    
+    // Upload profile picture to Cloudinary if it's a base64 string
+    if (profilePicture !== undefined) {
+      if (profilePicture.startsWith('data:') || profilePicture.startsWith('iVBOR')) {
+        console.log('Uploading profile picture to Cloudinary...');
+        const result = await uploadToCloudinary(profilePicture, 'shilpohaat/artists/profiles');
+        profile.profilePicture = result.url;
+        console.log('✓ Profile picture uploaded');
+      } else {
+        profile.profilePicture = profilePicture; // Already a URL
+      }
+    }
+    
+    // Upload portfolio images to Cloudinary if they're base64 strings
+    if (portfolioImages !== undefined && Array.isArray(portfolioImages)) {
+      const newImages = portfolioImages.filter(img => img.startsWith('data:') || img.startsWith('iVBOR'));
+      const existingUrls = portfolioImages.filter(img => img.startsWith('http'));
+      
+      if (newImages.length > 0) {
+        console.log(`Uploading ${newImages.length} portfolio images to Cloudinary...`);
+        const uploadedUrls = await uploadMultipleToCloudinary(newImages, 'shilpohaat/artists/portfolio');
+        profile.portfolioImages = [...existingUrls, ...uploadedUrls];
+        console.log('✓ Portfolio images uploaded');
+      } else {
+        profile.portfolioImages = existingUrls;
+      }
+    }
+    
     if (artistStory !== undefined) profile.artistStory = artistStory;
     if (skills !== undefined) profile.skills = skills;
     if (website !== undefined) profile.website = website;
@@ -69,7 +96,7 @@ const updateArtistProfile = async (req, res) => {
     return res.json({ success: true, profile });
   } catch (error) {
     console.error('Update profile error:', error);
-    return res.status(500).json({ message: 'Server error.' });
+    return res.status(500).json({ message: 'Server error.', error: error.message });
   }
 };
 

@@ -1,5 +1,6 @@
 const Artwork = require('../models/Artwork.js');
 const User = require('../models/User.js');
+const { uploadMultipleToCloudinary, replaceImages } = require('../utils/cloudinary.js');
 
 // Create new artwork (POST /api/artworks)
 const createArtwork = async (req, res) => {
@@ -24,13 +25,21 @@ const createArtwork = async (req, res) => {
       return res.status(400).json({ message: 'Title, category, and price are required' });
     }
 
+    // Upload images to Cloudinary
+    let cloudinaryUrls = [];
+    if (images && images.length > 0) {
+      console.log(`Uploading ${images.length} images to Cloudinary...`);
+      cloudinaryUrls = await uploadMultipleToCloudinary(images, 'shilpohaat/artworks');
+      console.log('✓ Images uploaded to Cloudinary');
+    }
+
     const artwork = new Artwork({
       artist: user._id,
       title,
       description,
       category,
       price,
-      images: images || [],
+      images: cloudinaryUrls,
       dimensions: dimensions || {},
       materials: materials || [],
     });
@@ -40,7 +49,7 @@ const createArtwork = async (req, res) => {
     return res.status(201).json({ success: true, artwork });
   } catch (error) {
     console.error('Create artwork error:', error);
-    return res.status(500).json({ message: 'Server error.' });
+    return res.status(500).json({ message: 'Server error.', error: error.message });
   }
 };
 

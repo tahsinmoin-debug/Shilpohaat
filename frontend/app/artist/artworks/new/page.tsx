@@ -6,14 +6,21 @@ import Header from '../../../components/Header';
 import { useAuth } from '../../../components/AuthProvider';
 
 const CATEGORIES = [
-  'Paintings',
-  'Sculptures',
-  'Textiles',
-  'Jewelry',
-  'Photography',
+  'Abstract',
+  'Landscape',
+  'Portrait',
+  'Modern Art',
+  'Traditional Art',
+  'Nature & Wildlife',
+  'Cityscape',
+  'Floral Art',
+  'Minimalist',
+  'Pop Art',
   'Digital Art',
+  'Acrylic',
+  'Oil',
+  'Watercolor',
   'Mixed Media',
-  'Other',
 ];
 
 const MATERIALS = [
@@ -22,12 +29,7 @@ const MATERIALS = [
   'Watercolor',
   'Canvas',
   'Paper',
-  'Wood',
-  'Metal',
-  'Clay',
-  'Fabric',
-  'Digital',
-  'Mixed',
+  'Mixed Media',
 ];
 
 export default function UploadArtworkPage() {
@@ -37,7 +39,7 @@ export default function UploadArtworkPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'Paintings',
+    category: 'Abstract',
     price: '',
     images: [] as string[],
     dimensions: {
