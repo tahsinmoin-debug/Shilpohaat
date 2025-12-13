@@ -21,8 +21,8 @@ const Artwork = mongoose.model('Artwork', artworkSchema);
 
 // Map legacy categories to new enum values
 const categoryMap = {
-  Paintings: 'Painting',
-  Painting: 'Painting',
+  Paintings: 'Abstract',
+  Painting: 'Abstract',
   Sculpture: 'Sculpture',
   Sculptures: 'Sculpture',
   Photography: 'Photography',
@@ -55,7 +55,7 @@ const categoryMap = {
 };
 
 async function run() {
-  await mongoose.connect(MONGODB_URI, { dbName: 'shilpohaat' }).catch((err) => {
+  await mongoose.connect(MONGODB_URI).catch((err) => {
     console.error('Failed to connect to MongoDB:', err.message);
     process.exit(1);
   });
