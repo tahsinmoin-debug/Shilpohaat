@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useI18n } from './LanguageProvider';
 
 interface Artist {
   _id: string;
@@ -26,6 +27,7 @@ interface Artist {
 export default function FeaturedArtists() {
   const [artists, setArtists] = React.useState<Artist[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const { t } = useI18n();
 
   React.useEffect(() => {
     const fetchFeaturedArtists = async () => {
@@ -64,10 +66,10 @@ export default function FeaturedArtists() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="font-heading text-4xl text-white mb-4">
-            Featured Local Artists
+            {t('featuredArtists.title')}
           </h2>
           <p className="font-sans text-gray-300 text-lg max-w-2xl mx-auto">
-            Discover trending Bangladeshi artists based on ratings, popularity, and curator selection
+            {t('featuredArtists.subtitle')}
           </p>
         </div>
 
@@ -101,7 +103,7 @@ export default function FeaturedArtists() {
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
-                    Featured
+                    {t('featuredArtists.featured')}
                   </div>
                 )}
               </div>
@@ -175,7 +177,7 @@ export default function FeaturedArtists() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    {artist.profileViews || 0} views
+                    {artist.profileViews || 0} {t('featuredArtists.views')}
                   </div>
                   <button 
                     onClick={(e) => {
@@ -184,7 +186,7 @@ export default function FeaturedArtists() {
                     }}
                     className="px-4 py-2 bg-brand-gold text-gray-900 text-sm font-semibold rounded-md hover:bg-brand-gold-antique transition-colors"
                   >
-                    View Profile
+                    {t('featuredArtists.viewProfile')}
                   </button>
                 </div>
               </div>
@@ -198,7 +200,7 @@ export default function FeaturedArtists() {
             href="/artists"
             className="inline-block px-8 py-3 bg-transparent border-2 border-brand-gold text-brand-gold font-semibold rounded-md hover:bg-brand-gold hover:text-gray-900 transition-all duration-300"
           >
-            Explore All Artists
+            {t('featuredArtists.exploreAll')}
           </Link>
         </div>
       </div>

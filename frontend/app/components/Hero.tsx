@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { useI18n } from './LanguageProvider';
 
 export default function Hero() {
+  const { t } = useI18n();
+
   return (
     <section className="relative h-[500px] md:h-[600px] w-full overflow-hidden">
       {/* Background Image */}
@@ -23,12 +26,12 @@ export default function Hero() {
         <div className="max-w-4xl text-center">
           {/* Heading */}
           <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white mb-4 md:mb-6 leading-tight">
-            প্রতিটি তুলির টানে, একটি নতুন গল্প
+            {t('hero.heading')}
           </h1>
 
           {/* Paragraph */}
           <p className="font-sans text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto">
-            বাংলাদেশের স্থানীয় শিল্পীদের সৃজনশীল কাজ প্রদর্শন ও বিক্রয়ের জন্য একটি বাজার
+            {t('hero.subheading')}
           </p>
 
           {/* Buttons */}
@@ -37,13 +40,13 @@ export default function Hero() {
               href="/artworks"
               className="font-sans inline-block px-8 py-3 bg-white text-[#58181F] font-semibold rounded-md hover:bg-yellow-500 hover:text-white transition-all duration-300 text-center shadow-lg"
             >
-              Shop Now
+              {t('hero.shopNow')}
             </Link>
             <Link
               href="/about"
               className="font-sans inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-md border-2 border-white hover:bg-white hover:text-[#58181F] transition-all duration-300 text-center"
             >
-              Learn More
+              {t('hero.learnMore')}
             </Link>
           </div>
         </div>

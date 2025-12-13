@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 // This imports your globals.css file
 import "./globals.css";
-import { AuthProvider } from "./components/AuthProvider";
-import { CartProvider } from "./components/CartProvider";
+import Providers from "./providers";
 
 // Setup the font variables
 const inter = Inter({
@@ -40,11 +39,9 @@ export default function RootLayout({
         4. We set the default text color to a light, visible gray `text-gray-100`.
       */}
       <body className={`${inter.variable} ${playfair.variable} font-sans bg-brand-maroon antialiased`}>
-        <AuthProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </AuthProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCart } from './CartProvider';
+import { useI18n } from './LanguageProvider';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, loading, appUser } = useAuth();
   const { cartItems } = useCart();
+  const { t, language, setLanguage } = useI18n();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -32,37 +34,37 @@ export default function Header() {
               href="/" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              Home
+              {t('nav.home')}
             </Link>
             <Link 
               href="/artworks" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              Artworks
+              {t('nav.artworks')}
             </Link>
             <Link 
               href="/artists" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              Artists
+              {t('nav.artists')}
             </Link>
             <Link 
               href="/blog" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              Blog
+              {t('nav.blog')}
             </Link>
             <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              Categories
+              {t('nav.categories')}
             </Link>
             <Link 
               href="/about" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              About
+              {t('nav.about')}
             </Link>
 
             {/* Role-based links */}
@@ -73,7 +75,7 @@ export default function Header() {
                     href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
                     className="font-sans text-white hover:text-brand-gold transition-colors"
                   >
-                    Artist Dashboard
+                    {t('nav.artistDashboard')}
                   </Link>
                 )}
                 {appUser?.role === 'buyer' && (
@@ -81,7 +83,7 @@ export default function Header() {
                     href="/account"
                     className="font-sans text-white hover:text-brand-gold transition-colors"
                   >
-                    My Account
+                    {t('nav.myAccount')}
                   </Link>
                 )}
                 {appUser?.role === 'admin' && (
@@ -89,7 +91,7 @@ export default function Header() {
                     href="/admin"
                     className="font-sans text-white hover:text-brand-gold transition-colors"
                   >
-                    Admin
+                    {t('nav.admin')}
                   </Link>
                 )}
               </>
@@ -98,11 +100,25 @@ export default function Header() {
 
           {/* Right side icons and mobile menu */}
           <div className="flex items-center gap-4">
+            {/* Language toggle */}
+            <div className="hidden md:flex items-center gap-1">
+              {(['en', 'bn'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`text-xs px-2 py-1 rounded border border-white/20 transition-colors ${language === lang ? 'bg-white text-brand-maroon' : 'text-white hover:bg-white/10'}`}
+                  aria-label={`${t('nav.language')}: ${lang.toUpperCase()}`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
             {/* Shopping Cart Icon with Badge */}
             <Link 
               href="/cart" 
               className="relative text-white hover:text-brand-gold transition-colors"
-              aria-label="Shopping cart"
+              aria-label={t('nav.cart')}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -117,7 +133,7 @@ export default function Header() {
 
             {/* Auth status */}
             {loading ? (
-              <span className="text-white text-sm">Loading...</span>
+              <span className="text-white text-sm">{t('nav.loading')}</span>
             ) : user ? (
               <div className="flex items-center gap-2">
                 <span className="text-white text-sm hidden sm:inline">{user.displayName || user.email}</span>
@@ -125,7 +141,7 @@ export default function Header() {
                   onClick={logout}
                   className="text-white text-xs border border-white/30 px-3 py-1 rounded hover:bg-white hover:text-brand-maroon transition-colors"
                 >
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             ) : (
@@ -133,7 +149,7 @@ export default function Header() {
                 href="/login"
                 className="text-white text-sm border border-white/30 px-3 py-1 rounded hover:bg-white hover:text-brand-maroon transition-colors"
               >
-                Login
+                {t('nav.login')}
               </Link>
             )}
 
@@ -164,41 +180,41 @@ export default function Header() {
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Home
+              {t('nav.home')}
             </Link>
             <Link 
               href="/artworks" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Artworks
+              {t('nav.artworks')}
             </Link>
             <Link 
               href="/artists" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Artists
+              {t('nav.artists')}
             </Link>
             <Link 
               href="/blog" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
-              Blog
+              {t('nav.blog')}
             </Link>
             <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Categories
+              {t('nav.categories')}
             </Link>
             <Link 
               href="/about" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              About
+              {t('nav.about')}
             </Link>
             {/* Role-based (mobile) */}
             {user ? (
@@ -209,7 +225,7 @@ export default function Header() {
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Artist Dashboard
+                      {t('nav.artistDashboard')}
                     </Link>
                   )}
                   {appUser?.role === 'buyer' && (
@@ -218,7 +234,7 @@ export default function Header() {
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      My Account
+                      {t('nav.myAccount')}
                     </Link>
                   )}
                   {appUser?.role === 'admin' && (
@@ -227,7 +243,7 @@ export default function Header() {
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Admin
+                      {t('nav.admin')}
                     </Link>
                   )}
                 </>
@@ -239,7 +255,7 @@ export default function Header() {
                   onClick={() => { logout(); setIsMobileMenuOpen(false); }}
                   className="text-left font-sans text-white hover:text-brand-gold transition-colors py-2"
                 >
-                  Logout
+                  {t('nav.logout')}
                 </button>
               ) : (
                 <Link
@@ -247,10 +263,23 @@ export default function Header() {
                   className="font-sans text-white hover:text-brand-gold transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Login
+                  {t('nav.login')}
                 </Link>
               )
             )}
+            {/* Mobile language toggle */}
+            <div className="flex md:hidden items-center gap-1 pt-2">
+              {(['en', 'bn'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => { setLanguage(lang); setIsMobileMenuOpen(false); }}
+                  className={`text-xs px-2 py-1 rounded border border-white/20 transition-colors ${language === lang ? 'bg-white text-brand-maroon' : 'text-white hover:bg-white/10'}`}
+                  aria-label={`${t('nav.language')}: ${lang.toUpperCase()}`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </nav>
         )}
       </div>
