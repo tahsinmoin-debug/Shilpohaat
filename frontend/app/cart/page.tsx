@@ -9,7 +9,7 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
         <Header />
         <div className="container mx-auto px-4 py-16 text-center">
           <svg className="w-20 h-20 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
       <Header />
       <section className="container mx-auto px-4 py-12">
         <h1 className="text-3xl font-heading text-white mb-8">Shopping Cart</h1>

@@ -17,7 +17,11 @@ const ArtworkSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Paintings', 'Sculptures', 'Textiles', 'Jewelry', 'Photography', 'Digital Art', 'Mixed Media', 'Other'],
+      enum: [
+        'Abstract', 'Landscape', 'Portrait', 'Modern Art', 'Traditional Art', 
+        'Nature & Wildlife', 'Cityscape', 'Floral Art', 'Minimalist', 'Pop Art',
+        'Digital Art', 'Acrylic', 'Oil', 'Watercolor', 'Mixed Media'
+      ],
       required: true,
     },
     price: {

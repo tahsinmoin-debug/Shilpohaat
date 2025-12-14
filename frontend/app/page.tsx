@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Header from './components/Header';
 import FeaturedArtists from './components/FeaturedArtists';
+import { useI18n } from './components/LanguageProvider';
 
 // Add this interface at the top after imports
 interface Artwork {
@@ -22,7 +23,10 @@ interface Artwork {
 
 
 // HERO COMPONENT
-function Hero() {
+function Hero({ t }: { t: (key: string) => string }) {
+  // Keep the hero headline in Bengali regardless of language selection
+  const headingBn = 'প্রতিটি তুলির টানে, একটি নতুন গল্প';
+  const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতার জগতটি ঘুরে দেখুন...';
   return (
     <section className="relative h-[600px] w-full overflow-hidden">
       {/* Background Image */}
@@ -43,12 +47,12 @@ function Hero() {
         <div className="max-w-4xl text-center">
           {/* Heading */}
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white font-bold mb-6 leading-tight">
-            প্রতিটি তুলির টানে, একটি নতুন গল্প
+            {headingBn}
           </h1>
 
           {/* Paragraph */}
           <p className="font-sans text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed max-w-2xl mx-auto">
-            বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতার জগতটি ঘুরে দেখুন...
+            {subheadingBn}
           </p>
 
           {/* Buttons */}
@@ -57,13 +61,13 @@ function Hero() {
               href="/artworks"
               className="font-sans inline-block px-8 py-3 bg-white text-gray-900 font-semibold rounded-md hover:bg-brand-gold hover:text-white transition-all duration-300 text-center shadow-lg"
             >
-              Shop Now
+              {t('hero.shopNow')}
             </Link>
             <Link
               href="/about"
               className="font-sans inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-md border-2 border-white hover:bg-white hover:text-gray-900 transition-all duration-300 text-center"
             >
-              Learn More
+              {t('hero.learnMore')}
             </Link>
           </div>
         </div>
@@ -73,12 +77,12 @@ function Hero() {
 }
 
 // SHOP BY CATEGORY COMPONENT
-function ShopByCategory() {
+function ShopByCategory({ t }: { t: (key: string) => string }) {
   const categories = [
-    { name: 'Paintings', items: '150+ Items', href: '/products?category=paintings', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Painting' },
-    { name: 'Textiles', items: '80+ Items', href: '/products?category=textiles', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Textile' },
-    { name: 'Sculptures', items: '60+ Items', href: '/products?category=sculptures', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Sculpture' },
-    { name: 'Jewelry', items: '90+ Items', href: '/products?category=jewelry', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Jewelry' }
+    { key: 'paintings', countKey: 'shopByCategory.paintingsCount', href: '/products?category=paintings', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Painting' },
+    { key: 'textiles', countKey: 'shopByCategory.textilesCount', href: '/products?category=textiles', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Textile' },
+    { key: 'sculptures', countKey: 'shopByCategory.sculpturesCount', href: '/products?category=sculptures', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Sculpture' },
+    { key: 'jewelry', countKey: 'shopByCategory.jewelryCount', href: '/products?category=jewelry', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Jewelry' }
   ];
 
   return (
@@ -86,12 +90,12 @@ function ShopByCategory() {
       <div className="container mx-auto px-4">
         {/* Heading */}
         <h2 className="font-heading text-4xl text-white text-center mb-4">
-          Shop by Category
+          {t('shopByCategory.title')}
         </h2>
         
         {/* Paragraph */}
         <p className="font-sans text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-          Explore our diverse collection of authentic Bangladeshi artworks and crafts
+          {t('shopByCategory.subtitle')}
         </p>
 
         {/* Categories Grid */}
@@ -116,10 +120,10 @@ function ShopByCategory() {
               {/* Category Info */}
               <div className="p-4">
                 <h3 className="font-heading text-xl text-white mb-1">
-                  {category.name}
+                  {t(`shopByCategory.${category.key}`)}
                 </h3>
                 <p className="font-sans text-gray-400 text-sm">
-                  {category.items}
+                  {t(category.countKey)}
                 </p>
               </div>
             </Link>
@@ -132,7 +136,7 @@ function ShopByCategory() {
 
 // FEATURED ARTWORKS COMPONENT
 
-function FeaturedArtworks() {
+function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   const [artworks, setArtworks] = React.useState<Artwork[]>([]); // ← Fixed type
   const [loading, setLoading] = React.useState(true);
 
@@ -173,12 +177,12 @@ function FeaturedArtworks() {
       <div className="container mx-auto px-4">
         {/* Heading */}
         <h2 className="font-heading text-4xl text-white text-center mb-4">
-          Featured Artworks
+          {t('featuredArtworks.title')}
         </h2>
         
         {/* Paragraph */}
         <p className="font-sans text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-          Handpicked masterpieces from our talented local artists
+          {t('featuredArtworks.subtitle')}
         </p>
 
         {/* Artworks Grid */}
@@ -206,7 +210,7 @@ function FeaturedArtworks() {
                   {artwork.title}
                 </h3>
                 <p className="font-sans text-gray-400 text-sm mb-2">
-                  by {artwork.artist?.name || 'Unknown Artist'}
+                  {t('featuredArtworks.by')} {artwork.artist?.name || t('featuredArtworks.unknownArtist')}
                 </p>
                 <p className="font-sans text-white font-semibold text-lg mb-4">
                   ৳{artwork.price?.toLocaleString()}
@@ -219,7 +223,7 @@ function FeaturedArtworks() {
                   }}
                   className="w-full bg-brand-gold text-gray-900 font-semibold py-2 px-4 rounded-md hover:bg-brand-gold-antique transition-colors"
                 >
-                  Add to Cart
+                  {t('featuredArtworks.addToCart')}
                 </button>
               </div>
             </Link>
@@ -231,7 +235,7 @@ function FeaturedArtworks() {
 }
 
 // FOOTER COMPONENT
-function Footer() {
+function Footer({ t }: { t: (key: string) => string }) {
   return (
     <footer className="py-16">
       <div className="container mx-auto px-4">
@@ -242,32 +246,32 @@ function Footer() {
               শিল্পহাট
             </h3>
             <p className="font-sans text-gray-400 text-sm leading-relaxed">
-              Empowering local Bangladeshi artists by connecting them with art lovers worldwide. Every purchase supports creative communities.
+              {t('footer.mission')}
             </p>
           </div>
 
           {/* Column 2: Quick Links */}
           <div>
-            <h4 className="font-sans text-white font-semibold mb-4">Quick Links</h4>
+            <h4 className="font-sans text-white font-semibold mb-4">{t('footer.quickLinks')}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Home
+                  {t('footer.home')}
                 </Link>
               </li>
               <li>
                 <Link href="/artworks" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Artworks
+                  {t('footer.artworks')}
                 </Link>
               </li>
               <li>
                 <Link href="/artists" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Artists
+                  {t('footer.artists')}
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  About
+                  {t('footer.about')}
                 </Link>
               </li>
             </ul>
@@ -275,21 +279,21 @@ function Footer() {
 
           {/* Column 3: Customer Service */}
           <div>
-            <h4 className="font-sans text-white font-semibold mb-4">Customer Service</h4>
+            <h4 className="font-sans text-white font-semibold mb-4">{t('footer.customerService')}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/contact" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Contact Us
+                  {t('footer.contact')}
                 </Link>
               </li>
               <li>
                 <Link href="/faq" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  FAQ
+                  {t('footer.faq')}
                 </Link>
               </li>
               <li>
                 <Link href="/shipping" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Shipping & Returns
+                  {t('footer.shipping')}
                 </Link>
               </li>
             </ul>
@@ -297,21 +301,21 @@ function Footer() {
 
           {/* Column 4: For Artists */}
           <div>
-            <h4 className="font-sans text-white font-semibold mb-4">For Artists</h4>
+            <h4 className="font-sans text-white font-semibold mb-4">{t('footer.forArtists')}</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/become-seller" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Become a Seller
+                  {t('footer.becomeSeller')}
                 </Link>
               </li>
               <li>
                 <Link href="/artist-dashboard" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Artist Dashboard
+                  {t('footer.artistDashboard')}
                 </Link>
               </li>
               <li>
                 <Link href="/seller-guidelines" className="font-sans text-gray-300 hover:text-brand-gold transition-colors text-sm">
-                  Seller Guidelines
+                  {t('footer.sellerGuidelines')}
                 </Link>
               </li>
             </ul>
@@ -321,7 +325,7 @@ function Footer() {
         {/* Horizontal Line */}
         <div className="border-t border-gray-700 pt-8">
           <p className="font-sans text-gray-400 text-sm text-center">
-            © {new Date().getFullYear()} শিল্পহাট (ShilpoHaat). All rights reserved. Crafted with ❤️ for Bangladeshi artists.
+            © {new Date().getFullYear()} শিল্পহাট (ShilpoHaat). {t('footer.copyright')}
           </p>
         </div>
       </div>
@@ -331,14 +335,15 @@ function Footer() {
 
 // HOME PAGE (Main Export)
 export default function Home() {
+  const { t } = useI18n();
   return (
     <main>
       <Header />
-      <Hero />
-      <ShopByCategory />
+      <Hero t={t} />
+      <ShopByCategory t={t} />
       <FeaturedArtists /> {/* NEW: Featured Artists Section */}
-      <FeaturedArtworks />
-      <Footer />
+      <FeaturedArtworks t={t} />
+      <Footer t={t} />
     </main>
   );
 }

@@ -11,6 +11,8 @@ const artworkRoutes = require('./routes/artworks.js');
 const orderRoutes = require('./routes/orders.js');
 const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
+const uploadRoutes = require('./routes/upload.js');
+const blogRoutes = require('./routes/blog.js');
 
 // Connect to MongoDB
 connectDB();
@@ -59,6 +61,12 @@ app.use('/api/orders', orderRoutes);
 
 // Payment routes
 app.use('/api/payments', paymentRoutes);
+
+// Blog routes
+app.use('/api/blog', blogRoutes);
+
+// Upload routes
+app.use('/api/upload', uploadRoutes);
 
 // Blog routes
 app.use('/api/blog', blogRoutes);

@@ -42,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main>
+    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
       <Header />
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">
