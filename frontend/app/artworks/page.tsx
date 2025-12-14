@@ -178,10 +178,7 @@ export default function ArtworksPage() {
             </button>
           </div>
 
-          {/* Filters Info */}
-          <div className="mt-4 text-sm text-gray-400">
-            <p>💡 Browse categories at our <a href="/categories" className="text-brand-gold hover:underline">dedicated Categories page</a></p>
-          </div>
+          {/* Filters Info (removed per request) */}
 
           {/* Price Range */}
           <div className={`${showFilters ? 'block' : 'hidden'} md:block mt-4`}>

@@ -28,7 +28,7 @@ function Hero({ t }: { t: (key: string) => string }) {
   const headingBn = 'প্রতিটি তুলির টানে, একটি নতুন গল্প';
   const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতার জগতটি ঘুরে দেখুন...';
   return (
-    <section className="relative h-[600px] w-full overflow-hidden">
+    <section className="relative h-[560px] md:h-[600px] w-full overflow-hidden">
       {/* Background Image */}
       <Image
         src="/hero-bg.jpg"
@@ -44,28 +44,28 @@ function Hero({ t }: { t: (key: string) => string }) {
 
       {/* Content */}
       <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
-        <div className="max-w-4xl text-center">
+        <div className="max-w-3xl md:max-w-4xl text-center">
           {/* Heading */}
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white font-bold mb-6 leading-tight">
+          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white font-bold mb-5 md:mb-6 leading-tight tracking-tight">
             {headingBn}
           </h1>
 
           {/* Paragraph */}
-          <p className="font-sans text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed max-w-2xl mx-auto">
+          <p className="font-sans text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto">
             {subheadingBn}
           </p>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Link
               href="/artworks"
-              className="font-sans inline-block px-8 py-3 bg-white text-gray-900 font-semibold rounded-md hover:bg-brand-gold hover:text-white transition-all duration-300 text-center shadow-lg"
+              className="font-sans inline-block px-7 md:px-8 py-3 bg-white text-gray-900 font-semibold rounded-md hover:bg-brand-gold hover:text-white transition-all duration-300 text-center shadow-lg"
             >
               {t('hero.shopNow')}
             </Link>
             <Link
               href="/about"
-              className="font-sans inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-md border-2 border-white hover:bg-white hover:text-gray-900 transition-all duration-300 text-center"
+              className="font-sans inline-block px-7 md:px-8 py-3 bg-transparent text-white font-semibold rounded-md border-2 border-white hover:bg-white hover:text-gray-900 transition-all duration-300 text-center"
             >
               {t('hero.learnMore')}
             </Link>
@@ -340,7 +340,6 @@ export default function Home() {
     <main>
       <Header />
       <Hero t={t} />
-      <ShopByCategory t={t} />
       <FeaturedArtists /> {/* NEW: Featured Artists Section */}
       <FeaturedArtworks t={t} />
       <Footer t={t} />

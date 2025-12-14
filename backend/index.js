@@ -12,7 +12,6 @@ const orderRoutes = require('./routes/orders.js');
 const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
 const uploadRoutes = require('./routes/upload.js');
-const blogRoutes = require('./routes/blog.js');
 
 // Connect to MongoDB
 connectDB();
@@ -67,9 +66,6 @@ app.use('/api/blog', blogRoutes);
 
 // Upload routes
 app.use('/api/upload', uploadRoutes);
-
-// Blog routes
-app.use('/api/blog', blogRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
