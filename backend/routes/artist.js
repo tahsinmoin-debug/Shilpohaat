@@ -16,4 +16,12 @@ router.get('/featured', getFeaturedArtists);
 // PATCH /api/artist/profile?firebaseUID=... (update artist profile)
 router.patch('/profile', updateArtistProfile);
 
+const { 
+    getHubArtists 
+} = require('../controllers/artistController');
+// New route for the messaging hub artist list
+router.get('/hub-artists', getHubArtists); 
+
 module.exports = router;
+
+

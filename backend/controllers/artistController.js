@@ -5,257 +5,271 @@ const { uploadToCloudinary, uploadMultipleToCloudinary, replaceImages } = requir
 
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
-  try {
-    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
-    if (!firebaseUID) {
-      return res.status(400).json({ message: 'firebaseUID is required' });
-    }
+  try {
+    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
+    if (!firebaseUID) {
+      return res.status(400).json({ message: 'firebaseUID is required' });
+    }
 
-    // Find the user
-    const user = await User.findOne({ firebaseUID });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Find the user
+    const user = await User.findOne({ firebaseUID });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    if (user.role !== 'artist') {
-      return res.status(403).json({ message: 'Only artists can update profile' });
-    }
+    if (user.role !== 'artist') {
+      return res.status(403).json({ message: 'Only artists can update profile' });
+    }
 
-    // Find or create artist profile
-    let profile = await ArtistProfile.findOne({ user: user._id });
-    if (!profile) {
-      profile = new ArtistProfile({ user: user._id });
-    }
+    // Find or create artist profile
+    let profile = await ArtistProfile.findOne({ user: user._id });
+    if (!profile) {
+      profile = new ArtistProfile({ user: user._id });
+    }
 
-    // Update fields from request body
-    const {
-      bio,
-      specializations,
-      contactPhone,
-      profilePicture,
-      portfolioImages,
-      artistStory,
-      skills,
-      website,
-      instagram,
-      availability,
-    } = req.body;
+    // Update fields from request body
+    const {
+      bio,
+      specializations,
+      contactPhone,
+      profilePicture,
+      portfolioImages,
+      artistStory,
+      skills,
+      website,
+      instagram,
+      availability,
+    } = req.body;
 
-    if (bio !== undefined) profile.bio = bio;
-    if (specializations !== undefined) profile.specializations = specializations;
-    if (contactPhone !== undefined) profile.contactPhone = contactPhone;
-    
-    // Upload profile picture to Cloudinary if it's a base64 string
-    if (profilePicture !== undefined) {
-      if (profilePicture.startsWith('data:') || profilePicture.startsWith('iVBOR')) {
-        console.log('Uploading profile picture to Cloudinary...');
-        const result = await uploadToCloudinary(profilePicture, 'shilpohaat/artists/profiles');
-        profile.profilePicture = result.url;
-        console.log('✓ Profile picture uploaded');
-      } else {
-        profile.profilePicture = profilePicture; // Already a URL
-      }
-    }
-    
-    // Upload portfolio images to Cloudinary if they're base64 strings
-    if (portfolioImages !== undefined && Array.isArray(portfolioImages)) {
-      const newImages = portfolioImages.filter(img => img.startsWith('data:') || img.startsWith('iVBOR'));
-      const existingUrls = portfolioImages.filter(img => img.startsWith('http'));
-      
-      if (newImages.length > 0) {
-        console.log(`Uploading ${newImages.length} portfolio images to Cloudinary...`);
-        const uploadedUrls = await uploadMultipleToCloudinary(newImages, 'shilpohaat/artists/portfolio');
-        profile.portfolioImages = [...existingUrls, ...uploadedUrls];
-        console.log('✓ Portfolio images uploaded');
-      } else {
-        profile.portfolioImages = existingUrls;
-      }
-    }
-    
-    if (artistStory !== undefined) profile.artistStory = artistStory;
-    if (skills !== undefined) profile.skills = skills;
-    if (website !== undefined) profile.website = website;
-    if (instagram !== undefined) profile.instagram = instagram;
-    if (availability !== undefined) profile.availability = availability;
+    if (bio !== undefined) profile.bio = bio;
+    if (specializations !== undefined) profile.specializations = specializations;
+    if (contactPhone !== undefined) profile.contactPhone = contactPhone;
+    
+    // Upload profile picture to Cloudinary if it's a base64 string
+    if (profilePicture !== undefined) {
+      if (profilePicture.startsWith('data:') || profilePicture.startsWith('iVBOR')) {
+        console.log('Uploading profile picture to Cloudinary...');
+        const result = await uploadToCloudinary(profilePicture, 'shilpohaat/artists/profiles');
+        profile.profilePicture = result.url;
+        console.log('✓ Profile picture uploaded');
+      } else {
+        profile.profilePicture = profilePicture; // Already a URL
+      }
+    }
+    
+    // Upload portfolio images to Cloudinary if they're base64 strings
+    if (portfolioImages !== undefined && Array.isArray(portfolioImages)) {
+      const newImages = portfolioImages.filter(img => img.startsWith('data:') || img.startsWith('iVBOR'));
+      const existingUrls = portfolioImages.filter(img => img.startsWith('http'));
+      
+      if (newImages.length > 0) {
+        console.log(`Uploading ${newImages.length} portfolio images to Cloudinary...`);
+        const uploadedUrls = await uploadMultipleToCloudinary(newImages, 'shilpohaat/artists/portfolio');
+        profile.portfolioImages = [...existingUrls, ...uploadedUrls];
+        console.log('✓ Portfolio images uploaded');
+      } else {
+        profile.portfolioImages = existingUrls;
+      }
+    }
+    
+    if (artistStory !== undefined) profile.artistStory = artistStory;
+    if (skills !== undefined) profile.skills = skills;
+    if (website !== undefined) profile.website = website;
+    if (instagram !== undefined) profile.instagram = instagram;
+    if (availability !== undefined) profile.availability = availability;
 
-    // Mark as complete if key fields are filled
-    profile.isProfileComplete = !!(
-      profile.bio &&
-      profile.specializations.length > 0 &&
-      profile.artistStory
-    );
+    // Mark as complete if key fields are filled
+    profile.isProfileComplete = !!(
+      profile.bio &&
+      profile.specializations.length > 0 &&
+      profile.artistStory
+    );
 
-    await profile.save();
+    await profile.save();
 
-    // Update user's artistProfile reference if not set
-    if (!user.artistProfile) {
-      user.artistProfile = profile._id;
-      await user.save();
-    }
+    // Update user's artistProfile reference if not set
+    if (!user.artistProfile) {
+      user.artistProfile = profile._id;
+      await user.save();
+    }
 
-    return res.json({ success: true, profile });
-  } catch (error) {
-    console.error('Update profile error:', error);
-    return res.status(500).json({ message: 'Server error.', error: error.message });
-  }
+    return res.json({ success: true, profile });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({ message: 'Server error.', error: error.message });
+  }
 };
 
 // Get all artist profiles (public)
 const getAllArtists = async (req, res) => {
-  try {
-    const { letter, search } = req.query;
+  try {
+    const { letter, search } = req.query;
 
-    // Build query
-    let userQuery = { role: 'artist' };
-    
-    // Find users first
-    const users = await User.find(userQuery);
-    const userIds = users.map(u => u._id);
+    // Build query
+    let userQuery = { role: 'artist' };
+    
+    // Find users first
+    const users = await User.find(userQuery);
+    const userIds = users.map(u => u._id);
 
-    // Find complete profiles
-    let profileQuery = {
-      user: { $in: userIds },
-      isProfileComplete: true,
-    };
+    // Find complete profiles
+    let profileQuery = {
+      user: { $in: userIds },
+      isProfileComplete: true,
+    };
 
-    const profiles = await ArtistProfile.find(profileQuery)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 });
+    const profiles = await ArtistProfile.find(profileQuery)
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 });
 
-    // Filter by letter if provided
-    let filteredProfiles = profiles;
-    if (letter) {
-      filteredProfiles = profiles.filter(p => 
-        p.bio.toLowerCase().startsWith(letter.toLowerCase())
-      );
-    }
+    // Filter by letter if provided
+    let filteredProfiles = profiles;
+    if (letter) {
+      filteredProfiles = profiles.filter(p => 
+        p.bio.toLowerCase().startsWith(letter.toLowerCase())
+      );
+    }
 
-    // Search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredProfiles = filteredProfiles.filter(p =>
-        p.bio.toLowerCase().includes(searchLower) ||
-        p.specializations.some(s => s.toLowerCase().includes(searchLower))
-      );
-    }
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredProfiles = filteredProfiles.filter(p =>
+        p.bio.toLowerCase().includes(searchLower) ||
+        p.specializations.some(s => s.toLowerCase().includes(searchLower))
+      );
+    }
 
-    return res.json({
-      success: true,
-      count: filteredProfiles.length,
-      artists: filteredProfiles,
-    });
-  } catch (error) {
-    console.error('Get artists error:', error);
-    return res.status(500).json({ message: 'Server error.' });
-  }
+    return res.json({
+      success: true,
+      count: filteredProfiles.length,
+      artists: filteredProfiles,
+    });
+  } catch (error) {
+    console.error('Get artists error:', error);
+    return res.status(500).json({ message: 'Server error.' });
+  }
 };
 
 // NEW: Get featured artists (for homepage)
 const getFeaturedArtists = async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 6;
+  try {
+    const limit = parseInt(req.query.limit) || 6;
 
-    // Find users who are artists
-    const users = await User.find({ role: 'artist' });
-    const userIds = users.map(u => u._id);
+    // Find users who are artists
+    const users = await User.find({ role: 'artist' });
+    const userIds = users.map(u => u._id);
 
-    // Find complete profiles
-    let profiles = await ArtistProfile.find({
-      user: { $in: userIds },
-      isProfileComplete: true,
-    })
-      .populate('user', 'name email')
-      .limit(limit);
+    // Find complete profiles
+    let profiles = await ArtistProfile.find({
+      user: { $in: userIds },
+      isProfileComplete: true,
+    })
+      .populate('user', 'name email')
+      .limit(limit);
 
-    // Calculate score for each artist based on:
-    // 1. Admin selection (isFeatured flag - highest priority)
-    // 2. Rating (average rating)
-    // 3. Popularity (profile views, total artworks)
-    const scoredProfiles = profiles.map(profile => {
-      let score = 0;
-      
-      // Admin featured gets highest score (1000 points)
-      if (profile.isFeatured) {
-        score += 1000;
-      }
-      
-      // Rating (0-5 scale, worth up to 500 points)
-      if (profile.rating) {
-        score += profile.rating * 100;
-      }
-      
-      // Profile views (worth up to 300 points, capped at 1000 views)
-      if (profile.profileViews) {
-        score += Math.min(profile.profileViews, 1000) * 0.3;
-      }
-      
-      // Total artworks (worth up to 200 points, capped at 50 artworks)
-      if (profile.totalArtworks) {
-        score += Math.min(profile.totalArtworks, 50) * 4;
-      }
-      
-      return {
-        ...profile.toObject(),
-        score
-      };
-    });
+    // Calculate score for each artist based on:
+    // 1. Admin selection (isFeatured flag - highest priority)
+    // 2. Rating (average rating)
+    // 3. Popularity (profile views, total artworks)
+    const scoredProfiles = profiles.map(profile => {
+      let score = 0;
+      
+      // Admin featured gets highest score (1000 points)
+      if (profile.isFeatured) {
+        score += 1000;
+      }
+      
+      // Rating (0-5 scale, worth up to 500 points)
+      if (profile.rating) {
+        score += profile.rating * 100;
+      }
+      
+      // Profile views (worth up to 300 points, capped at 1000 views)
+      if (profile.profileViews) {
+        score += Math.min(profile.profileViews, 1000) * 0.3;
+      }
+      
+      // Total artworks (worth up to 200 points, capped at 50 artworks)
+      if (profile.totalArtworks) {
+        score += Math.min(profile.totalArtworks, 50) * 4;
+      }
+      
+      return {
+        ...profile.toObject(),
+        score
+      };
+    });
 
-    // Sort by score (highest first)
-    scoredProfiles.sort((a, b) => b.score - a.score);
+    // Sort by score (highest first)
+    scoredProfiles.sort((a, b) => b.score - a.score);
 
-    // Take top featured artists
-    const featuredArtists = scoredProfiles.slice(0, limit);
+    // Take top featured artists
+    const featuredArtists = scoredProfiles.slice(0, limit);
 
-    return res.json({
-      success: true,
-      count: featuredArtists.length,
-      artists: featuredArtists,
-    });
-  } catch (error) {
-    console.error('Get featured artists error:', error);
-    return res.status(500).json({ message: 'Server error.' });
-  }
+    return res.json({
+      success: true,
+      count: featuredArtists.length,
+      artists: featuredArtists,
+    });
+  } catch (error) {
+    console.error('Get featured artists error:', error);
+    return res.status(500).json({ message: 'Server error.' });
+  }
 };
 
 // Get single artist profile (public)
 const getArtistById = async (req, res) => {
-  try {
-    const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-    // Try finding by profile _id first
-    let profile = await ArtistProfile.findById(id).populate('user', 'name email role artistProfile');
+    // Try finding by profile _id first
+    let profile = await ArtistProfile.findById(id).populate('user', 'name email role artistProfile');
 
-    // If not found, maybe id is the user id
-    if (!profile) {
-      profile = await ArtistProfile.findOne({ user: id }).populate('user', 'name email role artistProfile');
+    // If not found, maybe id is the user id
+    if (!profile) {
+      profile = await ArtistProfile.findOne({ user: id }).populate('user', 'name email role artistProfile');
+    }
+
+    if (!profile || !profile.isProfileComplete) {
+      return res.status(404).json({ message: 'Artist not found' });
+    }
+
+    // Fetch artworks for this artist
+    const artworks = await Artwork.find({ artist: profile.user._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    return res.json({ success: true, artist: profile, artworks });
+  } catch (error) {
+    console.error('Get artist error:', error);
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// New dedicated function to fetch minimal artist list for the Hub
+const getHubArtists = async (req, res) => {
+    try {
+        const artists = await User.find({ role: 'artist' })
+            .select('firebaseUID name email')
+            .lean();
+
+        // Format the output to match the desired structure: { id, name }
+        const artistList = artists.map(artist => ({
+            id: artist.firebaseUID,
+            name: artist.name || artist.email || 'Artist'
+        }));
+
+        res.json({ success: true, artists: artistList });
+    } catch (error) {
+        console.error('Get Hub Artists error:', error);
+        res.status(500).json({ message: 'Failed to retrieve artist list for hub.' });
     }
-
-    if (!profile || !profile.isProfileComplete) {
-      return res.status(404).json({ message: 'Artist not found' });
-    }
-
-    // Fetch artworks for this artist
-    const artworks = await Artwork.find({ artist: profile.user._id })
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    return res.json({ success: true, artist: profile, artworks });
-  } catch (error) {
-    console.error('Get artist error:', error);
-    return res.status(500).json({ message: 'Server error.' });
-  }
 };
 
 module.exports = {
-  updateArtistProfile,
-  getAllArtists,
-  getFeaturedArtists,
-  getArtistById,
+  updateArtistProfile,
+  getAllArtists,
+  getFeaturedArtists,
+  getArtistById,
+  getHubArtists,
 };
-
-
-
-
-
-
-

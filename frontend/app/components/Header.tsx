@@ -20,6 +20,7 @@ export default function Header() {
     <header className="bg-brand-maroon sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
+          
           {/* Logo */}
           <Link 
             href="/" 
@@ -100,19 +101,20 @@ export default function Header() {
 
           {/* Right side icons and mobile menu */}
           <div className="flex items-center gap-4">
-            {/* Language toggle */}
-            <div className="hidden md:flex items-center gap-1">
-              {(['en', 'bn'] as const).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`text-xs px-2 py-1 rounded border border-white/20 transition-colors ${language === lang ? 'bg-white text-brand-maroon' : 'text-white hover:bg-white/10'}`}
-                  aria-label={`${t('nav.language')}: ${lang.toUpperCase()}`}
+            
+            {/* R do this: Message Icon (Desktop) */}
+            {/* The icon is moved here, beside the cart icon */}
+            {!loading && user && appUser?.role === 'artist' && (
+                <Link 
+                    href="/artist/hub" 
+                    className="text-white hover:text-brand-gold transition-colors"
+                    aria-label="Collaboration Hub"
                 >
-                  {lang.toUpperCase()}
-                </button>
-              ))}
-            </div>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z" />
+                    </svg>
+                </Link>
+            )}
 
             {/* Shopping Cart Icon with Badge */}
             <Link 
@@ -175,6 +177,16 @@ export default function Header() {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <nav className="md:hidden mt-4 flex flex-col gap-3 pb-4 border-t border-brand-gold/20 pt-4">
+            {/* R do this - Mobile Message Link */}
+            {!loading && user && appUser?.role === 'artist' && (
+                <Link 
+                    href="/artist/hub" 
+                    className="font-sans text-white hover:text-brand-gold transition-colors py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                >
+                    🤝 Collaboration Hub
+                </Link>
+            )}
             <Link 
               href="/" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
@@ -246,8 +258,8 @@ export default function Header() {
                       {t('nav.admin')}
                     </Link>
                   )}
-                </>
-              ) : null
+              </>
+            ) : null
             }
             {!loading && (
               user ? (
