@@ -21,7 +21,7 @@ interface Message {
 
 const SOCKET_SERVER_URL = 'http://localhost:5000';
 const API_BASE_URL = 'http://localhost:5000/api';
-let socket: any; 
+let socket: any;
 
 export default function CollaborationHubPage() {
     const { user, appUser, loading } = useAuth();
@@ -51,7 +51,7 @@ export default function CollaborationHubPage() {
             
             const data: { id: string, name: string }[] = await response.json();
             
-            const filteredArtists: Artist[] = data.artists
+            const filteredArtists: Artist[] = data
                 .filter((artist: { id: string }) => artist.id !== user.uid)
                 .map((artist: { id: string, name: string }) => ({
                     id: artist.id,

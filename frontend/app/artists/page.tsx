@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import Header from '../components/Header';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -29,6 +28,7 @@ export default function ArtistsPage() {
 
   useEffect(() => {
     fetchArtists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLetter]);
 
   const fetchArtists = async () => {

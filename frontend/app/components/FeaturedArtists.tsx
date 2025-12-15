@@ -84,9 +84,11 @@ export default function FeaturedArtists() {
               {/* Artist Cover Image */}
               <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
                 {artist.portfolioImages?.[0] ? (
-                  <img
+                  <Image
                     src={artist.portfolioImages[0]}
                     alt={artist.bio}
+                    width={400}
+                    height={256}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 ) : (
@@ -114,9 +116,11 @@ export default function FeaturedArtists() {
                   {/* Profile Picture */}
                   <div className="relative flex-shrink-0">
                     {artist.profilePicture ? (
-                      <img
+                      <Image
                         src={artist.profilePicture}
                         alt={artist.bio}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-700"
                       />
                     ) : (

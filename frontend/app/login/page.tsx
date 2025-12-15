@@ -34,9 +34,9 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       setIsLoading(false);
       router.push("/");
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error(err);
-      setError((err as Error).message || 'Login failed');
+      setError(err instanceof Error ? err.message : 'Login failed');
       setIsLoading(false);
     }
   };

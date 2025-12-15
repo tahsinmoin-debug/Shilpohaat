@@ -1,7 +1,9 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -42,7 +44,7 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
         payment_method: {
           card: elements.getElement(CardElement)!,
         },
-      });
+      }) as { error?: { message?: string }; paymentIntent?: { status: string; id: string } };
 
       if (result.error) {
         setError(result.error.message || 'An error occurred during payment');
@@ -74,8 +76,8 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
         setError('Payment was not completed');
         setIsProcessing(false);
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: Error | unknown) {
+      setError(err instanceof Error ? err.message || 'An error occurred' : 'An error occurred');
       setIsProcessing(false);
     }
   };
@@ -135,7 +137,6 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
 // Main page component
 export default function StripePaymentPage() {
   const searchParams = useSearchParams();
-  const { push } = useRouter();
   const orderId = searchParams.get('orderId');
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -160,7 +161,7 @@ export default function StripePaymentPage() {
           }
         );
 
-        const data = await res.json();
+        const data = await res.json() as { clientSecret: string; message?: string };
         if (!res.ok) {
           throw new Error(data.message || 'Failed to initialize payment');
         }

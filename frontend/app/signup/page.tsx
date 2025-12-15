@@ -60,10 +60,10 @@ export default function SignupPage() {
         router.push('/');
       }
 
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       setIsLoading(false);
       console.error(error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 

@@ -12,6 +12,18 @@ interface Order {
   orderStatus: string;
   paymentStatus: string;
   items?: Array<{ title: string; price: number; quantity: number }>;
+  createdAt?: string;
+  paymentMethod?: string;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+}
+
+interface PageProps {
+  params: { id: string };
 }
 
 export default function OrderSuccessPage({ params }: PageProps) {
@@ -19,7 +31,7 @@ export default function OrderSuccessPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchOrder = async (): Promise<void> => {
       try {
         const res = await fetch(`http://localhost:5000/api/orders/${params.id}`);
         const data = await res.json();
@@ -64,7 +76,7 @@ export default function OrderSuccessPage({ params }: PageProps) {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Order Date</p>
-                  <p className="text-white">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  <p className="text-white">{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Total Amount</p>
@@ -80,7 +92,9 @@ export default function OrderSuccessPage({ params }: PageProps) {
               <div>
                 <p className="text-gray-400 text-sm mb-2">Shipping Address</p>
                 <p className="text-white">
-                  {order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                  {order.shippingAddress 
+                    ? `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`
+                    : 'Not provided'}
                 </p>
               </div>
             </div>

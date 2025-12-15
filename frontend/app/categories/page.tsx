@@ -239,7 +239,7 @@ export default function CategoriesPage() {
       {/* Call to Action */}
       <section className="bg-brand-maroon text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Can't find what you're looking for?</h2>
+          <h2 className="text-3xl font-bold mb-4">Can&apos;t find what you&apos;re looking for?</h2>
           <p className="text-slate-300 mb-8">
             Browse all artworks or discover featured collections
           </p>

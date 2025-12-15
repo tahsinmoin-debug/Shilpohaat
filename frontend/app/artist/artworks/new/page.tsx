@@ -62,7 +62,7 @@ export default function UploadArtworkPage() {
     });
   };
 
-  const handleDimensionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDimensionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       dimensions: {
@@ -164,9 +164,9 @@ export default function UploadArtworkPage() {
 
       alert('Artwork uploaded successfully!');
       router.push('/artist/dashboard');
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error(err);
-      setError(err.message || 'Failed to upload artwork');
+      setError(err instanceof Error ? err.message : 'Failed to upload artwork');
       setIsSubmitting(false);
     }
   };

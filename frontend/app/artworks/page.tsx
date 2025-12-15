@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORIES = [
   'All',
   'Abstract',
@@ -59,6 +60,7 @@ export default function ArtworksPage() {
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, searchQuery, priceRange, sortBy, artworks]);
 
   const fetchArtworks = async () => {
