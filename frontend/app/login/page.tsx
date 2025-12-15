@@ -35,6 +35,7 @@ export default function LoginPage() {
       setIsLoading(false);
       router.push("/");
     } catch (err: Error | unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.error(err);
       setError(err instanceof Error ? err.message : 'Login failed');
       setIsLoading(false);

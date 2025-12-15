@@ -137,6 +137,7 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
 // Main page component
 export default function StripePaymentPage() {
   const searchParams = useSearchParams();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const orderId = searchParams.get('orderId');
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);

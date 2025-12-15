@@ -1,5 +1,6 @@
 "use client";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
