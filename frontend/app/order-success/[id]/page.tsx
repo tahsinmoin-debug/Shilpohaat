@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 
-interface PageProps {
-  params: { id: string };
+interface Order {
+  _id: string;
+  customerName: string;
+  customerEmail: string;
+  totalAmount: number;
+  orderStatus: string;
+  paymentStatus: string;
+  items?: Array<{ title: string; price: number; quantity: number }>;
 }
 
 export default function OrderSuccessPage({ params }: PageProps) {
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

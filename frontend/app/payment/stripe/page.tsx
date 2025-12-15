@@ -20,7 +20,7 @@ const stripePromise = loadStripe(
 function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret: string }) {
   const stripe = useStripe();
   const elements = useElements();
-  const router = useRouter();
+  const { push } = useRouter();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +65,7 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
 
         const confirmData = await confirmRes.json();
         if (confirmData.success) {
-          router.push(`/order-success/${orderId}`);
+          push(`/order-success/${orderId}`);
         } else {
           setError(confirmData.message || 'Payment confirmation failed');
           setIsProcessing(false);
@@ -135,7 +135,7 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
 // Main page component
 export default function StripePaymentPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const { push } = useRouter();
   const orderId = searchParams.get('orderId');
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);

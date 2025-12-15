@@ -36,7 +36,7 @@ export default function LoginPage() {
       router.push("/");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Login failed");
+      setError((err as Error).message || 'Login failed');
       setIsLoading(false);
     }
   };

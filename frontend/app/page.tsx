@@ -76,64 +76,6 @@ function Hero({ t }: { t: (key: string) => string }) {
   );
 }
 
-// SHOP BY CATEGORY COMPONENT
-function ShopByCategory({ t }: { t: (key: string) => string }) {
-  const categories = [
-    { key: 'paintings', countKey: 'shopByCategory.paintingsCount', href: '/products?category=paintings', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Painting' },
-    { key: 'textiles', countKey: 'shopByCategory.textilesCount', href: '/products?category=textiles', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Textile' },
-    { key: 'sculptures', countKey: 'shopByCategory.sculpturesCount', href: '/products?category=sculptures', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Sculpture' },
-    { key: 'jewelry', countKey: 'shopByCategory.jewelryCount', href: '/products?category=jewelry', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Jewelry' }
-  ];
-
-  return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        {/* Heading */}
-        <h2 className="font-heading text-4xl text-white text-center mb-4">
-          {t('shopByCategory.title')}
-        </h2>
-        
-        {/* Paragraph */}
-        <p className="font-sans text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-          {t('shopByCategory.subtitle')}
-        </p>
-
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((category) => (
-            <Link
-              key={category.name}
-              href={category.href}
-              className="bg-gray-800 rounded-lg overflow-hidden group hover:shadow-xl transition-shadow"
-            >
-              {/* Category Image */}
-              <div className="relative h-[300px] w-full overflow-hidden">
-                <Image
-                  src={category.imageSrc}
-                  alt={category.name}
-                  width={400}
-                  height={300}
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              
-              {/* Category Info */}
-              <div className="p-4">
-                <h3 className="font-heading text-xl text-white mb-1">
-                  {t(`shopByCategory.${category.key}`)}
-                </h3>
-                <p className="font-sans text-gray-400 text-sm">
-                  {t(category.countKey)}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // FEATURED ARTWORKS COMPONENT
 
 function FeaturedArtworks({ t }: { t: (key: string) => string }) {
