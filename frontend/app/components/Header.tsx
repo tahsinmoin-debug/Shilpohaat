@@ -102,6 +102,20 @@ export default function Header() {
           {/* Right side icons and mobile menu */}
           <div className="flex items-center gap-4">
             
+            {/* Language Toggle (Desktop) */}
+            <div className="hidden md:flex items-center gap-1">
+              {(['en', 'bn'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`text-xs px-2 py-1 rounded border border-white/20 transition-colors ${language === lang ? 'bg-white text-brand-maroon font-semibold' : 'text-white hover:bg-white/10'}`}
+                  aria-label={`${t('nav.language')}: ${lang.toUpperCase()}`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
             {/* R do this: Message Icon (Desktop) */}
             {/* The icon is moved here, beside the cart icon */}
             {!loading && user && appUser?.role === 'artist' && (
