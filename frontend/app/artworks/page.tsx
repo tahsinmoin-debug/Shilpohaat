@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
+import WishlistButton from '../components/WishlistButton'; // Import the wishlist component
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORIES = [
@@ -180,8 +181,6 @@ export default function ArtworksPage() {
             </button>
           </div>
 
-          {/* Filters Info (removed per request) */}
-
           {/* Price Range */}
           <div className={`${showFilters ? 'block' : 'hidden'} md:block mt-4`}>
             <div className="flex gap-4 items-center">
@@ -249,21 +248,32 @@ export default function ArtworksPage() {
                 onClick={() => handleArtworkClick(artwork._id)}
                 className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
               >
-                {/* Artwork Image */}
+                {/* Artwork Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-gray-700">
                   <img
                     src={artwork.images[0] || 'https://placehold.co/400x400/333/fff.png'}
                     alt={artwork.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
+                  
+                  {/* WISHLIST HEART BUTTON - TOP RIGHT */}
+                  <div 
+                    className="absolute top-3 right-3 z-10"
+                    onClick={(e) => e.stopPropagation()} 
+                  >
+                    <div className="bg-gray-900/40 backdrop-blur-sm rounded-full p-0.5 hover:bg-gray-900/60 transition-colors">
+                      <WishlistButton artworkId={artwork._id} />
+                    </div>
+                  </div>
+
                   {/* Status Badge */}
                   {artwork.status !== 'available' && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
+                    <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
                       {artwork.status}
                     </div>
                   )}
                   {artwork.featured && (
-                    <div className="absolute top-2 left-2 bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-xs font-semibold">
+                    <div className="absolute top-10 left-2 bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-xs font-semibold">
                       Featured
                     </div>
                   )}

@@ -18,6 +18,12 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // --- NEW PROMOTION STATES ---
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [couponStatus, setCouponStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [promoMessage, setPromoMessage] = useState('');
+
   // Form state
   const [formData, setFormData] = useState({
     customerName: user?.displayName || '',
@@ -28,6 +34,45 @@ export default function CheckoutPage() {
     postalCode: '',
     country: 'Bangladesh',
   });
+
+  // --- NEW VALIDATION FUNCTION ---
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setCouponStatus('loading');
+    setPromoMessage('');
+
+    try {
+      const res = await fetch('http://localhost:5000/api/promotions/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode, cartTotal: subtotal }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        let calculatedDiscount = 0;
+        if (data.type === 'percentage') {
+          calculatedDiscount = (subtotal * data.discountValue) / 100;
+        } else {
+          calculatedDiscount = data.discountValue;
+        }
+        setDiscount(calculatedDiscount);
+        setCouponStatus('success');
+        setPromoMessage(`Success! ৳${calculatedDiscount.toLocaleString()} discount applied.`);
+      } else {
+        setCouponStatus('error');
+        setPromoMessage(data.message || 'Invalid coupon');
+        setDiscount(0);
+      }
+    } catch (err: any) {
+      setCouponStatus('error');
+      setPromoMessage('Error validating coupon');
+    }
+  };
+
+  // Final total after discount
+  const finalTotal = totalAmount - discount;
 
   if (cartItems.length === 0) {
     return (
@@ -75,8 +120,10 @@ export default function CheckoutPage() {
           quantity: item.quantity,
         })),
         subtotal,
+        discount, // Track discount applied
+        couponCode: couponStatus === 'success' ? couponCode : null, // Record code used
         shippingCost,
-        totalAmount,
+        totalAmount: finalTotal, // Use final total here
         paymentMethod,
         customerName: formData.customerName,
         customerEmail: formData.customerEmail,
@@ -105,11 +152,9 @@ export default function CheckoutPage() {
 
       // Handle different payment methods
       if (paymentMethod === 'cod') {
-        // Cash on Delivery - order created, redirect to success
         clearCart();
         router.push(`/order-success/${orderId}`);
       } else if (paymentMethod === 'sslcommerz') {
-        // Call backend to initiate SSLCommerz and redirect to gateway URL
         const payRes = await fetch('http://localhost:5000/api/payments/sslcommerz/initiate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -122,7 +167,6 @@ export default function CheckoutPage() {
         clearCart();
         window.location.href = payData.redirectURL;
       } else if (paymentMethod === 'stripe') {
-        // Redirect to Stripe checkout with order ID
         clearCart();
         router.push(`/payment/stripe?orderId=${orderId}`);
       }
@@ -225,7 +269,6 @@ export default function CheckoutPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h2 className="text-xl font-heading text-white mb-4">Payment Method</h2>
               <div className="space-y-3">
-                {/* Cash on Delivery */}
                 <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors" style={{ borderColor: paymentMethod === 'cod' ? '#FFD700' : '#374151', backgroundColor: paymentMethod === 'cod' ? 'rgba(255, 215, 0, 0.1)' : 'transparent' }}>
                   <input
                     type="radio"
@@ -241,7 +284,6 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                {/* SSLCommerz */}
                 <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors" style={{ borderColor: paymentMethod === 'sslcommerz' ? '#FFD700' : '#374151', backgroundColor: paymentMethod === 'sslcommerz' ? 'rgba(255, 215, 0, 0.1)' : 'transparent' }}>
                   <input
                     type="radio"
@@ -257,7 +299,6 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                {/* Stripe */}
                 <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-colors" style={{ borderColor: paymentMethod === 'stripe' ? '#FFD700' : '#374151', backgroundColor: paymentMethod === 'stripe' ? 'rgba(255, 215, 0, 0.1)' : 'transparent' }}>
                   <input
                     type="radio"
@@ -289,11 +330,46 @@ export default function CheckoutPage() {
               ))}
             </div>
 
+            {/* --- NEW COUPON INPUT FIELD --- */}
+            <div className="mb-6 pb-6 border-b border-gray-700">
+              <label className="text-sm text-gray-400 block mb-2">Have a coupon?</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:outline-none text-sm"
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  disabled={couponStatus === 'loading'}
+                  className="px-4 py-2 bg-gray-600 text-brand-gold rounded text-sm font-bold hover:bg-gray-500 transition disabled:opacity-50"
+                >
+                  {couponStatus === 'loading' ? '...' : 'Apply'}
+                </button>
+              </div>
+              {promoMessage && (
+                <p className={`mt-2 text-xs ${couponStatus === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                  {promoMessage}
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2 mb-4 pb-4 border-b border-gray-700">
               <div className="flex justify-between text-gray-300">
                 <span>Subtotal:</span>
                 <span>৳{subtotal.toLocaleString()}</span>
               </div>
+              
+              {/* --- DISCOUNT LINE --- */}
+              {discount > 0 && (
+                <div className="flex justify-between text-green-400">
+                  <span>Discount:</span>
+                  <span>-৳{discount.toLocaleString()}</span>
+                </div>
+              )}
+
               <div className="flex justify-between text-gray-300">
                 <span>Shipping:</span>
                 <span>{shippingCost === 0 ? 'Free' : `৳${shippingCost.toLocaleString()}`}</span>
@@ -302,7 +378,7 @@ export default function CheckoutPage() {
 
             <div className="flex justify-between text-white font-bold text-lg mb-6">
               <span>Total:</span>
-              <span className="text-brand-gold">৳{totalAmount.toLocaleString()}</span>
+              <span className="text-brand-gold">৳{finalTotal.toLocaleString()}</span>
             </div>
 
             <button
