@@ -11,6 +11,7 @@ interface Message {
   sender: {
     _id: string;
     name: string;
+    email: string; // ← ADDED EMAIL HERE
   };
   content: string;
   createdAt: string;
@@ -34,6 +35,7 @@ export default function ChatPage() {
   const conversationId = params.id as string;
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -68,6 +70,7 @@ export default function ChatPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
+          setCurrentUserId(data.user._id); // Store current user's MongoDB ID
           socketRef.current?.emit('join', data.user._id);
         }
       });
@@ -84,7 +87,7 @@ export default function ChatPage() {
     });
 
     // Listen for typing indicator
-    socketRef.current.on('userTyping', ({ isTyping: typing }) => {
+    socketRef.current.on('userTyping', ({ isTyping: typing }: { isTyping: boolean }) => {
       setIsTyping(typing);
     });
 
@@ -180,19 +183,22 @@ export default function ChatPage() {
   };
 
   const handleTyping = () => {
+    if (!currentUserId) return;
+    
     const recipient = conversation?.participants.find(
-      (p) => p._id !== currentUser?.uid
+      (p) => p._id !== currentUserId
     );
+    
     socketRef.current?.emit('typing', {
       recipientId: recipient?._id,
-      senderId: currentUser?.uid,
+      senderId: currentUserId,
       isTyping: true,
     });
 
     setTimeout(() => {
       socketRef.current?.emit('typing', {
         recipientId: recipient?._id,
-        senderId: currentUser?.uid,
+        senderId: currentUserId,
         isTyping: false,
       });
     }, 3000);
@@ -222,7 +228,6 @@ export default function ChatPage() {
 
   // Get other participant for header
   const otherParticipant = conversation.participants.find((p) => {
-    // You'll need to fetch current user's MongoDB ID
     return p.email !== currentUser?.email;
   });
 
@@ -268,7 +273,8 @@ export default function ChatPage() {
         {/* Messages Area */}
         <div className="flex-1 bg-gray-800 overflow-y-auto p-4 space-y-4">
           {conversation.messages.map((message, index) => {
-            const isOwnMessage = message.sender.email === currentUser?.email;
+            // ✅ FIXED: Compare using MongoDB _id instead of email
+            const isOwnMessage = currentUserId && message.sender._id === currentUserId;
 
             return (
               <div
@@ -306,8 +312,8 @@ export default function ChatPage() {
               <div className="bg-gray-700 rounded-lg p-3">
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
                 </div>
               </div>
             </div>
