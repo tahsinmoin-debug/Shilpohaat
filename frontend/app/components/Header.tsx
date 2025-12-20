@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCart } from './CartProvider';
 import { useI18n } from './LanguageProvider';
+import { ADMIN_EMAIL } from '@/lib/config';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -72,22 +73,44 @@ export default function Header() {
             {!loading && user && (
               <>
                 {appUser?.role === 'artist' && (
-                  <Link 
-                    href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
-                    className="font-sans text-white hover:text-brand-gold transition-colors"
-                  >
-                    {t('nav.artistDashboard')}
-                  </Link>
+                  <>
+                    <Link 
+                      href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      {t('nav.artistDashboard')}
+                    </Link>
+                    <Link 
+                      href="/artist/commissions"
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      Commission Requests
+                    </Link>
+                  </>
                 )}
                 {appUser?.role === 'buyer' && (
-                  <Link 
-                    href="/account"
-                    className="font-sans text-white hover:text-brand-gold transition-colors"
-                  >
-                    {t('nav.myAccount')}
-                  </Link>
+                  <>
+                    <Link 
+                      href="/account"
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      {t('nav.myAccount')}
+                    </Link>
+                    <Link 
+                      href="/request-commission"
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      Request Commission
+                    </Link>
+                    <Link 
+                      href="/commissions"
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      My Commissions
+                    </Link>
+                  </>
                 )}
-                {appUser?.role === 'admin' && (
+                {(appUser?.role === 'admin' || (ADMIN_EMAIL && appUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase())) && (
                   <Link 
                     href="/admin"
                     className="font-sans text-white hover:text-brand-gold transition-colors"
@@ -263,7 +286,7 @@ export default function Header() {
                       {t('nav.myAccount')}
                     </Link>
                   )}
-                  {appUser?.role === 'admin' && (
+                  {(appUser?.role === 'admin' || (ADMIN_EMAIL && appUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase())) && (
                     <Link
                       href="/admin"
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"

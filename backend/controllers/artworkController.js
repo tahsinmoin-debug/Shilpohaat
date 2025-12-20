@@ -60,6 +60,18 @@ const getAllArtworks = async (req, res) => {
 
     let query = {};
 
+    // By default, only show approved artworks publicly
+    const includeAll = req.query.includeAll === 'true';
+    const moderationStatus = req.query.moderationStatus;
+    if (!includeAll && !moderationStatus) {
+      query.$or = [
+        { moderationStatus: 'approved' },
+        { moderationStatus: { $exists: false } },
+      ];
+    } else if (moderationStatus) {
+      query.moderationStatus = moderationStatus;
+    }
+
     if (category) query.category = category;
     if (status) query.status = status;
     if (featured === 'true') query.featured = true;

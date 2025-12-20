@@ -55,6 +55,11 @@ const ArtworkSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    moderationStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'removed'],
+      default: 'pending',
+    },
     views: {
       type: Number,
       default: 0,

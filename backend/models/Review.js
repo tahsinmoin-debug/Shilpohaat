@@ -28,6 +28,10 @@ const ReviewSchema = new mongoose.Schema({
         trim: true,
         maxlength: 500,
     },
+    isRemoved: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true
 });
