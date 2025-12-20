@@ -27,7 +27,7 @@ export default function Header() {
 
       try {
         const res = await fetch(
-          `http://localhost:1350/api/messages/conversations?firebaseUID=${user.uid}`
+          `http://localhost:5000/api/messages/conversations?firebaseUID=${user.uid}`
         );
         const data = await res.json();
         
