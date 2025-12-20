@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCart } from './CartProvider';
 import { useI18n } from './LanguageProvider';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user, logout, loading, appUser } = useAuth();
   const { cartItems } = useCart();
   const { t, language, setLanguage } = useI18n();
@@ -15,6 +16,39 @@ export default function Header() {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  // Fetch unread message count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user) {
+        setUnreadCount(0);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `http://localhost:1350/api/messages/conversations?firebaseUID=${user.uid}`
+        );
+        const data = await res.json();
+        
+        if (data.success) {
+          const total = data.conversations.reduce(
+            (sum: number, conv: any) => sum + conv.unreadCount,
+            0
+          );
+          setUnreadCount(total);
+        }
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    
+    // Refresh unread count every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <header className="bg-brand-maroon sticky top-0 z-50 shadow-md">
@@ -54,6 +88,27 @@ export default function Header() {
             >
               {t('nav.blog')}
             </Link>
+            
+            {/* Messages Link - Only show when logged in */}
+            {!loading && user && (
+              <Link 
+                href="/messages" 
+                className="font-sans text-white hover:text-brand-gold transition-colors relative"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Messages
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            )}
+
             <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
@@ -198,10 +253,30 @@ export default function Header() {
             </Link>
             <Link 
               href="/blog" 
-              className="font-sans text-white hover:text-brand-gold transition-colors"
+              className="font-sans text-white hover:text-brand-gold transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               {t('nav.blog')}
             </Link>
+
+            {/* Messages Link - Mobile (Only when logged in) */}
+            {user && (
+              <Link 
+                href="/messages" 
+                className="font-sans text-white hover:text-brand-gold transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className="flex items-center gap-2">
+                  📩 Messages
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1">
+                      {unreadCount}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            )}
+
             <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
