@@ -153,4 +153,4 @@ async function uploadArtwork() {
 }
 
 // Run the upload
-uploadArtwork();
+uploadArtwork();}
