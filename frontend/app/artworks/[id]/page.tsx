@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 import { useCart } from '../../components/CartProvider';
+import ArtworkReviews from '../../components/Reviews/ArtworkReviews'; 
 
 interface ArtistProfile {
   profilePicture?: string;
@@ -364,6 +365,10 @@ export default function ArtworkDetailPage({ params }: PageProps) {
             onClick={() => navigator.clipboard.writeText(window.location.href)}
             className="text-sm text-gray-400 hover:text-brand-gold"
           >
+
+        <div className="container mx-auto px-4 pb-10">
+          <ArtworkReviews artworkId={artwork._id} /> 
+        </div>
             Share this artwork
           </button>
         </div>

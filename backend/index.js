@@ -14,6 +14,7 @@ const orderRoutes = require('./routes/orders.js');
 const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
 const uploadRoutes = require('./routes/upload.js');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -152,3 +153,21 @@ httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`CORS allowed origins: ${allowedOrigins.join(', ') || 'none'}`);
 });
+
+//Promotional Code
+app.use('/api/promotions', require('./routes/promotionRoutes'));
+
+// Analytics
+app.use('/api/analytics', require('./routes/analyticsRoutes'));
+
+// Verification Routes
+app.use('/api/verify', require('./routes/verificationRoutes'));
+
+// Badge Routes
+app.use('/api/badges', require('./routes/badgeRoutes'));
+
+// Review Routes
+app.use('/api/artworks', reviewRoutes);
+
+//wishlist Routes
+app.use('/api/wishlist', require('./routes/wishlistRoutes'));
