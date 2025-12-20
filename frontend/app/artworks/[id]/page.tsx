@@ -241,7 +241,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                         poster={artwork.images?.[0]}
                       />
                     ) : (
-                      // Use simple image-based AR for all artworks with images
+                      // Use simple image-based AR for all artworks with images (default)
                       <ImageARViewer
                         imageUrl={artwork.images[0]}
                         artworkTitle={artwork.title}

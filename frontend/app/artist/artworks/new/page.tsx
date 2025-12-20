@@ -222,11 +222,9 @@ export default function UploadArtworkPage() {
           setIsUploadingModel(false);
         }
         setIsUploadingModel(false);
-      } else if (enableAutoAR && formData.images.length > 0) {
-        // Auto-generate AR model URL using the first artwork image
-        // This will use the image itself in AR (no 3D conversion needed)
-        arModelUrl = formData.images[0]; // Use the first artwork image for AR
       }
+      // Note: Image-based AR is enabled by default and uses artwork.images[0]
+      // Only set arModelUrl if a GLB/GLTF file was uploaded
 
       const artworkData = {
         ...formData,
