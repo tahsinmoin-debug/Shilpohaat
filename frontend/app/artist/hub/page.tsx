@@ -5,6 +5,7 @@ import { useAuth } from '../../components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import io from 'socket.io-client';
+import { API_BASE_URL as API_HOST } from '@/lib/config';
 
 interface Artist {
     id: string;
@@ -19,8 +20,8 @@ interface Message {
     isOwnMessage?: boolean;
 }
 
-const SOCKET_SERVER_URL = 'http://localhost:5000';
-const API_BASE_URL = 'http://localhost:5000/api';
+const SOCKET_SERVER_URL = API_HOST;
+const API_BASE_URL = `${API_HOST}/api`;
 let socket: any;
 
 export default function CollaborationHubPage() {

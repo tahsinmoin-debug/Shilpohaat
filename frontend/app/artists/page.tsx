@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../components/Header';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -39,7 +40,7 @@ export default function ArtistsPage() {
         params.append('letter', selectedLetter);
       }
 
-      const res = await fetch(`http://localhost:5000/api/artist/all?${params.toString()}`);
+      const res = await fetch(`${API_BASE_URL}/api/artist/all?${params.toString()}`);
       const data = await res.json();
       
       if (data.success) {

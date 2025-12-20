@@ -2,6 +2,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '@/lib/config';
 import Link from 'next/link';
 import Header from '../../components/Header';
 
@@ -34,7 +35,7 @@ export default function OrderSuccessPage({ params }: PageProps) {
   useEffect(() => {
     const fetchOrder = async (): Promise<void> => {
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/orders/${params.id}`);
         const data = await res.json();
         if (res.ok) {
           setOrder(data.order);

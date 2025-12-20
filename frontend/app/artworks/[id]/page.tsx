@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 import { useCart } from '../../components/CartProvider';
 
@@ -59,7 +60,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
     const fetchArtwork = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:5000/api/artworks/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/artworks/${params.id}`);
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.message || 'Failed to load artwork');

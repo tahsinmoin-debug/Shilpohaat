@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../../../components/Header';
+import { API_BASE_URL } from '@/lib/config';
 import { useAuth } from '../../../components/AuthProvider';
 
 const CATEGORIES = [
@@ -151,7 +152,7 @@ export default function UploadArtworkPage() {
         },
       };
 
-      const res = await fetch(`http://localhost:5000/api/artworks?firebaseUID=${user.uid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/artworks?firebaseUID=${user.uid}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(artworkData),

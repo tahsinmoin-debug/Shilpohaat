@@ -78,6 +78,8 @@ function Hero({ t }: { t: (key: string) => string }) {
 
 // FEATURED ARTWORKS COMPONENT
 
+import { API_BASE_URL } from '@/lib/config';
+
 function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   const [artworks, setArtworks] = React.useState<Artwork[]>([]); // ← Fixed type
   const [loading, setLoading] = React.useState(true);
@@ -85,7 +87,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   React.useEffect(() => {
     const fetchFeaturedArtworks = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/artworks?featured=true');
+        const res = await fetch(`${API_BASE_URL}/api/artworks?featured=true`);
         const data = await res.json();
         setArtworks(data.artworks?.slice(0, 4) || []);
       } catch (error) {

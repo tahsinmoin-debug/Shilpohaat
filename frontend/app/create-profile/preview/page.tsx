@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 import { useAuth } from '../../components/AuthProvider';
 
@@ -49,7 +50,7 @@ export default function ProfilePreviewPage() {
       console.log('Saving profile for user:', user.uid);
       console.log('Profile data:', profileData);
 
-      const res = await fetch(`http://localhost:5000/api/artist/profile?firebaseUID=${user.uid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/artist/profile?firebaseUID=${user.uid}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

@@ -10,6 +10,7 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 import Header from '../components/Header';
+import { API_BASE_URL } from '@/lib/config';
 import Link from 'next/link';
 
 const stripePromise = loadStripe(
@@ -52,7 +53,7 @@ function PaymentForm({ orderId, clientSecret }: { orderId: string; clientSecret:
 
         // Confirm with backend
         const confirmRes = await fetch(
-          'http://localhost:5000/api/payments/stripe/confirm',
+          `${API_BASE_URL}/api/payments/stripe/confirm`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -151,7 +152,7 @@ export default function StripePaymentContent() {
     const initializePayment = async () => {
       try {
         const res = await fetch(
-          'http://localhost:5000/api/payments/stripe/create-intent',
+          `${API_BASE_URL}/api/payments/stripe/create-intent`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

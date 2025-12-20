@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/lib/config';
 'use client';
 
 import { useState } from 'react';
@@ -40,7 +41,7 @@ export default function SignupPage() {
       }
 
       // Step 2: Send data to our backend API (password NOT sent; backend expects firebaseUID only)
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name, role, firebaseUID }),

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
+import { API_BASE_URL } from '@/lib/config';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORIES = [
@@ -66,7 +67,7 @@ export default function ArtworksPage() {
   const fetchArtworks = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/artworks');
+      const res = await fetch(`${API_BASE_URL}/api/artworks`);
       const data = await res.json();
       setArtworks(data.artworks || []);
     } catch (error) {

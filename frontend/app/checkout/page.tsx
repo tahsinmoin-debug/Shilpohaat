@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../components/CartProvider';
 import { useAuth } from '../components/AuthProvider';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../components/Header';
 import Link from 'next/link';
 
@@ -90,7 +91,7 @@ export default function CheckoutPage() {
       };
 
       // Create order
-      const res = await fetch(`http://localhost:5000/api/orders?firebaseUID=${user.uid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders?firebaseUID=${user.uid}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
@@ -110,7 +111,7 @@ export default function CheckoutPage() {
         router.push(`/order-success/${orderId}`);
       } else if (paymentMethod === 'sslcommerz') {
         // Call backend to initiate SSLCommerz and redirect to gateway URL
-        const payRes = await fetch('http://localhost:5000/api/payments/sslcommerz/initiate', {
+        const payRes = await fetch(`${API_BASE_URL}/api/payments/sslcommerz/initiate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId }),

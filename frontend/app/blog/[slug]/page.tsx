@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '@/app/components/Header';
 
 interface BlogPost {
@@ -43,7 +44,7 @@ export default function BlogPostPage() {
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/blog/${slug}`);
+      const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`);
       
       if (!res.ok) {
         throw new Error('Post not found');

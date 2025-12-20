@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from './LanguageProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Artist {
   _id: string;
@@ -32,7 +33,7 @@ export default function FeaturedArtists() {
   React.useEffect(() => {
     const fetchFeaturedArtists = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/artist/featured?limit=6');
+        const res = await fetch(`${API_BASE_URL}/api/artist/featured?limit=6`);
         const data = await res.json();
         setArtists(data.artists || []);
       } catch (error) {

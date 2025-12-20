@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../components/Header';
 
 interface BlogPost {
@@ -37,7 +38,7 @@ export default function BlogPage() {
     try {
       setLoading(true);
       const categoryParam = selectedCategory !== 'All' ? `?category=${selectedCategory}` : '';
-      const res = await fetch(`http://localhost:5000/api/blog${categoryParam}`);
+      const res = await fetch(`${API_BASE_URL}/api/blog${categoryParam}`);
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (error) {
