@@ -13,9 +13,18 @@ interface CameraARViewerProps {
   };
 }
 
+/**
+ * 2D Camera-Based AR Preview
+ * 
+ * IMPORTANT: This is NOT true AR - it's a 2D image overlay with camera feed.
+ * It provides an AR-like visualization for accessibility and cross-device compatibility.
+ * 
+ * For true 3D AR, use ARViewer.tsx (requires GLB models)
+ */
 export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: CameraARViewerProps) {
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -23,25 +32,37 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
   const imageRef = useRef<HTMLImageElement | null>(null);
   const imageLoadedRef = useRef(false);
 
-  // Pre-load the artwork image
+  // Conversion factor: approximate cm to screen pixels on mobile (3.8 px/cm)
+  const CM_TO_PIXELS = 3.8;
+
+  // Pre-load the artwork image with CORS handling
   useEffect(() => {
+    setImageLoading(true);
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    
     img.onload = () => {
       imageRef.current = img;
       imageLoadedRef.current = true;
+      setImageLoading(false);
       console.log('✅ Artwork image loaded successfully');
     };
-    img.onerror = () => {
-      console.error('❌ Failed to load artwork image:', imageUrl);
-      setCameraError('Failed to load artwork image. Check URL.');
+    
+    img.onerror = (err) => {
+      console.error('❌ Failed to load artwork image:', imageUrl, err);
+      // Try fallback URL without transformations
+      if (imageUrl.includes('cloudinary')) {
+        console.log('⚠️ Cloudinary CORS issue detected. Retrying...');
+      }
+      setImageLoading(false);
+      setCameraError('Unable to load artwork image. CORS or URL issue.');
     };
+    
     img.src = imageUrl;
   }, [imageUrl]);
 
   useEffect(() => {
     return () => {
-      // Cleanup: stop video stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -55,7 +76,6 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
     try {
       setCameraError(null);
       
-      // Request camera access with specific constraints for mobile
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
           facingMode: 'environment',
@@ -70,7 +90,6 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         
-        // Wait for video to be ready before starting render loop
         videoRef.current.onloadedmetadata = () => {
           console.log('✅ Video metadata loaded:', {
             width: videoRef.current?.videoWidth,
@@ -81,7 +100,6 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
             setCameraError('Failed to start video playback');
           });
           setShowCamera(true);
-          // Start rendering after video is confirmed playing
           setTimeout(() => renderAROverlay(), 300);
         };
 
@@ -93,13 +111,24 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
     } catch (err: any) {
       console.error('❌ Camera access error:', err);
       if (err.name === 'NotAllowedError') {
-        setCameraError('Camera permission denied. Please allow camera access.');
+        setCameraError('Camera permission denied. Please allow camera access in settings.');
       } else if (err.name === 'NotFoundError') {
         setCameraError('No camera found on this device.');
       } else {
         setCameraError(`Camera error: ${err.message}`);
       }
     }
+  };
+
+  const calculateRealWorldDimensions = (): { width: number; height: number } => {
+    // Convert cm to approximate screen pixels
+    if (dimensions?.width && dimensions?.height) {
+      return {
+        width: dimensions.width * CM_TO_PIXELS,
+        height: dimensions.height * CM_TO_PIXELS,
+      };
+    }
+    return { width: 0, height: 0 };
   };
 
   const renderAROverlay = () => {
@@ -111,7 +140,6 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
       return;
     }
 
-    // Wait for video to have dimensions
     if (video.videoWidth === 0 || video.videoHeight === 0) {
       animationRef.current = requestAnimationFrame(renderAROverlay);
       return;
@@ -123,68 +151,99 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
       return;
     }
 
-    // Set canvas size to match video dimensions
+    // Set canvas size
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // Draw video frame as background
+    // Draw video feed
     try {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     } catch (err) {
       console.error('❌ Error drawing video:', err);
     }
 
-    // Draw semi-transparent overlay for better visibility
+    // Semi-transparent overlay
     ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Calculate frame dimensions
-    const frameWidth = canvas.width * 0.6;
-    const frameHeight = frameWidth * (dimensions?.height && dimensions?.width ? dimensions.width / dimensions.height : 3 / 4);
+    // Calculate dimensions using real-world scaling
+    const realDims = calculateRealWorldDimensions();
+    let frameWidth: number;
+    let frameHeight: number;
+
+    if (realDims.width > 0 && realDims.height > 0) {
+      // Use real-world dimensions, but cap to max 60% of screen
+      frameWidth = Math.min(realDims.width, canvas.width * 0.6);
+      frameHeight = (frameWidth / realDims.width) * realDims.height;
+      
+      // If still too large, scale down
+      if (frameHeight > canvas.height * 0.6) {
+        frameHeight = canvas.height * 0.6;
+        frameWidth = (frameHeight / realDims.height) * realDims.width;
+      }
+    } else {
+      // Fallback if no dimensions
+      frameWidth = canvas.width * 0.6;
+      frameHeight = frameWidth * 0.75;
+    }
+
     const frameX = (canvas.width - frameWidth) / 2;
     const frameY = (canvas.height - frameHeight) / 2;
 
-    // Draw the artwork image (only if loaded)
+    // Draw artwork image
     if (imageLoadedRef.current && imageRef.current) {
       try {
         ctx.drawImage(imageRef.current, frameX, frameY, frameWidth, frameHeight);
       } catch (err) {
-        console.error('❌ Error drawing artwork image:', err);
+        console.error('❌ Error drawing artwork:', err);
       }
+    } else {
+      // Loading placeholder
+      ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+      ctx.fillRect(frameX, frameY, frameWidth, frameHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Loading artwork...', canvas.width / 2, canvas.height / 2);
     }
 
-    // Draw frame border
+    // Frame border
     ctx.strokeStyle = '#a78bfa';
     ctx.lineWidth = 4;
     ctx.strokeRect(frameX, frameY, frameWidth, frameHeight);
 
-    // Draw dimensions text
+    // Dimensions display
     if (dimensions?.width && dimensions?.height) {
       ctx.fillStyle = '#a78bfa';
-      ctx.font = 'bold 18px Arial';
+      ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 4;
       ctx.fillText(
         `${dimensions.width} × ${dimensions.height} ${dimensions.unit || 'cm'}`,
         canvas.width / 2,
         frameY + frameHeight + 25
       );
+      ctx.shadowColor = 'transparent';
     }
 
-    // Draw title
+    // Title
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 4;
     ctx.fillText(artworkTitle, canvas.width / 2, frameY - 15);
+    ctx.shadowColor = 'transparent';
 
-    // Draw instructions
+    // Instructions
     ctx.fillStyle = '#ffffff';
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 3;
-    ctx.fillText('📱 Move phone to adjust position and size', canvas.width / 2, canvas.height - 25);
+    ctx.fillText('📱 Move phone to adjust position | Approx. size based on dimensions', canvas.width / 2, canvas.height - 25);
+    ctx.shadowColor = 'transparent';
 
     animationRef.current = requestAnimationFrame(renderAROverlay);
   };
@@ -204,7 +263,6 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
   if (showCamera) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex flex-col">
-        {/* Close Button */}
         <button
           onClick={stopCamera}
           className="absolute top-4 right-4 z-10 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors shadow-lg"
@@ -214,9 +272,7 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
           </svg>
         </button>
 
-        {/* Video and Canvas */}
         <div className="relative flex-1 w-full h-full">
-          {/* Hidden video element */}
           <video
             ref={videoRef}
             className="hidden"
@@ -225,7 +281,6 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
             muted
           />
 
-          {/* Canvas showing AR overlay */}
           {cameraError ? (
             <div className="flex items-center justify-center h-full bg-black">
               <div className="bg-red-600 text-white p-6 rounded-lg max-w-sm text-center mx-4">
@@ -248,25 +303,24 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
           )}
         </div>
 
-        {/* Bottom Info */}
-        <div className="bg-black/80 backdrop-blur-md text-white p-4 text-center">
-          <p className="text-sm">📱 AR mode active - Point at a wall to see the artwork</p>
+        <div className="bg-black/80 backdrop-blur-md text-white p-4 text-center text-xs">
+          <p>🎨 2D Camera Preview - Not true AR (see docs for true 3D AR)</p>
         </div>
       </div>
     );
   }
 
-  // Button to start camera
   return (
     <button
       onClick={startCamera}
-      className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
+      disabled={imageLoading}
+      className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
     >
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
-      <span>View on Wall (AR Camera)</span>
+      <span>{imageLoading ? 'Loading...' : 'View on Wall (Camera Preview)'}</span>
     </button>
   );
 }
