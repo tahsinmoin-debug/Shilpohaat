@@ -8,6 +8,7 @@ import Header from '../../components/Header';
 import { useCart } from '../../components/CartProvider';
 import ArtworkReviews from '../../components/Reviews/ArtworkReviews';
 import ARViewer from '../../components/ARViewer';
+import ImageARViewer from '../../components/ImageARViewer';
 import ARBadge from '../../components/ARBadge'; 
 
 interface ArtistProfile {
@@ -145,7 +146,10 @@ export default function ArtworkDetailPage({ params }: PageProps) {
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-2">
               <p className="text-sm uppercase tracking-[0.2em] text-brand-gold/80">{artwork.category}</p>
-              <ARBadge hasARModel={!!artwork.arModelUrl} compact />
+              {/* Show AR badge if artwork has images and dimensions */}
+              {artwork.images && artwork.images.length > 0 && artwork.dimensions && (
+                <ARBadge hasARModel={true} compact />
+              )}
             </div>
             <h1 className="text-3xl md:text-4xl font-heading mt-2 mb-3">{artwork.title}</h1>
             <div className="flex flex-wrap items-center gap-3 text-gray-200">
@@ -225,14 +229,26 @@ export default function ArtworkDetailPage({ params }: PageProps) {
               </div>
 
               <div className="mt-6 flex flex-col gap-3">
-                {/* AR Viewer Button - Show only if arModelUrl exists */}
-                {artwork.arModelUrl && (
-                  <ARViewer
-                    modelUrl={artwork.arModelUrl}
-                    artworkTitle={artwork.title}
-                    dimensions={artwork.dimensions}
-                    poster={artwork.images?.[0]}
-                  />
+                {/* AR Viewer Button - Show for all artworks with images */}
+                {artwork.images && artwork.images.length > 0 && artwork.dimensions && (
+                  <>
+                    {artwork.arModelUrl && /\.(glb|gltf)$/i.test(artwork.arModelUrl) ? (
+                      // Use full 3D viewer if GLB model exists
+                      <ARViewer
+                        modelUrl={artwork.arModelUrl}
+                        artworkTitle={artwork.title}
+                        dimensions={artwork.dimensions}
+                        poster={artwork.images?.[0]}
+                      />
+                    ) : (
+                      // Use simple image-based AR for all artworks with images
+                      <ImageARViewer
+                        imageUrl={artwork.images[0]}
+                        artworkTitle={artwork.title}
+                        dimensions={artwork.dimensions}
+                      />
+                    )}
+                  </>
                 )}
 
                 <button

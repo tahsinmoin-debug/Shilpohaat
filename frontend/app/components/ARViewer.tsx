@@ -19,8 +19,15 @@ export default function ARViewer({ modelUrl, artworkTitle, dimensions, poster }:
   const [isARSupported, setIsARSupported] = useState(true);
   const [isModelViewerLoaded, setIsModelViewerLoaded] = useState(false);
   const [showARModal, setShowARModal] = useState(false);
+  const [isImageMode, setIsImageMode] = useState(false);
 
   useEffect(() => {
+    // Check if modelUrl is an image or GLB
+    if (modelUrl) {
+      const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(modelUrl);
+      setIsImageMode(isImage);
+    }
+
     // Check if AR is supported
     const checkARSupport = () => {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -32,7 +39,7 @@ export default function ARViewer({ modelUrl, artworkTitle, dimensions, poster }:
     };
 
     checkARSupport();
-  }, []);
+  }, [modelUrl]);
 
   const handleARClick = () => {
     setShowARModal(true);

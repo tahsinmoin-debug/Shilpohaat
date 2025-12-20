@@ -57,6 +57,7 @@ export default function UploadArtworkPage() {
   const [arModelFile, setArModelFile] = useState<File | null>(null);
   const [arModelPreview, setArModelPreview] = useState<string>('');
   const [isUploadingModel, setIsUploadingModel] = useState(false);
+  const [enableAutoAR, setEnableAutoAR] = useState(true); // Auto-enable AR for all artworks
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -221,6 +222,10 @@ export default function UploadArtworkPage() {
           setIsUploadingModel(false);
         }
         setIsUploadingModel(false);
+      } else if (enableAutoAR && formData.images.length > 0) {
+        // Auto-generate AR model URL using the first artwork image
+        // This will use the image itself in AR (no 3D conversion needed)
+        arModelUrl = formData.images[0]; // Use the first artwork image for AR
       }
 
       const artworkData = {
