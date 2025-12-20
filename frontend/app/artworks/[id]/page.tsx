@@ -8,7 +8,7 @@ import Header from '../../components/Header';
 import { useCart } from '../../components/CartProvider';
 import ArtworkReviews from '../../components/Reviews/ArtworkReviews';
 import ARViewer from '../../components/ARViewer';
-import ImageARViewer from '../../components/ImageARViewer';
+import CameraARViewer from '../../components/CameraARViewer';
 import ARBadge from '../../components/ARBadge'; 
 
 interface ArtistProfile {
@@ -243,6 +243,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                     ) : (
                       // Use simple image-based AR for all artworks with images (default)
                       <ImageARViewer
+                                              <CameraARViewer
                         imageUrl={artwork.images[0]}
                         artworkTitle={artwork.title}
                         dimensions={artwork.dimensions}
