@@ -32,6 +32,10 @@ const ArtworkSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    arModelUrl: {
+      type: String,
+      default: null,
+    },
     dimensions: {
       width: { type: Number },
       height: { type: Number },

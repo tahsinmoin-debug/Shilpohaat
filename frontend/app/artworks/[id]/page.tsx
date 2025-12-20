@@ -6,7 +6,9 @@ import Link from 'next/link';
 import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 import { useCart } from '../../components/CartProvider';
-import ArtworkReviews from '../../components/Reviews/ArtworkReviews'; 
+import ArtworkReviews from '../../components/Reviews/ArtworkReviews';
+import ARViewer from '../../components/ARViewer';
+import ARBadge from '../../components/ARBadge'; 
 
 interface ArtistProfile {
   profilePicture?: string;
@@ -31,6 +33,7 @@ interface Artwork {
   category: string;
   price: number;
   images: string[];
+  arModelUrl?: string;
   status: 'available' | 'sold' | 'reserved';
   featured?: boolean;
   materials?: string[];
@@ -140,7 +143,10 @@ export default function ArtworkDetailPage({ params }: PageProps) {
         </div>
         <div className="relative h-full flex items-center">
           <div className="container mx-auto px-4">
-            <p className="text-sm uppercase tracking-[0.2em] text-brand-gold/80">{artwork.category}</p>
+            <div className="flex items-center gap-3 mb-2">
+              <p className="text-sm uppercase tracking-[0.2em] text-brand-gold/80">{artwork.category}</p>
+              <ARBadge hasARModel={!!artwork.arModelUrl} compact />
+            </div>
             <h1 className="text-3xl md:text-4xl font-heading mt-2 mb-3">{artwork.title}</h1>
             <div className="flex flex-wrap items-center gap-3 text-gray-200">
               <Link href={`/artist/${artist._id}`} className="flex items-center gap-2 group">
@@ -219,6 +225,16 @@ export default function ArtworkDetailPage({ params }: PageProps) {
               </div>
 
               <div className="mt-6 flex flex-col gap-3">
+                {/* AR Viewer Button - Show only if arModelUrl exists */}
+                {artwork.arModelUrl && (
+                  <ARViewer
+                    modelUrl={artwork.arModelUrl}
+                    artworkTitle={artwork.title}
+                    dimensions={artwork.dimensions}
+                    poster={artwork.images?.[0]}
+                  />
+                )}
+
                 <button
                   onClick={async () => {
                     if (!artwork) return;

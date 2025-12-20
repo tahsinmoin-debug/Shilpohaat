@@ -43,6 +43,7 @@ export default function UploadArtworkPage() {
     category: 'Abstract',
     price: '',
     images: [] as string[],
+    arModelUrl: '',
     dimensions: {
       width: '',
       height: '',
@@ -53,6 +54,9 @@ export default function UploadArtworkPage() {
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [arModelFile, setArModelFile] = useState<File | null>(null);
+  const [arModelPreview, setArModelPreview] = useState<string>('');
+  const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -123,6 +127,70 @@ export default function UploadArtworkPage() {
     });
   };
 
+  const handleArModelChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.endsWith('.glb') && !file.name.endsWith('.gltf')) {
+      setError('Please upload a .glb or .gltf file');
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      setError('AR model file must be less than 50MB');
+      return;
+    }
+
+    setArModelFile(file);
+    setArModelPreview(file.name);
+    setError('');
+  };
+
+  const uploadArModelToCloudinary = async (file: File): Promise<string> => {
+    // Read file as base64
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Data = reader.result as string;
+          
+          // Upload via backend API
+          const response = await fetch(`${API_BASE_URL}/api/upload/model`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              modelData: base64Data,
+              folder: 'shilpohaat/models',
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to upload AR model');
+          }
+
+          const data = await response.json();
+          resolve(data.url);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeArModel = () => {
+    setArModelFile(null);
+    setArModelPreview('');
+    setFormData({
+      ...formData,
+      arModelUrl: '',
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -141,9 +209,24 @@ export default function UploadArtworkPage() {
         return;
       }
 
+      // Upload AR model if provided
+      let arModelUrl = '';
+      if (arModelFile) {
+        setIsUploadingModel(true);
+        try {
+          arModelUrl = await uploadArModelToCloudinary(arModelFile);
+        } catch (err) {
+          console.error('AR model upload failed:', err);
+          setError('Failed to upload AR model. Proceeding without it.');
+          setIsUploadingModel(false);
+        }
+        setIsUploadingModel(false);
+      }
+
       const artworkData = {
         ...formData,
         price: Number(formData.price),
+        arModelUrl: arModelUrl || undefined,
         dimensions: {
           width: formData.dimensions.width ? Number(formData.dimensions.width) : undefined,
           height: formData.dimensions.height ? Number(formData.dimensions.height) : undefined,
@@ -382,6 +465,77 @@ export default function UploadArtworkPage() {
               </div>
             </div>
 
+            {/* AR Model Upload (Optional) */}
+            <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-lg p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="bg-purple-500/20 p-2 rounded-lg">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-white mb-1">
+                    AR 3D Model (Optional)
+                  </h3>
+                  <p className="text-sm text-gray-300 mb-3">
+                    Upload a .glb or .gltf file to enable "View on Wall" AR preview for buyers
+                  </p>
+                  
+                  {!arModelPreview ? (
+                    <>
+                      <input
+                        type="file"
+                        accept=".glb,.gltf"
+                        onChange={handleArModelChange}
+                        className="hidden"
+                        id="arModel"
+                      />
+                      <label
+                        htmlFor="arModel"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md cursor-pointer transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Choose 3D Model File
+                      </label>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Max 50MB • Supports .glb and .gltf formats
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between bg-gray-800 rounded-lg p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-purple-500/20 p-2 rounded">
+                          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-white text-sm font-medium">{arModelPreview}</p>
+                          <p className="text-gray-400 text-xs">Ready for AR preview</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeArModel}
+                        className="text-red-400 hover:text-red-300 p-1"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-3">
+                <p className="text-xs text-blue-300">
+                  💡 <strong>Tip:</strong> Use tools like Blender to convert your artwork image to a 3D plane model, or hire a 3D artist to create a realistic frame model for the best AR experience.
+                </p>
+              </div>
+            </div>
+
             {/* Submit Buttons */}
             <div className="flex gap-4 justify-end">
               <button
@@ -393,10 +547,10 @@ export default function UploadArtworkPage() {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingModel}
                 className="px-8 py-3 bg-brand-gold text-gray-900 font-semibold rounded-md hover:bg-brand-gold-antique transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Uploading...' : 'Upload Artwork'}
+                {isUploadingModel ? 'Uploading AR Model...' : isSubmitting ? 'Uploading...' : 'Upload Artwork'}
               </button>
             </div>
           </form>

@@ -46,6 +46,39 @@ const uploadToCloudinary = async (base64String, folder = 'shilpohaat', publicId 
 };
 
 /**
+ * Upload 3D model (GLB/GLTF) or other raw files to Cloudinary
+ * @param {string} fileBuffer - File buffer or base64 data
+ * @param {string} folder - Cloudinary folder name
+ * @param {string} publicId - Optional custom public ID
+ * @returns {Promise<Object>} - Cloudinary upload response
+ */
+const uploadRawToCloudinary = async (fileBuffer, folder = 'shilpohaat/models', publicId = null) => {
+  try {
+    const uploadOptions = {
+      folder: folder,
+      resource_type: 'raw', // Important for non-image files like GLB
+    };
+
+    if (publicId) {
+      uploadOptions.public_id = publicId;
+    }
+
+    const result = await cloudinary.uploader.upload(fileBuffer, uploadOptions);
+
+    return {
+      success: true,
+      url: result.secure_url,
+      publicId: result.public_id,
+      format: result.format,
+      bytes: result.bytes,
+    };
+  } catch (error) {
+    console.error('Cloudinary raw upload error:', error);
+    throw new Error(`Failed to upload file to Cloudinary: ${error.message}`);
+  }
+};
+
+/**
  * Upload multiple images to Cloudinary
  * @param {Array<string>} base64Array - Array of base64 encoded images
  * @param {string} folder - Cloudinary folder name
@@ -143,6 +176,7 @@ const replaceImages = async (oldUrls = [], newBase64Array = [], folder = 'shilpo
 
 module.exports = {
   uploadToCloudinary,
+  uploadRawToCloudinary,
   uploadMultipleToCloudinary,
   deleteFromCloudinary,
   extractPublicId,
