@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '@/lib/config';
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import Header from '../components/Header';
+import { API_BASE_URL } from '@/lib/config';
 
 export default function SignupPage() {
   const router = useRouter();
