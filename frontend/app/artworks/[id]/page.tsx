@@ -396,12 +396,12 @@ export default function ArtworkDetailPage({ params }: PageProps) {
             onClick={() => navigator.clipboard.writeText(window.location.href)}
             className="text-sm text-gray-400 hover:text-brand-gold"
           >
-
-        <div className="container mx-auto px-4 pb-10">
-          <ArtworkReviews artworkId={artwork._id} /> 
-        </div>
             Share this artwork
           </button>
+        </div>
+
+        <div className="container mx-auto px-4 pb-10">
+          <ArtworkReviews artworkId={artwork._id} />
         </div>
       </section>
     </main>
