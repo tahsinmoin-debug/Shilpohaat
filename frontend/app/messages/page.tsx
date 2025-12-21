@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
-import { auth } from '@/lib/firebase'; // Adjust path as needed
+import { auth } from '@/lib/firebase';
+import NewMessageModal from '../components/NewMessageModal';
 
 interface Conversation {
   _id: string;
@@ -21,6 +22,8 @@ interface Conversation {
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
+  const [firebaseUID, setFirebaseUID] = useState<string | null>(null);
   const router = useRouter();
   const currentUser = auth.currentUser;
 
@@ -29,14 +32,16 @@ export default function MessagesPage() {
       router.push('/login');
       return;
     }
-
+    setFirebaseUID(currentUser.uid);
     fetchConversations();
   }, [currentUser]);
 
   const fetchConversations = async () => {
+    if (!currentUser) return;
+
     try {
       const response = await fetch(
-        `http://localhost:5000/api/messages/conversations?firebaseUID=${currentUser?.uid}`
+        `http://localhost:5000/api/messages/conversations?firebaseUID=${currentUser.uid}`
       );
       const data = await response.json();
 
@@ -68,12 +73,23 @@ export default function MessagesPage() {
     <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
       <Header />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-heading text-white mb-2">Messages</h1>
-          <p className="text-gray-400">
-            Chat with artists and buyers about artworks
-          </p>
+        {/* Header with New Message Button */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-heading text-white mb-2">Messages</h1>
+            <p className="text-gray-400">
+              Chat with artists and buyers about artworks
+            </p>
+          </div>
+          <button
+            onClick={() => setIsNewMessageOpen(true)}
+            className="bg-brand-gold text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-brand-gold-antique flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Message
+          </button>
         </div>
 
         {/* Conversations List */}
@@ -99,9 +115,15 @@ export default function MessagesPage() {
             <h3 className="text-xl font-semibold text-white mb-2">
               No messages yet
             </h3>
-            <p className="text-gray-400">
+            <p className="text-gray-400 mb-4">
               Start a conversation with an artist or buyer
             </p>
+            <button
+              onClick={() => setIsNewMessageOpen(true)}
+              className="bg-brand-gold text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-brand-gold-antique"
+            >
+              Send Your First Message
+            </button>
           </div>
         ) : (
           <div className="bg-gray-800 rounded-lg overflow-hidden">
@@ -147,6 +169,12 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
+
+      {/* New Message Modal */}
+      <NewMessageModal
+        isOpen={isNewMessageOpen}
+        onClose={() => setIsNewMessageOpen(false)}
+      />
     </main>
   );
 }
