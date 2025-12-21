@@ -95,7 +95,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Workshops routes
-app.use('/api/workshops', workshopRoutes); 
+app.use('/api/workshops', workshopRoutes);
 
 // Socket.io connection handling
 const userSockets = new Map(); // Map userId to socketId
