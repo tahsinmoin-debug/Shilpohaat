@@ -25,6 +25,7 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const [cameraLoading, setCameraLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -75,6 +76,8 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
   const startCamera = async () => {
     try {
       setCameraError(null);
+      setCameraLoading(true);
+      console.log('🎥 Requesting camera access...');
       
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -85,6 +88,7 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
         audio: false,
       });
 
+      console.log('✅ Camera stream acquired');
       streamRef.current = stream;
       
       if (videoRef.current) {
@@ -95,21 +99,34 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
             width: videoRef.current?.videoWidth,
             height: videoRef.current?.videoHeight,
           });
-          videoRef.current?.play().catch(err => {
-            console.error('❌ Error playing video:', err);
-            setCameraError('Failed to start video playback');
-          });
-          setShowCamera(true);
-          setTimeout(() => renderAROverlay(), 300);
+          
+          videoRef.current?.play()
+            .then(() => {
+              console.log('✅ Video playing');
+              setCameraLoading(false);
+              setShowCamera(true);
+              // Wait for video to actually start playing before rendering
+              setTimeout(() => {
+                console.log('🎨 Starting AR overlay rendering...');
+                renderAROverlay();
+              }, 500);
+            })
+            .catch(err => {
+              console.error('❌ Error playing video:', err);
+              setCameraError('Failed to start video playback');
+              setCameraLoading(false);
+            });
         };
 
         videoRef.current.onerror = (err) => {
           console.error('❌ Video error:', err);
           setCameraError('Video stream error');
+          setCameraLoading(false);
         };
       }
     } catch (err: any) {
       console.error('❌ Camera access error:', err);
+      setCameraLoading(false);
       if (err.name === 'NotAllowedError') {
         setCameraError('Camera permission denied. Please allow camera access in settings.');
       } else if (err.name === 'NotFoundError') {
@@ -136,24 +153,36 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
     const video = videoRef.current;
 
     if (!canvas || !video) {
+      console.warn('⚠️ Canvas or video not ready');
+      animationRef.current = requestAnimationFrame(renderAROverlay);
+      return;
+    }
+
+    if (video.readyState < 2) {
+      console.warn('⚠️ Video not ready yet, readyState:', video.readyState);
       animationRef.current = requestAnimationFrame(renderAROverlay);
       return;
     }
 
     if (video.videoWidth === 0 || video.videoHeight === 0) {
+      console.warn('⚠️ Video dimensions not available yet');
       animationRef.current = requestAnimationFrame(renderAROverlay);
       return;
     }
 
     const ctx = canvas.getContext('2d');
     if (!ctx) {
+      console.error('❌ Could not get canvas context');
       animationRef.current = requestAnimationFrame(renderAROverlay);
       return;
     }
 
-    // Set canvas size
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Set canvas size to match video
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      console.log('📐 Canvas sized:', canvas.width, 'x', canvas.height);
+    }
 
     // Draw video feed
     try {
@@ -249,18 +278,25 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
   };
 
   const stopCamera = () => {
+    console.log('🛑 Stopping camera...');
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('Stopped track:', track.kind);
+      });
       streamRef.current = null;
     }
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-    imageLoadedRef.current = false;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setShowCamera(false);
+    setCameraError(null);
   };
 
-  if (showCamera) {
+  if (showCamera || cameraLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex flex-col">
         <button
@@ -275,13 +311,22 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
         <div className="relative flex-1 w-full h-full">
           <video
             ref={videoRef}
-            className="hidden"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ display: cameraLoading ? 'none' : 'none' }}
             playsInline
             autoPlay
             muted
           />
 
-          {cameraError ? (
+          {cameraLoading ? (
+            <div className="flex items-center justify-center h-full bg-black">
+              <div className="bg-purple-600 text-white p-6 rounded-lg max-w-sm text-center mx-4">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
+                <p className="font-semibold mb-2 text-lg">📸 Initializing Camera</p>
+                <p className="text-sm">Please wait...</p>
+              </div>
+            </div>
+          ) : cameraError ? (
             <div className="flex items-center justify-center h-full bg-black">
               <div className="bg-red-600 text-white p-6 rounded-lg max-w-sm text-center mx-4">
                 <p className="font-semibold mb-2 text-lg">❌ Camera Error</p>
@@ -297,15 +342,17 @@ export default function CameraARViewer({ imageUrl, artworkTitle, dimensions }: C
           ) : (
             <canvas
               ref={canvasRef}
-              className="w-full h-full"
+              className="w-full h-full object-cover"
               style={{ display: 'block' }}
             />
           )}
         </div>
 
-        <div className="bg-black/80 backdrop-blur-md text-white p-4 text-center text-xs">
-          <p>🎨 2D Camera Preview - Not true AR (see docs for true 3D AR)</p>
-        </div>
+        {!cameraLoading && !cameraError && (
+          <div className="bg-black/80 backdrop-blur-md text-white p-4 text-center text-xs">
+            <p>🎨 2D Camera Preview - Not true AR (see docs for true 3D AR)</p>
+          </div>
+        )}
       </div>
     );
   }
