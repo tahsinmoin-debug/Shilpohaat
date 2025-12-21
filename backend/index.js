@@ -14,7 +14,8 @@ const orderRoutes = require('./routes/orders.js');
 const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
 const uploadRoutes = require('./routes/upload.js');
-const messageRoutes = require('./routes/messages.js'); // NEW
+const messageRoutes = require('./routes/messages.js'); 
+const workshopsRoutes = require('./routes/workshops.js');
 
 // Connect to MongoDB
 connectDB();
@@ -90,8 +91,11 @@ app.use('/api/blog', blogRoutes);
 // Upload routes
 app.use('/api/upload', uploadRoutes);
 
-// Message routes (NEW)
+// Message routes 
 app.use('/api/messages', messageRoutes);
+
+// Workshops routes
+app.use('/api/workshops', workshopsRoutes);
 
 // Socket.io connection handling
 const userSockets = new Map(); // Map userId to socketId
