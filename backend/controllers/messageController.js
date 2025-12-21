@@ -1,7 +1,69 @@
 const Conversation = require('../models/Conversation');
 const User = require('../models/User');
 
-// Get all conversations for a user
+// 1. Send a message
+const sendMessage = async (req, res) => {
+  try {
+    const { recipientId, content } = req.body;
+    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
+
+    if (!firebaseUID) {
+      return res.status(400).json({ message: 'firebaseUID is required' });
+    }
+
+    // Find current user (sender)
+    const sender = await User.findOne({ firebaseUID });
+    if (!sender) return res.status(404).json({ message: 'Sender not found' });
+
+    // Check if conversation already exists between these two participants
+    let conversation = await Conversation.findOne({
+      participants: { $all: [sender._id, recipientId] }
+    });
+
+    // If no conversation exists, create a new one
+    if (!conversation) {
+      conversation = new Conversation({ 
+        participants: [sender._id, recipientId], 
+        messages: [] 
+      });
+    }
+
+    // Create the message object
+    const newMessage = { 
+      sender: sender._id, 
+      content, 
+      isRead: false 
+    };
+
+    // Update conversation metadata
+    conversation.messages.push(newMessage);
+    conversation.lastMessage = content;
+    conversation.lastMessageTime = Date.now();
+    
+    await conversation.save();
+
+    // CRITICAL: Fetch the conversation again and populate the sender 
+    // This prevents the frontend from crashing when it tries to read msg.sender.name
+    const conversationData = await Conversation.findById(conversation._id)
+      .populate({
+        path: 'messages.sender',
+        select: 'name email role'
+      });
+    
+    const addedMessage = conversationData.messages[conversationData.messages.length - 1];
+
+    return res.status(201).json({
+      success: true,
+      message: addedMessage,
+      conversationId: conversation._id
+    });
+  } catch (error) {
+    console.error('Send message error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 2. Get all conversations for a user
 const getConversations = async (req, res) => {
   try {
     const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
@@ -9,13 +71,11 @@ const getConversations = async (req, res) => {
       return res.status(400).json({ message: 'firebaseUID is required' });
     }
 
-    // Find current user
     const currentUser = await User.findOne({ firebaseUID });
     if (!currentUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Get all conversations where user is a participant
     const conversations = await Conversation.find({
       participants: currentUser._id,
     })
@@ -26,16 +86,14 @@ const getConversations = async (req, res) => {
       })
       .sort({ lastMessageTime: -1 });
 
-    // Format response with other participant info
     const formattedConversations = conversations.map((conv) => {
       const otherParticipant = conv.participants.find(
         (p) => p._id.toString() !== currentUser._id.toString()
       );
 
-      // Count unread messages
       const unreadCount = conv.messages.filter(
         (msg) =>
-          msg.sender.toString() !== currentUser._id.toString() && !msg.isRead
+          msg.sender._id.toString() !== currentUser._id.toString() && !msg.isRead
       ).length;
 
       return {
@@ -58,7 +116,7 @@ const getConversations = async (req, res) => {
   }
 };
 
-// Get messages in a specific conversation
+// 3. Get messages in a specific conversation
 const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -81,7 +139,6 @@ const getMessages = async (req, res) => {
       return res.status(404).json({ message: 'Conversation not found' });
     }
 
-    // Check if user is participant
     const isParticipant = conversation.participants.some(
       (p) => p._id.toString() === currentUser._id.toString()
     );
@@ -100,74 +157,7 @@ const getMessages = async (req, res) => {
   }
 };
 
-// Send a message
-const sendMessage = async (req, res) => {
-  try {
-    const { recipientId, content } = req.body;
-    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
-
-    if (!firebaseUID || !recipientId || !content) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Find sender
-    const sender = await User.findOne({ firebaseUID });
-    if (!sender) {
-      return res.status(404).json({ message: 'Sender not found' });
-    }
-
-    // Find recipient
-    const recipient = await User.findById(recipientId);
-    if (!recipient) {
-      return res.status(404).json({ message: 'Recipient not found' });
-    }
-
-    // Check if conversation exists
-    let conversation = await Conversation.findOne({
-      participants: { $all: [sender._id, recipient._id] },
-    });
-
-    if (!conversation) {
-      // Create new conversation
-      conversation = new Conversation({
-        participants: [sender._id, recipient._id],
-        messages: [],
-      });
-    }
-
-    // Add message
-    const newMessage = {
-      sender: sender._id,
-      content: content.trim(),
-      isRead: false,
-    };
-
-    conversation.messages.push(newMessage);
-    conversation.lastMessage = content.trim();
-    conversation.lastMessageTime = new Date();
-
-    await conversation.save();
-
-    // Populate the conversation for response
-    await conversation.populate('participants', 'name email role');
-    await conversation.populate('messages.sender', 'name email role');
-
-    // Get the newly added message with populated data
-    const addedMessage =
-      conversation.messages[conversation.messages.length - 1];
-
-    return res.status(201).json({
-      success: true,
-      message: addedMessage,
-      conversationId: conversation._id,
-    });
-  } catch (error) {
-    console.error('Send message error:', error);
-    return res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Mark messages as read
+// 4. Mark messages as read
 const markAsRead = async (req, res) => {
   try {
     const { conversationId } = req.params;
@@ -187,7 +177,6 @@ const markAsRead = async (req, res) => {
       return res.status(404).json({ message: 'Conversation not found' });
     }
 
-    // Mark all messages from other user as read
     conversation.messages.forEach((msg) => {
       if (msg.sender.toString() !== currentUser._id.toString()) {
         msg.isRead = true;
@@ -207,8 +196,8 @@ const markAsRead = async (req, res) => {
 };
 
 module.exports = {
+  sendMessage,
   getConversations,
   getMessages,
-  sendMessage,
   markAsRead,
 };
