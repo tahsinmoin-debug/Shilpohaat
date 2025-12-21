@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { useI18n } from './LanguageProvider';
+import { ADMIN_EMAIL } from '@/lib/config';
 
 interface SidebarNavProps {
   open: boolean;
@@ -13,6 +14,9 @@ interface SidebarNavProps {
 export default function SidebarNav({ open, onClose }: SidebarNavProps) {
   const { t } = useI18n();
   const { user, loading, appUser } = useAuth();
+
+  // Treat configured admin email as admin even if role is missing in DB
+  const isAdmin = appUser?.role === 'admin' || (user?.email && ADMIN_EMAIL && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
 
   useEffect(() => {
     if (open) {
@@ -175,7 +179,7 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
         },
       );
     }
-    if (appUser?.role === 'admin') {
+    if (isAdmin) {
       roleLinks.push({
         href: '/admin',
         label: t('nav.admin'),
