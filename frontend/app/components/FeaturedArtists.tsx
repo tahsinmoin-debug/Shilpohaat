@@ -62,25 +62,28 @@ export default function FeaturedArtists() {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-gray-900/50">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-gray-900/50 to-gray-900/30">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
+        {/* Section Header - More Emotional */}
         <div className="text-center mb-12">
-          <h2 className="font-heading text-4xl text-white mb-4">
-            {t('featuredArtists.title')}
+          <p className="font-sans text-brand-gold text-sm uppercase tracking-wider mb-3 font-semibold">
+            Meet the Creators
+          </p>
+          <h2 className="font-heading text-4xl md:text-5xl text-white mb-4">
+            Meet the creators behind the canvas
           </h2>
           <p className="font-sans text-gray-300 text-lg max-w-2xl mx-auto">
-            {t('featuredArtists.subtitle')}
+            Discover the artists bringing these masterpieces to life
           </p>
         </div>
 
-        {/* Artists Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {artists.map((artist) => (
+        {/* Artists Grid - Show 6 max */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {artists.slice(0, 6).map((artist) => (
             <Link
               key={artist._id}
               href={`/artist/${artist._id}`}
-              className="bg-gray-800 rounded-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
+              className="bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group border border-gray-700 hover:border-brand-gold/50"
             >
               {/* Artist Cover Image */}
               <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
@@ -141,10 +144,12 @@ export default function FeaturedArtists() {
                   {/* Artist Details */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xl font-heading text-white mb-1 group-hover:text-brand-gold transition-colors truncate">
-                      {artist.bio}
-                    </h3>
-                    <p className="text-sm text-gray-400 mb-2">
                       {artist.user?.name || 'Artist'}
+                    </h3>
+                    
+                    {/* Art Style - Prominent */}
+                    <p className="text-sm font-semibold text-brand-gold mb-2">
+                      {artist.specializations[0] || 'Contemporary Artist'}
                     </p>
                     
                     {/* Rating */}
@@ -168,9 +173,9 @@ export default function FeaturedArtists() {
                       </div>
                     )}
 
-                    {/* Specializations */}
-                    <p className="text-sm text-gray-400 line-clamp-1">
-                      {artist.specializations.slice(0, 2).join(', ')}
+                    {/* Bio */}
+                    <p className="text-sm text-gray-400 line-clamp-2">
+                      {artist.bio}
                     </p>
                   </div>
                 </div>
@@ -187,11 +192,11 @@ export default function FeaturedArtists() {
                   <button 
                     onClick={(e) => {
                       e.preventDefault();
-                      alert('Follow feature coming soon!');
+                      // Navigate to profile
                     }}
-                    className="px-4 py-2 bg-brand-gold text-gray-900 text-sm font-semibold rounded-md hover:bg-brand-gold-antique transition-colors"
+                    className="px-5 py-2 bg-brand-gold text-gray-900 text-sm font-bold rounded-lg hover:bg-brand-gold-antique transition-colors shadow-md"
                   >
-                    {t('featuredArtists.viewProfile')}
+                    View Profile
                   </button>
                 </div>
               </div>

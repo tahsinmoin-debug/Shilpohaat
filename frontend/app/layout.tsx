@@ -4,6 +4,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 // This imports your globals.css file
 import "./globals.css";
 import Providers from "./providers";
+import AIChatbot from "./components/AIChatbot";
 
 // Setup the font variables
 const inter = Inter({
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} font-sans bg-brand-maroon antialiased`}>
         <Providers>
           {children}
+          <AIChatbot />
         </Providers>
       </body>
     </html>

@@ -16,6 +16,7 @@ const uploadRoutes = require('./routes/upload.js');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/admin.js');
 const commissionRoutes = require('./routes/commissions.js');
+const recommendationRoutes = require('./routes/recommendations.js');
 
 connectDB();
 
@@ -110,6 +111,7 @@ app.use('/api/artworks', reviewRoutes);
 app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/admin', adminRoutes);
 app.use('/api/commissions', commissionRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
