@@ -22,17 +22,27 @@ interface Workshop {
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
         const res = await fetch('http://localhost:5000/api/workshops');
+        
+        if (!res.ok) {
+          throw new Error(`Server responded with ${res.status}`);
+        }
+        
         const data = await res.json();
+        
         if (data.success) {
           setWorkshops(data.workshops);
+        } else {
+          setError("Failed to load workshops data.");
         }
-      } catch (error) {
-        console.error("Failed to fetch workshops:", error);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError("Could not connect to the server. Please ensure the backend is running.");
       } finally {
         setLoading(false);
       }
@@ -53,8 +63,32 @@ export default function WorkshopsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-brand-gold">Loading workshops...</div>
+          /* LOADING STATE */
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold mb-4"></div>
+            <p className="text-brand-gold font-medium">Loading workshops...</p>
+          </div>
+        ) : error ? (
+          /* ERROR STATE */
+          <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-red-400 text-lg mb-4">⚠️ {error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-brand-gold text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : workshops.length === 0 ? (
+          /* EMPTY STATE (This shows if the database is empty) */
+          <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-gray-400 text-lg mb-4">No workshops found in the database.</p>
+            <p className="text-sm text-gray-500">
+              Please run <code className="bg-black/30 px-2 py-1 rounded text-brand-gold">node scripts/seedWorkshops.js</code> in your backend terminal.
+            </p>
+          </div>
         ) : (
+          /* DATA LIST STATE */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {workshops.map((ws) => (
               <div key={ws._id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-brand-gold/50 transition-all group">
@@ -85,7 +119,7 @@ export default function WorkshopsPage() {
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
                     <div>
                       <p className="text-xs text-gray-500">Instructor</p>
-                      <p className="text-sm text-white font-medium">{ws.instructor.name}</p>
+                      <p className="text-sm text-white font-medium">{ws.instructor?.name || 'Artist User'}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500">Price</p>
