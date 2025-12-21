@@ -113,7 +113,7 @@ export default function Header() {
               href="/workshops" 
               className="text-white hover:text-brand-gold transition-colors"
             >
-              {t('nav.Workshops')}
+              Workshops
             </Link>
 
             <Link 

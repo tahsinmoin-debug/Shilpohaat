@@ -11,7 +11,7 @@ const DEMO_WORKSHOPS = [
     type: "recorded",
     category: "Traditional Art",
     thumbnail: "https://images.unsplash.com/photo-1565191999001-551c187427bb?q=80&w=800",
-    contentUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", // Replace with a real tutorial link
+    contentUrl: "https://youtu.be/B6tQyCH5hQM?si=-B0JXSYWr-U0_SBV", // Replace with a real tutorial link
     price: 499,
   },
   {
