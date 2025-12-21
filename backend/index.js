@@ -4,7 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 // Load environment variables FIRST before importing any other modules
-dotenv.config();
+dotenv.config({ path: '.env.development' });
 
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.js');
