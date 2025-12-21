@@ -110,6 +110,13 @@ export default function Header() {
             )}
 
             <Link 
+              href="/workshops" 
+              className="text-white hover:text-brand-gold transition-colors"
+            >
+              {t('nav.Workshops')}
+            </Link>
+
+            <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors"
             >
