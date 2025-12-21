@@ -1,7 +1,8 @@
 require('dotenv').config({ path: '.env.development' });
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const Workshop = require('./models/Workshop');
+const User = require('../models/User.js');
+const Workshop = require('../models/Workshop.js');
+
 
 const DEMO_WORKSHOPS = [
   {
