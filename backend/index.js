@@ -15,7 +15,7 @@ const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
 const uploadRoutes = require('./routes/upload.js');
 const messageRoutes = require('./routes/messages.js'); 
-const workshopsRoutes = require('./routes/workshops.js');
+const workshopRoutes = require('./routes/workshops.js');
 
 // Connect to MongoDB
 connectDB();
@@ -95,7 +95,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Workshops routes
-app.use('/api/workshops', workshopsRoutes);
+app.use('/api/workshops', workshopRoutes); 
 
 // Socket.io connection handling
 const userSockets = new Map(); // Map userId to socketId
