@@ -29,18 +29,8 @@ function Hero({ t }: { t: (key: string) => string }) {
   const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতা আবিষ্কার করুন';
   return (
     <section className="relative h-[560px] md:h-[600px] w-full overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="/hero-bg.jpg"
-        alt="Hero Background"
-        fill
-        className="object-cover"
-        priority
-        quality={90}
-      />
-      
-      {/* Stronger dark overlay for better contrast */}
-      <div className="absolute inset-0 bg-black/60"></div>
+      {/* Softer overlay so the artwork stays visible */}
+      <div className="absolute inset-0 bg-[rgba(6,21,35,0.28)] backdrop-blur-[1.5px]"></div>
 
       {/* Content */}
       <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
@@ -117,7 +107,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-gray-900/30">
+    <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         {/* Heading */}
         <h2 className="font-heading text-4xl md:text-5xl text-white text-center mb-3">
@@ -211,7 +201,7 @@ const HOMEPAGE_CATEGORIES: CategoryTile[] = [
 
 function CategoriesShowcase() {
   return (
-    <section className="py-20 bg-gradient-to-b from-brand-maroon to-gray-900/20">
+    <section className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="font-heading text-4xl md:text-5xl text-white mb-3">Browse by Category</h2>
@@ -250,7 +240,7 @@ function TrustSection() {
     { icon: '✔', title: 'AR Preview Before Buying', desc: 'See art in your space' },
   ];
   return (
-    <section className="py-20 bg-gray-900/40">
+    <section className="py-20 bg-[rgba(6,21,35,0.26)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="font-heading text-3xl md:text-4xl text-white">Why buy from ShilpoHaat?</h2>
@@ -291,7 +281,7 @@ function BlogPreview() {
   if (loading) return null;
   if (posts.length === 0) return null;
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-900/30 to-brand-maroon/30">
+    <section className="py-20 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="font-heading text-4xl md:text-5xl text-white mb-3">Stories & Culture</h2>
@@ -321,7 +311,7 @@ function BlogPreview() {
 // FOOTER COMPONENT
 function Footer({ t }: { t: (key: string) => string }) {
   return (
-    <footer className="py-20 bg-gray-900/50">
+    <footer className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-white/10">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Column 1: Logo and Mission */}

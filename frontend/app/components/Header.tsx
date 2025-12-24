@@ -17,7 +17,7 @@ export default function Header() {
   const toggleSidebar = () => setIsSidebarOpen((v) => !v);
 
   return (
-    <header className="bg-brand-maroon sticky top-0 z-50 shadow-md">
+    <header className="sticky top-0 z-50 bg-[#0b2438] border-b border-white/10 shadow-md">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Left: Logo + Hamburger */}

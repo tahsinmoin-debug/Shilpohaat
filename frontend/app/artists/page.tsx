@@ -66,22 +66,22 @@ export default function ArtistsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen">
       <Header />
       <div className="min-h-screen py-12">
         <div className="container mx-auto px-4">
           {/* Page Header */}
-          <div className="mb-8">
+          <div className="mb-8 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border border-white/10 rounded-xl p-6 shadow-xl">
             <h1 className="text-4xl md:text-5xl font-heading text-white mb-3">
               Featured Artists
             </h1>
-            <p className="text-gray-300 text-lg">
+            <p className="text-gray-200 text-lg">
               Browse over {artists.length} artists
             </p>
           </div>
 
           {/* Alphabet Filter */}
-          <div className="bg-gray-800 rounded-lg p-4 mb-8 sticky top-20 z-40 shadow-lg">
+          <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border border-white/10 rounded-lg p-4 mb-8 sticky top-20 z-40 shadow-lg">
             <div className="flex flex-wrap gap-2 justify-center">
               <button
                 onClick={() => setSelectedLetter(null)}

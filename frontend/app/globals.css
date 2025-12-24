@@ -2,8 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* We can add any base overrides here */
+/* Core palette tuned for the oceanic artwork background */
+:root {
+  --text-primary: #e9f3ff;
+  --text-secondary: #c3d3e7;
+  --accent: #7cd7ff;
+  --accent-strong: #1ba9e5;
+  --surface: rgba(4, 22, 36, 0.62);
+  --surface-strong: rgba(2, 16, 28, 0.78);
+  --divider: rgba(255, 255, 255, 0.12);
+}
+
 body {
-  /* This ensures smooth scrolling */
+  min-height: 100vh;
   scroll-behavior: smooth;
+  color: var(--text-primary);
+  background-color: #082034;
+  background-image:
+    linear-gradient(135deg, rgba(6, 21, 35, 0.25), rgba(14, 72, 104, 0.18)),
+    url("/backgrounds/site-artwork.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #f5f9ff;
+  font-family: var(--font-cormorant), "Times New Roman", serif;
+  letter-spacing: 0.01em;
+}
+
+p, span, li, small, input, textarea, button {
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--accent);
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: #b6e6ff;
+  text-decoration-color: #b6e6ff;
+}
+
+strong, b {
+  color: #f9fbff;
+}
+
+code, pre {
+  color: #d7e9ff;
+}
+
+::selection {
+  background: rgba(124, 215, 255, 0.28);
+  color: #0b1926;
 }

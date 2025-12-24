@@ -136,7 +136,7 @@ export default function ArtworksPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-brand-maroon to-gray-900 text-white py-16">
+      <section className="text-white py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-heading mb-4">
             Discover Authentic Artworks
@@ -148,7 +148,7 @@ export default function ArtworksPage() {
       </section>
 
       {/* Filters Bar */}
-      <div className="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+      <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
