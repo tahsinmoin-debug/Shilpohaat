@@ -33,7 +33,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!loading) {
-      if (!user) {
+      if (!user) {                  // check if the user is logged in and he is admin and then goes `backend/middleware/auth.js` (Lines 28-47)
         router.push('/login');
         return;
       }
@@ -257,7 +257,7 @@ export default function AdminPage() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u._id} className="border-t border-gray-700">
+                  <tr key={u._id} className="border-t border-gray-700">       
                     <td className="p-2 text-white">{u.name}</td>
                     <td className="p-2 text-gray-300">{u.email}</td>
                     <td className="p-2 text-white">{u.role === 'artist' ? 'Seller' : 'Buyer'}</td>

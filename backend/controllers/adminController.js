@@ -104,7 +104,7 @@ const getUsers = async (req, res) => {
 const suspendUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { suspended } = req.body;
+    const { suspended } = req.body;    
     const user = await User.findByIdAndUpdate(id, { isSuspended: !!suspended }, { new: true });
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json({ user });

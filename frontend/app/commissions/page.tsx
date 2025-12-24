@@ -27,12 +27,25 @@ export default function CommissionsPage() {
   const authHeaders = () => ({ 'x-firebase-uid': user?.uid || '' });
 
   useEffect(() => {
-    if (!loading && user && appUser?.role === 'buyer') {
-      loadCommissions();
+    if (loading) return;
+
+    if (!user) {
+      // Nothing to load if the visitor is not authenticated
+      setLoadingData(false);
+      return;
     }
+
+    if (appUser && appUser.role !== 'buyer') {
+      // Known non-buyer account; avoid hitting the API unnecessarily
+      setLoadingData(false);
+      return;
+    }
+
+    void loadCommissions();
   }, [user, loading, appUser]);
 
   const loadCommissions = async () => {
+    setLoadingData(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/commissions/my-requests`, {
         headers: authHeaders(),
@@ -87,7 +100,31 @@ export default function CommissionsPage() {
     }
   };
 
-  if (!loading && (!user || appUser?.role !== 'buyer')) {
+  if (loading) {
+    return (
+      <main>
+        <Header />
+        <div className="min-h-screen container mx-auto px-4 py-8 text-center text-gray-300">
+          Loading your account...
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main>
+        <Header />
+        <div className="min-h-screen container mx-auto px-4 py-8">
+          <div className="text-center text-red-400 py-8">
+            <p>Please log in to view your commissions</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (appUser && appUser.role !== 'buyer') {
     return (
       <main>
         <Header />
