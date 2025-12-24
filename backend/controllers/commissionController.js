@@ -7,11 +7,16 @@ const { uploadMultipleToCloudinary } = require('../utils/cloudinary');
 const createCommissionRequest = async (req, res) => {
   try {
     const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
+    console.log('Commission request - firebaseUID:', firebaseUID);
+    
     if (!firebaseUID) {
       return res.status(400).json({ message: 'firebaseUID is required' });
     }
 
     const buyer = await User.findOne({ firebaseUID });
+    console.log('Commission request - buyer found:', buyer ? buyer.email : 'NOT FOUND');
+    console.log('Commission request - buyer role:', buyer?.role);
+    
     if (!buyer) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -21,6 +26,7 @@ const createCommissionRequest = async (req, res) => {
     }
 
     const { title, description, style, budget, dimensions, referenceImages, deadline } = req.body;
+    console.log('Commission request - data:', { title, style, budget, hasImages: referenceImages?.length > 0 });
 
     if (!title || !style || !budget) {
       return res.status(400).json({ message: 'Title, style, and budget are required' });
@@ -30,8 +36,13 @@ const createCommissionRequest = async (req, res) => {
     let cloudinaryUrls = [];
     if (referenceImages && referenceImages.length > 0) {
       console.log(`Uploading ${referenceImages.length} reference images to Cloudinary...`);
-      cloudinaryUrls = await uploadMultipleToCloudinary(referenceImages, 'shilpohaat/commissions');
-      console.log('✓ Reference images uploaded');
+      try {
+        cloudinaryUrls = await uploadMultipleToCloudinary(referenceImages, 'shilpohaat/commissions');
+        console.log('✓ Reference images uploaded');
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(500).json({ message: 'Failed to upload images', error: uploadError.message });
+      }
     }
 
     const commissionRequest = new CommissionRequest({
