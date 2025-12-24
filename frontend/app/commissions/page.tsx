@@ -30,13 +30,11 @@ export default function CommissionsPage() {
     if (loading) return;
 
     if (!user) {
-      // Nothing to load if the visitor is not authenticated
       setLoadingData(false);
       return;
     }
 
     if (appUser && appUser.role !== 'buyer') {
-      // Known non-buyer account; avoid hitting the API unnecessarily
       setLoadingData(false);
       return;
     }

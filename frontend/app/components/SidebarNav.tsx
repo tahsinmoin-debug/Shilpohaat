@@ -77,15 +77,6 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
       ),
     },
     {
-      href: '/commissions',
-      label: 'Commissions',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m4-4H8" />
-        </svg>
-      ),
-    },
-    {
       href: '/cart',
       label: t('nav.cart'),
       icon: (
@@ -117,6 +108,9 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
   const roleLinks: { href: string; label: string; icon: JSX.Element }[] = [];
 
   if (!loading && user) {
+    console.log('SidebarNav - User logged in, appUser:', appUser);
+    console.log('SidebarNav - appUser?.role:', appUser?.role);
+    
     if (appUser?.role === 'artist') {
       roleLinks.push(
         {
@@ -133,7 +127,7 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
           label: 'Commission Requests',
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m4-4H8" />
             </svg>
           ),
         },
@@ -180,15 +174,26 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
       );
     }
     if (isAdmin) {
-      roleLinks.push({
-        href: '/admin',
-        label: t('nav.admin'),
-        icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m-4-4h8" />
-          </svg>
-        ),
-      });
+      roleLinks.push(
+        {
+          href: '/commissions',
+          label: 'Commissions',
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m4-4H8" />
+            </svg>
+          ),
+        },
+        {
+          href: '/admin',
+          label: t('nav.admin'),
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m-4-4h8" />
+            </svg>
+          ),
+        }
+      );
     }
   }
 
