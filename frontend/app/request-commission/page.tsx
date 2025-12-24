@@ -79,14 +79,27 @@ export default function RequestCommissionPage() {
     setError('');
 
     try {
-      const formDataObj = new FormData();
+      const images: string[] = [];
+      
       for (let i = 0; i < files.length; i++) {
-        formDataObj.append('images', files[i]);
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(files[i]);
+        });
+        images.push(base64);
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+      const res = await fetch(`${API_BASE_URL}/api/upload/images`, {
         method: 'POST',
-        body: formDataObj,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          images,
+          folder: 'shilpohaat/commissions',
+        }),
       });
 
       if (!res.ok) throw new Error('Upload failed');
