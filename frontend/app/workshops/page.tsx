@@ -1,144 +1,222 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import Header from '../components/Header';
 import Link from 'next/link';
+import Header from '../components/Header';
 
 interface Workshop {
   _id: string;
   title: string;
   description: string;
-  type: 'live' | 'recorded';
   category: string;
+  skillLevel: string;
+  type: 'recorded' | 'live';
   thumbnail: string;
-  contentUrl: string;
   price: number;
+  currency: string;
   instructor: {
+    _id: string;
     name: string;
   };
+  enrollmentCount: number;
+  averageRating: number;
+  totalReviews: number;
   scheduledAt?: string;
 }
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    category: '',
+    skillLevel: '',
+    type: '',
+    search: ''
+  });
 
   useEffect(() => {
-    const fetchWorkshops = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/api/workshops');
-        
-        if (!res.ok) {
-          throw new Error(`Server responded with ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        if (data.success) {
-          setWorkshops(data.workshops);
-        } else {
-          setError("Failed to load workshops data.");
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError("Could not connect to the server. Please ensure the backend is running.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchWorkshops();
-  }, []);
+  }, [filters]);
+
+  const fetchWorkshops = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filters.category) params.append('category', filters.category);
+      if (filters.skillLevel) params.append('skillLevel', filters.skillLevel);
+      if (filters.type) params.append('type', filters.type);
+      if (filters.search) params.append('search', filters.search);
+
+      const res = await fetch(`http://localhost:5000/api/workshops?${params.toString()}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setWorkshops(data.workshops);
+      }
+    } catch (error) {
+      console.error('Failed to fetch workshops:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const categories = ['Painting', 'Sculpture', 'Crafts', 'Textile', 'Digital Art', 'Photography', 'Other'];
+  const skillLevels = ['Beginner', 'Intermediate', 'Advanced'];
 
   return (
-    <main className="min-h-screen bg-brand-maroon">
+    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
       <Header />
       
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h1 className="text-4xl font-heading text-brand-gold mb-2">Art Tutorials & Workshops</h1>
-            <p className="text-gray-300">Learn traditional and modern art from master artisans.</p>
+      <div className="container mx-auto px-4 py-12">
+        {/* Page Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-5xl font-heading text-white mb-4">Art Workshops & Tutorials</h1>
+          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+            Learn from experienced artists. Master new techniques. Create beautiful art.
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <input
+              type="text"
+              placeholder="Search workshops..."
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-gold outline-none"
+            />
+
+            {/* Category */}
+            <select
+              value={filters.category}
+              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-gold outline-none"
+            >
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            {/* Skill Level */}
+            <select
+              value={filters.skillLevel}
+              onChange={(e) => setFilters({ ...filters, skillLevel: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-gold outline-none"
+            >
+              <option value="">All Levels</option>
+              {skillLevels.map(level => (
+                <option key={level} value={level}>{level}</option>
+              ))}
+            </select>
+
+            {/* Type */}
+            <select
+              value={filters.type}
+              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-gold outline-none"
+            >
+              <option value="">All Types</option>
+              <option value="recorded">Recorded</option>
+              <option value="live">Live</option>
+            </select>
           </div>
         </div>
 
+        {/* Workshops Grid */}
         {loading ? (
-          /* LOADING STATE */
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-gold mb-4"></div>
-            <p className="text-brand-gold font-medium">Loading workshops...</p>
-          </div>
-        ) : error ? (
-          /* ERROR STATE */
-          <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10">
-            <p className="text-red-400 text-lg mb-4">⚠️ {error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-brand-gold text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors"
-            >
-              Try Again
-            </button>
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto"></div>
+            <p className="text-white mt-4">Loading workshops...</p>
           </div>
         ) : workshops.length === 0 ? (
-          /* EMPTY STATE (This shows if the database is empty) */
-          <div className="text-center py-20 bg-white/5 rounded-xl border border-white/10">
-            <p className="text-gray-400 text-lg mb-4">No workshops found in the database.</p>
-            <p className="text-sm text-gray-500">
-              Please run <code className="bg-black/30 px-2 py-1 rounded text-brand-gold">node scripts/seedWorkshops.js</code> in your backend terminal.
-            </p>
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">No workshops found matching your filters.</p>
           </div>
         ) : (
-          /* DATA LIST STATE */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {workshops.map((ws) => (
-              <div key={ws._id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-brand-gold/50 transition-all group">
-                {/* Image Section */}
-                <div className="relative h-52">
-                  <img 
-                    src={ws.thumbnail} 
-                    alt={ws.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {workshops.map((workshop) => (
+              <Link
+                key={workshop._id}
+                href={`/workshops/${workshop._id}`}
+                className="bg-gray-800 rounded-lg overflow-hidden hover:shadow-2xl transition-shadow group border border-gray-700"
+              >
+                {/* Thumbnail */}
+                <div className="relative h-48 w-full overflow-hidden">
+                  <img
+                    src={workshop.thumbnail}
+                    alt={workshop.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      ws.type === 'live' ? 'bg-red-600 text-white animate-pulse' : 'bg-brand-gold text-black'
-                    }`}>
-                      {ws.type === 'live' ? '● Live' : 'Recorded'}
+                  {/* Badge */}
+                  <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
+                    <span className="text-brand-gold text-xs font-bold uppercase">
+                      {workshop.type === 'live' ? '🔴 Live' : '📹 Recorded'}
+                    </span>
+                  </div>
+                  {/* Price Badge */}
+                  <div className="absolute top-3 left-3 bg-brand-gold text-gray-900 px-3 py-1 rounded-full">
+                    <span className="text-sm font-bold">
+                      {workshop.price === 0 ? 'FREE' : `৳${workshop.price}`}
                     </span>
                   </div>
                 </div>
 
-                {/* Content Section */}
-                <div className="p-6">
-                  <div className="text-brand-gold text-xs font-semibold mb-2 uppercase tracking-widest">
-                    {ws.category}
+                {/* Content */}
+                <div className="p-5">
+                  {/* Category & Level */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                      {workshop.category}
+                    </span>
+                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                      {workshop.skillLevel}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">{ws.title}</h3>
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">{ws.description}</p>
-                  
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
-                    <div>
-                      <p className="text-xs text-gray-500">Instructor</p>
-                      <p className="text-sm text-white font-medium">{ws.instructor?.name || 'Artist User'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500">Price</p>
-                      <p className="text-lg font-bold text-brand-gold">
-                        {ws.price === 0 ? 'FREE' : `₹${ws.price}`}
-                      </p>
+
+                  {/* Title */}
+                  <h3 className="text-xl font-heading text-white mb-2 line-clamp-2 group-hover:text-brand-gold transition-colors">
+                    {workshop.title}
+                  </h3>
+
+                  {/* Instructor */}
+                  <p className="text-gray-400 text-sm mb-3">
+                    by {workshop.instructor.name}
+                  </p>
+
+                  {/* Stats */}
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-3">
+                      {/* Rating */}
+                      {workshop.totalReviews > 0 && (
+                        <div className="flex items-center gap-1 text-brand-gold">
+                          ⭐ {workshop.averageRating.toFixed(1)}
+                          <span className="text-gray-500">({workshop.totalReviews})</span>
+                        </div>
+                      )}
+                      {/* Students */}
+                      <div className="text-gray-400">
+                        👥 {workshop.enrollmentCount}
+                      </div>
                     </div>
                   </div>
 
-                  <a 
-                    href={ws.contentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-6 block w-full text-center py-3 bg-brand-gold hover:bg-yellow-500 text-black font-bold rounded-lg transition-colors"
-                  >
-                    {ws.type === 'live' ? 'Join Workshop' : 'Start Learning'}
-                  </a>
+                  {/* Live Session Date */}
+                  {workshop.type === 'live' && workshop.scheduledAt && (
+                    <div className="mt-3 text-sm text-gray-400">
+                      📅 {new Date(workshop.scheduledAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
