@@ -13,6 +13,12 @@ export default function Header() {
   const { cartItems } = useCart();
   const { t, language, setLanguage } = useI18n();
 
+
+console.log('Current user:', user?.email);
+console.log('App user:', appUser);
+console.log('User role:', appUser?.role);
+
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -132,14 +138,25 @@ export default function Header() {
             {/* Role-based links */}
             {!loading && user && (
               <>
+                {/* ARTIST LINKS */}
                 {appUser?.role === 'artist' && (
-                  <Link 
-                    href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
-                    className="font-sans text-white hover:text-brand-gold transition-colors"
-                  >
-                    {t('nav.artistDashboard')}
-                  </Link>
+                  <>
+                    <Link 
+                      href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link 
+                      href="/artist/workshops"
+                      className="font-sans text-white hover:text-brand-gold transition-colors"
+                    >
+                      My Workshops
+                    </Link>
+                  </>
                 )}
+
+                {/* BUYER LINKS */}
                 {appUser?.role === 'buyer' && (
                   <Link 
                     href="/account"
@@ -148,12 +165,14 @@ export default function Header() {
                     {t('nav.myAccount')}
                   </Link>
                 )}
+
+                {/* ADMIN LINKS */}
                 {appUser?.role === 'admin' && (
                   <Link 
-                    href="/admin"
+                    href="/admin/workshops"
                     className="font-sans text-white hover:text-brand-gold transition-colors"
                   >
-                    {t('nav.admin')}
+                    Admin Workshops
                   </Link>
                 )}
               </>
@@ -285,6 +304,14 @@ export default function Header() {
             )}
 
             <Link 
+              href="/workshops" 
+              className="font-sans text-white hover:text-brand-gold transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Workshops
+            </Link>
+
+            <Link 
               href="/categories" 
               className="font-sans text-white hover:text-brand-gold transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -298,39 +325,54 @@ export default function Header() {
             >
               {t('nav.about')}
             </Link>
+
             {/* Role-based (mobile) */}
-            {user ? (
+            {user && appUser && (
               <>
-                {appUser?.role === 'artist' && (
+                {/* ARTIST - MOBILE */}
+                {appUser.role === 'artist' && (
+                  <>
                     <Link
                       href={appUser?.artistProfile ? '/artist/dashboard' : '/create-profile'}
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {t('nav.artistDashboard')}
+                      Dashboard
                     </Link>
-                  )}
-                  {appUser?.role === 'buyer' && (
                     <Link
-                      href="/account"
+                      href="/artist/workshops"
                       className="font-sans text-white hover:text-brand-gold transition-colors py-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {t('nav.myAccount')}
+                      My Workshops
                     </Link>
-                  )}
-                  {appUser?.role === 'admin' && (
-                    <Link
-                      href="/admin"
-                      className="font-sans text-white hover:text-brand-gold transition-colors py-2"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {t('nav.admin')}
-                    </Link>
-                  )}
-                </>
-              ) : null
-            }
+                  </>
+                )}
+
+                {/* BUYER - MOBILE */}
+                {appUser.role === 'buyer' && (
+                  <Link
+                    href="/account"
+                    className="font-sans text-white hover:text-brand-gold transition-colors py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('nav.myAccount')}
+                  </Link>
+                )}
+
+                {/* ADMIN - MOBILE */}
+                {appUser.role === 'admin' && (
+                  <Link
+                    href="/admin/workshops"
+                    className="font-sans text-white hover:text-brand-gold transition-colors py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Admin Workshops
+                  </Link>
+                )}
+              </>
+            )}
+
             {!loading && (
               user ? (
                 <button
@@ -349,6 +391,7 @@ export default function Header() {
                 </Link>
               )
             )}
+
             {/* Mobile language toggle */}
             <div className="flex md:hidden items-center gap-1 pt-2">
               {(['en', 'bn'] as const).map((lang) => (
