@@ -77,7 +77,7 @@ export default function CheckoutPage() {
 
   if (cartItems.length === 0) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+      <main className="min-h-screen">
         <Header />
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-3xl font-heading text-white mb-4">Your cart is empty</h1>
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen">
       <Header />
       <section className="container mx-auto px-4 py-12">
         <h1 className="text-3xl font-heading text-white mb-8">Checkout</h1>

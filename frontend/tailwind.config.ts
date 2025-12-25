@@ -19,8 +19,10 @@ const config: Config = {
       // e.g., <div className="bg-brand-maroon">
       colors: {
         "brand-maroon": "#4E0303",
-        "brand-gold": "#FFC107", // The original gold you liked
-        "brand-gold-antique": "#D4AF37", // The "Antique Gold" I suggested
+        // Replace yellow accents with oceanic blues to match the global artwork
+        // Using CSS variables from globals.css keeps palette centralized
+        "brand-gold": "var(--accent-strong)",
+        "brand-gold-antique": "var(--accent)",
       },
       // --- END OF NEW PART ---
     },

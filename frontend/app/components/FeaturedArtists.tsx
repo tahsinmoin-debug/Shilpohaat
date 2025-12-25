@@ -62,7 +62,7 @@ export default function FeaturedArtists() {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-gray-900/50 to-gray-900/30">
+    <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         {/* Section Header - More Emotional */}
         <div className="text-center mb-12">
@@ -83,7 +83,7 @@ export default function FeaturedArtists() {
             <Link
               key={artist._id}
               href={`/artist/${artist._id}`}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group border border-gray-700 hover:border-brand-gold/50"
+              className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group hover:border-brand-gold/50"
             >
               {/* Artist Cover Image */}
               <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
@@ -181,7 +181,7 @@ export default function FeaturedArtists() {
                 </div>
 
                 {/* Stats Row */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-700/70">
                   <div className="flex items-center gap-1 text-gray-400 text-sm">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -194,7 +194,7 @@ export default function FeaturedArtists() {
                       e.preventDefault();
                       // Navigate to profile
                     }}
-                    className="px-5 py-2 bg-brand-gold text-gray-900 text-sm font-bold rounded-lg hover:bg-brand-gold-antique transition-colors shadow-md"
+                    className="px-5 py-2 bg-brand-gold text-[#0b1926] text-sm font-bold rounded-lg hover:bg-brand-gold-antique transition-colors shadow-md"
                   >
                     View Profile
                   </button>

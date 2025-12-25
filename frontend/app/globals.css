@@ -63,3 +63,21 @@ code, pre {
   background: rgba(124, 215, 255, 0.28);
   color: #0b1926;
 }
+
+/* Reusable UI helpers */
+.section-overlay-dark {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.section-overlay-light {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(3px);
+}
+
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}

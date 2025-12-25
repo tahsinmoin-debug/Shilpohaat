@@ -28,7 +28,7 @@ function Hero({ t }: { t: (key: string) => string }) {
   const headingBn = 'প্রতিটি তুলির টানে, একটি নতুন গল্প';
   const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতা আবিষ্কার করুন';
   return (
-    <section className="relative h-[560px] md:h-[600px] w-full overflow-hidden">
+    <section className="relative h-[560px] md:h-[620px] w-full overflow-hidden">
       {/* Softer overlay so the artwork stays visible */}
       <div className="absolute inset-0 bg-[rgba(6,21,35,0.28)] backdrop-blur-[1.5px]"></div>
 
@@ -36,26 +36,26 @@ function Hero({ t }: { t: (key: string) => string }) {
       <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
         <div className="max-w-3xl md:max-w-4xl text-center">
           {/* Heading - Bold & Emotional */}
-          <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold mb-4 md:mb-6 leading-tight tracking-tight drop-shadow-2xl">
+          <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold mb-6 md:mb-8 leading-tight tracking-tight drop-shadow-2xl">
             {headingBn}
           </h1>
 
           {/* Subheadline - Cleaner & Shorter */}
-          <p className="font-sans text-xl md:text-2xl text-gray-100 mb-8 md:mb-10 leading-relaxed max-w-2xl mx-auto drop-shadow-lg">
+          <p className="font-sans text-xl md:text-2xl text-gray-100 mb-10 md:mb-12 leading-relaxed max-w-2xl mx-auto drop-shadow-lg">
             {subheadingBn}
           </p>
 
           {/* Single Primary CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-5 justify-center">
             <Link
               href="/artworks"
-              className="font-sans inline-block px-10 md:px-12 py-4 bg-brand-gold text-gray-900 font-bold rounded-lg hover:bg-brand-gold-antique hover:scale-105 transition-all duration-300 text-center shadow-2xl text-lg"
+              className="font-sans inline-flex items-center justify-center px-12 md:px-14 py-4 bg-brand-gold text-[#0b1926] font-extrabold rounded-lg hover:bg-brand-gold-antique hover:scale-105 transition-all duration-300 text-center shadow-2xl text-lg ring-2 ring-white/10"
             >
               Explore Artworks
             </Link>
             <Link
               href="/artists"
-              className="font-sans inline-block px-10 md:px-12 py-4 bg-transparent text-white font-semibold rounded-lg border-2 border-white/80 hover:bg-white/10 hover:border-white transition-all duration-300 text-center text-lg"
+              className="font-sans inline-block px-12 md:px-14 py-4 bg-transparent text-white font-semibold rounded-lg border-2 border-white/80 hover:bg-white/10 hover:border-white transition-all duration-300 text-center text-lg"
             >
               Meet the Artists
             </Link>
@@ -125,7 +125,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
             <Link
               key={artwork._id}
               href={`/artworks/${artwork._id}`}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
+              className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
             >
               {/* Artwork Image with AR Badge */}
               <div className="relative h-[320px] w-full overflow-hidden">
@@ -165,7 +165,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
                     e.preventDefault();
                     alert('Cart functionality coming soon!');
                   }}
-                  className="w-full bg-brand-gold text-gray-900 font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
+                  className="w-full bg-brand-gold text-[#0b1926] font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
                 >
                   View Details
                 </button>
@@ -247,7 +247,7 @@ function TrustSection() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {items.map((it) => (
-            <div key={it.title} className="bg-gray-800 rounded-xl p-6 text-center border border-gray-700">
+            <div key={it.title} className="glass-card rounded-xl p-6 text-center">
               <div className="text-2xl mb-3 text-brand-gold">{it.icon}</div>
               <p className="text-white font-semibold mb-2">{it.title}</p>
               <p className="text-gray-400 text-sm">{it.desc}</p>
@@ -289,7 +289,7 @@ function BlogPreview() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {posts.map((post) => (
-            <Link key={post._id} href={`/blog/${post.slug}`} className="bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all">
+            <Link key={post._id} href={`/blog/${post.slug}`} className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all">
               <div className="relative h-56 w-full overflow-hidden">
                 <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
               </div>
