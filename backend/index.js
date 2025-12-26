@@ -11,7 +11,7 @@ const orderRoutes = require('./routes/orders.js');
 const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
 const uploadRoutes = require('./routes/upload.js');
-
+const workshopRoutes = require('./routes/workshops.js');
 
 connectDB();
 
@@ -49,6 +49,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/workshops', workshopRoutes);
 
 
 // Error handling middleware

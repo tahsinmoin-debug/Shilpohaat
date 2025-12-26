@@ -252,40 +252,37 @@ exports.deleteWorkshop = async (req, res) => {
 };
 
 // Get workshop enrollments (Instructor only)
+// Get workshop enrollments (for instructor to see who enrolled)
+// Get list of students enrolled in a specific workshop (Artist Only)
 exports.getWorkshopEnrollments = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Workshop ID
     const { firebaseUID } = req.query;
-    
+
     if (!firebaseUID) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
-    
+
     const user = await User.findOne({ firebaseUID });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Find the workshop and verify this artist owns it
     const workshop = await Workshop.findById(id);
-    
-    if (!workshop) {
-      return res.status(404).json({ success: false, message: 'Workshop not found' });
+    if (!workshop || workshop.instructor.toString() !== user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Access denied. You are not the instructor.' });
     }
-    
-    if (workshop.instructor.toString() !== user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-    
+
+    // Find all successful enrollments
     const enrollments = await Enrollment.find({ 
-      workshop: id,
-      paymentStatus: 'paid'
-    })
-      .populate('user', 'name email')
-      .sort('-enrolledAt')
-      .lean();
-    
+      workshop: id, 
+      paymentStatus: 'paid' 
+    }).populate('user', 'name email');
+
     res.json({ success: true, enrollments });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 // ============= ADMIN ENDPOINTS =============
 
 // Get all workshops for admin moderation
@@ -421,6 +418,49 @@ exports.archiveWorkshop = async (req, res) => {
     await workshop.save();
     
     res.json({ success: true, message: 'Workshop archived', workshop });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// Add a tutorial lesson to a workshop
+exports.addLessonToWorkshop = async (req, res) => {
+  try {
+    const { id } = req.params; // Workshop ID
+    const { title, description, videoUrl, duration, order, firebaseUID } = req.body;
+
+    // 1. Find the user making the request
+    const user = await User.findOne({ firebaseUID });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // 2. Find the workshop
+    const workshop = await Workshop.findById(id);
+    if (!workshop) return res.status(404).json({ success: false, message: 'Workshop not found' });
+
+    // 3. Security Check: Only the instructor who created it can add lessons
+    if (workshop.instructor.toString() !== user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this workshop' });
+    }
+
+    // 4. Create the lesson object
+    const newLesson = {
+      title,
+      description,
+      videoUrl,
+      duration: duration || 0,
+      order: order || (workshop.lessons.length + 1)
+    };
+
+    // 5. Push to lessons array and save
+    workshop.lessons.push(newLesson);
+    await workshop.save();
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Tutorial video added successfully', 
+      lesson: newLesson 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -312,9 +312,10 @@ exports.getLearningContent = async (req, res) => {
     }
     
     const workshop = await Workshop.findById(workshopId)
-      .populate('instructor', 'name email artistProfile')
+      .populate('instructor', 'name email')
+      .select('title lessons instructor') // Only send what's needed
       .lean();
-    
+
     if (!workshop) {
       return res.status(404).json({ success: false, message: 'Workshop not found' });
     }

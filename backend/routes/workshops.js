@@ -85,6 +85,9 @@ router.post('/:id/archive', workshopController.archiveWorkshop);
 router.get('/admin/flagged-reviews', reviewController.getFlaggedReviews);
 
 // Flag/unflag review
-router.post('/reviews/:reviewId/flag', reviewController.toggleReviewFlag);
+router.post('/reviews/:reviewId/flag', reviewController.toggleReviewFlag); 
+
+// Add tutorial video/lesson (Artist only)
+router.post('/:id/lessons', workshopController.addLessonToWorkshop);
 
 module.exports = router;
