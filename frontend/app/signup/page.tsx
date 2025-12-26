@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import Header from '../components/Header';
+import { API_BASE_URL } from '@/lib/config';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function SignupPage() {
       }
 
       // Step 2: Send data to our backend API (password NOT sent; backend expects firebaseUID only)
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name, role, firebaseUID }),
@@ -60,15 +61,15 @@ export default function SignupPage() {
         router.push('/');
       }
 
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       setIsLoading(false);
       console.error(error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen">
       <Header />
       
       <div className="min-h-screen flex items-center justify-center px-4 py-12">

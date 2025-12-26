@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
+import WishlistButton from '../components/WishlistButton'; // Import the wishlist component
+import { API_BASE_URL } from '@/lib/config';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORIES = [
   'All',
   'Abstract',
@@ -59,12 +62,13 @@ export default function ArtworksPage() {
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, searchQuery, priceRange, sortBy, artworks]);
 
   const fetchArtworks = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/artworks');
+      const res = await fetch(`${API_BASE_URL}/api/artworks`);
       const data = await res.json();
       setArtworks(data.artworks || []);
     } catch (error) {
@@ -132,7 +136,7 @@ export default function ArtworksPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-brand-maroon to-gray-900 text-white py-16">
+      <section className="text-white py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-heading mb-4">
             Discover Authentic Artworks
@@ -144,7 +148,7 @@ export default function ArtworksPage() {
       </section>
 
       {/* Filters Bar */}
-      <div className="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+      <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
@@ -176,11 +180,6 @@ export default function ArtworksPage() {
             >
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-          </div>
-
-          {/* Filters Info */}
-          <div className="mt-4 text-sm text-gray-400">
-            <p>💡 Browse categories at our <a href="/categories" className="text-brand-gold hover:underline">dedicated Categories page</a></p>
           </div>
 
           {/* Price Range */}
@@ -250,21 +249,32 @@ export default function ArtworksPage() {
                 onClick={() => handleArtworkClick(artwork._id)}
                 className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
               >
-                {/* Artwork Image */}
+                {/* Artwork Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-gray-700">
                   <img
                     src={artwork.images[0] || 'https://placehold.co/400x400/333/fff.png'}
                     alt={artwork.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
+                  
+                  {/* WISHLIST HEART BUTTON - TOP RIGHT */}
+                  <div 
+                    className="absolute top-3 right-3 z-10"
+                    onClick={(e) => e.stopPropagation()} 
+                  >
+                    <div className="bg-gray-900/40 backdrop-blur-sm rounded-full p-0.5 hover:bg-gray-900/60 transition-colors">
+                      <WishlistButton artworkId={artwork._id} />
+                    </div>
+                  </div>
+
                   {/* Status Badge */}
                   {artwork.status !== 'available' && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
+                    <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
                       {artwork.status}
                     </div>
                   )}
                   {artwork.featured && (
-                    <div className="absolute top-2 left-2 bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-xs font-semibold">
+                    <div className="absolute top-10 left-2 bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-xs font-semibold">
                       Featured
                     </div>
                   )}

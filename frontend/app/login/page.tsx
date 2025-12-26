@@ -34,15 +34,16 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       setIsLoading(false);
       router.push("/");
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.error(err);
-      setError(err.message || "Login failed");
+      setError(err instanceof Error ? err.message : 'Login failed');
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen">
       <Header />
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">

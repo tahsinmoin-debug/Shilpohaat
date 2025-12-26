@@ -1,16 +1,31 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 import { useAuth } from '../../components/AuthProvider';
 
+interface ProfileData {
+  profilePicture: string;
+  bio: string;
+  name: string;
+  portfolioImages: string[];
+  availability?: 'available' | 'busy' | 'unavailable';
+  specializations?: string[];
+  artistStory?: string;
+  skills?: string[];
+  contactPhone?: string;
+  website?: string;
+  instagram?: string;
+}
+
 export default function ProfilePreviewPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
 
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -35,7 +50,7 @@ export default function ProfilePreviewPage() {
       console.log('Saving profile for user:', user.uid);
       console.log('Profile data:', profileData);
 
-      const res = await fetch(`http://localhost:5000/api/artist/profile?firebaseUID=${user.uid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/artist/profile?firebaseUID=${user.uid}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -101,9 +116,11 @@ export default function ProfilePreviewPage() {
                 {/* Profile Picture */}
                 <div className="relative">
                   {profileData.profilePicture ? (
-                    <img
+                    <Image
                       src={profileData.profilePicture}
                       alt={profileData.bio}
+                      width={160}
+                      height={160}
                       className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-800 object-cover"
                     />
                   ) : (
@@ -125,7 +142,7 @@ export default function ProfilePreviewPage() {
                     {profileData.bio || 'Artist Name'}
                   </h1>
                   <p className="text-brand-gold mb-3">
-                    {profileData.specializations.join(' • ')}
+                    {profileData.specializations?.join(' • ') || 'Artist'}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
                     <span className={`px-3 py-1 rounded-full text-sm ${
@@ -173,9 +190,11 @@ export default function ProfilePreviewPage() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {profileData.portfolioImages.map((img: string, index: number) => (
                       <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                        <img
+                        <Image
                           src={img}
                           alt={`Artwork ${index + 1}`}
+                          width={300}
+                          height={300}
                           className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
                         />
                       </div>
@@ -188,7 +207,7 @@ export default function ProfilePreviewPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Skills */}
-              {profileData.skills.length > 0 && (
+              {profileData.skills && profileData.skills.length > 0 && (
                 <div className="bg-gray-800 rounded-lg p-6">
                   <h3 className="text-xl font-heading text-white mb-4">Skills</h3>
                   <div className="flex flex-wrap gap-2">

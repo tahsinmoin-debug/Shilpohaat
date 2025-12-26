@@ -26,48 +26,38 @@ interface Artwork {
 function Hero({ t }: { t: (key: string) => string }) {
   // Keep the hero headline in Bengali regardless of language selection
   const headingBn = 'প্রতিটি তুলির টানে, একটি নতুন গল্প';
-  const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতার জগতটি ঘুরে দেখুন...';
+  const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতা আবিষ্কার করুন';
   return (
-    <section className="relative h-[600px] w-full overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="/hero-bg.jpg"
-        alt="Hero Background"
-        fill
-        className="object-cover"
-        priority
-        quality={90}
-      />
-      
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/40"></div>
+    <section className="relative h-[560px] md:h-[620px] w-full overflow-hidden">
+      {/* Softer overlay so the artwork stays visible */}
+      <div className="absolute inset-0 bg-[rgba(6,21,35,0.28)] backdrop-blur-[1.5px]"></div>
 
       {/* Content */}
       <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
-        <div className="max-w-4xl text-center">
-          {/* Heading */}
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white font-bold mb-6 leading-tight">
+        <div className="max-w-3xl md:max-w-4xl text-center">
+          {/* Heading - Bold & Emotional */}
+          <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold mb-6 md:mb-8 leading-tight tracking-tight drop-shadow-2xl">
             {headingBn}
           </h1>
 
-          {/* Paragraph */}
-          <p className="font-sans text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed max-w-2xl mx-auto">
+          {/* Subheadline - Cleaner & Shorter */}
+          <p className="font-sans text-xl md:text-2xl text-gray-100 mb-10 md:mb-12 leading-relaxed max-w-2xl mx-auto drop-shadow-lg">
             {subheadingBn}
           </p>
 
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Single Primary CTA */}
+          <div className="flex flex-col sm:flex-row gap-5 justify-center">
             <Link
               href="/artworks"
-              className="font-sans inline-block px-8 py-3 bg-white text-gray-900 font-semibold rounded-md hover:bg-brand-gold hover:text-white transition-all duration-300 text-center shadow-lg"
+              className="font-sans inline-flex items-center justify-center px-12 md:px-14 py-4 bg-brand-gold text-[#0b1926] font-extrabold rounded-lg hover:bg-brand-gold-antique hover:scale-105 transition-all duration-300 text-center shadow-2xl text-lg ring-2 ring-white/10"
             >
-              {t('hero.shopNow')}
+              Explore Artworks
             </Link>
             <Link
-              href="/about"
-              className="font-sans inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-md border-2 border-white hover:bg-white hover:text-gray-900 transition-all duration-300 text-center"
+              href="/artists"
+              className="font-sans inline-block px-12 md:px-14 py-4 bg-transparent text-white font-semibold rounded-lg border-2 border-white/80 hover:bg-white/10 hover:border-white transition-all duration-300 text-center text-lg"
             >
-              {t('hero.learnMore')}
+              Meet the Artists
             </Link>
           </div>
         </div>
@@ -76,65 +66,9 @@ function Hero({ t }: { t: (key: string) => string }) {
   );
 }
 
-// SHOP BY CATEGORY COMPONENT
-function ShopByCategory({ t }: { t: (key: string) => string }) {
-  const categories = [
-    { key: 'paintings', countKey: 'shopByCategory.paintingsCount', href: '/products?category=paintings', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Painting' },
-    { key: 'textiles', countKey: 'shopByCategory.textilesCount', href: '/products?category=textiles', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Textile' },
-    { key: 'sculptures', countKey: 'shopByCategory.sculpturesCount', href: '/products?category=sculptures', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Sculpture' },
-    { key: 'jewelry', countKey: 'shopByCategory.jewelryCount', href: '/products?category=jewelry', imageSrc: 'https://placehold.co/400x300/333/FFF.png?text=Jewelry' }
-  ];
-
-  return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        {/* Heading */}
-        <h2 className="font-heading text-4xl text-white text-center mb-4">
-          {t('shopByCategory.title')}
-        </h2>
-        
-        {/* Paragraph */}
-        <p className="font-sans text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-          {t('shopByCategory.subtitle')}
-        </p>
-
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((category) => (
-            <Link
-              key={category.name}
-              href={category.href}
-              className="bg-gray-800 rounded-lg overflow-hidden group hover:shadow-xl transition-shadow"
-            >
-              {/* Category Image */}
-              <div className="relative h-[300px] w-full overflow-hidden">
-                <Image
-                  src={category.imageSrc}
-                  alt={category.name}
-                  width={400}
-                  height={300}
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              
-              {/* Category Info */}
-              <div className="p-4">
-                <h3 className="font-heading text-xl text-white mb-1">
-                  {t(`shopByCategory.${category.key}`)}
-                </h3>
-                <p className="font-sans text-gray-400 text-sm">
-                  {t(category.countKey)}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // FEATURED ARTWORKS COMPONENT
+
+import { API_BASE_URL } from '@/lib/config';
 
 function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   const [artworks, setArtworks] = React.useState<Artwork[]>([]); // ← Fixed type
@@ -143,7 +77,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   React.useEffect(() => {
     const fetchFeaturedArtworks = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/artworks?featured=true');
+        const res = await fetch(`${API_BASE_URL}/api/artworks?featured=true`);
         const data = await res.json();
         setArtworks(data.artworks?.slice(0, 4) || []);
       } catch (error) {
@@ -173,46 +107,56 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   }
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         {/* Heading */}
-        <h2 className="font-heading text-4xl text-white text-center mb-4">
-          {t('featuredArtworks.title')}
+        <h2 className="font-heading text-4xl md:text-5xl text-white text-center mb-3">
+          Featured Artworks
         </h2>
         
-        {/* Paragraph */}
-        <p className="font-sans text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-          {t('featuredArtworks.subtitle')}
+        {/* Subheadline */}
+        <p className="font-sans text-gray-300 text-center mb-12 max-w-xl mx-auto text-lg">
+          Discover stunning pieces from talented artists
         </p>
 
-        {/* Artworks Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {artworks.map((artwork) => (
+        {/* Artworks Grid - Show 6 max */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {artworks.slice(0, 6).map((artwork) => (
             <Link
               key={artwork._id}
               href={`/artworks/${artwork._id}`}
-              className="bg-gray-800 rounded-lg overflow-hidden hover:shadow-xl transition-shadow"
+              className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
             >
-              {/* Artwork Image */}
-              <div className="relative h-[400px] w-full">
+              {/* Artwork Image with AR Badge */}
+              <div className="relative h-[320px] w-full overflow-hidden">
                 <Image
                   src={artwork.images?.[0] || 'https://placehold.co/400x400/555/FFF.png'}
                   alt={artwork.title}
                   width={400}
-                  height={400}
-                  className="object-cover w-full h-full"
+                  height={320}
+                  className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
                 />
+                {/* AR Badge */}
+                {artwork.category && (
+                  <div className="absolute top-3 right-3 bg-brand-gold/95 text-gray-900 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-sm">
+                    <span className="text-sm">🔥</span>
+                    AR Ready
+                  </div>
+                )}
               </div>
               
               {/* Artwork Info */}
-              <div className="p-4">
-                <h3 className="font-heading text-xl text-white mb-1">
+              <div className="p-5">
+                <h3 className="font-heading text-xl text-white mb-2 group-hover:text-brand-gold transition-colors line-clamp-1">
                   {artwork.title}
                 </h3>
-                <p className="font-sans text-gray-400 text-sm mb-2">
-                  {t('featuredArtworks.by')} {artwork.artist?.name || t('featuredArtworks.unknownArtist')}
+                <p className="font-sans text-gray-400 text-sm mb-3 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  {artwork.artist?.name || 'Unknown Artist'}
                 </p>
-                <p className="font-sans text-white font-semibold text-lg mb-4">
+                <p className="font-sans text-brand-gold font-bold text-2xl mb-4">
                   ৳{artwork.price?.toLocaleString()}
                 </p>
                 
@@ -221,13 +165,143 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
                     e.preventDefault();
                     alert('Cart functionality coming soon!');
                   }}
-                  className="w-full bg-brand-gold text-gray-900 font-semibold py-2 px-4 rounded-md hover:bg-brand-gold-antique transition-colors"
+                  className="w-full bg-brand-gold text-[#0b1926] font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
                 >
-                  {t('featuredArtworks.addToCart')}
+                  View Details
                 </button>
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* View All CTA */}
+        <div className="text-center mt-12">
+          <Link
+            href="/artworks"
+            className="inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-lg border-2 border-brand-gold hover:bg-brand-gold hover:text-gray-900 transition-all duration-300"
+          >
+            View All Artworks →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// CATEGORIES SHOWCASE
+interface CategoryTile { id: string; name: string; image: string; }
+const HOMEPAGE_CATEGORIES: CategoryTile[] = [
+  { id: 'Abstract', name: 'Abstract', image: 'https://res.cloudinary.com/dt0mwoirn/image/upload/v1765522371/shilpohaat/categories/abstract.jpg' },
+  { id: 'Landscape', name: 'Landscape', image: 'https://res.cloudinary.com/dt0mwoirn/image/upload/v1765522524/shilpohaat/categories/landscape.jpg' },
+  { id: 'Portrait', name: 'Portrait', image: 'https://res.cloudinary.com/dt0mwoirn/image/upload/v1765522389/shilpohaat/categories/portrait.jpg' },
+  { id: 'Modern Art', name: 'Modern Art', image: 'https://res.cloudinary.com/dt0mwoirn/image/upload/v1765522390/shilpohaat/categories/modern-art.jpg' },
+  { id: 'Traditional Art', name: 'Traditional Art', image: 'https://res.cloudinary.com/dt0mwoirn/image/upload/v1765522391/shilpohaat/categories/traditional-art.jpg' },
+  { id: 'Watercolor', name: 'Watercolor', image: 'https://res.cloudinary.com/dt0mwoirn/image/upload/v1765522404/shilpohaat/categories/watercolor.jpg' },
+];
+
+function CategoriesShowcase() {
+  return (
+    <section className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-b border-white/10">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="font-heading text-4xl md:text-5xl text-white mb-3">Browse by Category</h2>
+          <p className="font-sans text-gray-300 max-w-xl mx-auto">Find artworks by style and medium</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {HOMEPAGE_CATEGORIES.map((cat) => (
+            <Link key={cat.id} href={`/artworks?category=${encodeURIComponent(cat.name)}`} className="group rounded-xl overflow-hidden relative">
+              <div className="h-56 w-full overflow-hidden">
+                <Image src={cat.image} alt={cat.name} width={600} height={300} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              </div>
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+              <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between">
+                <h3 className="text-white font-heading text-xl">{cat.name}</h3>
+                <span className="px-4 py-1.5 bg-brand-gold text-gray-900 text-sm font-semibold rounded-full">Browse</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="text-center mt-10">
+          <Link href="/categories" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Browse All Categories →</Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// TRUST SECTION
+function TrustSection() {
+  const items = [
+    { icon: '✔', title: 'Verified Local Artists', desc: 'Profiles reviewed for authenticity' },
+    { icon: '✔', title: 'Secure Payments', desc: 'Protected checkout experience' },
+    { icon: '✔', title: 'Handcrafted Originals', desc: 'Unique pieces, no mass copies' },
+    { icon: '✔', title: 'AR Preview Before Buying', desc: 'See art in your space' },
+  ];
+  return (
+    <section className="py-20 bg-[rgba(6,21,35,0.26)] backdrop-blur-sm border-t border-b border-white/10">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-10">
+          <h2 className="font-heading text-3xl md:text-4xl text-white">Why buy from ShilpoHaat?</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          {items.map((it) => (
+            <div key={it.title} className="glass-card rounded-xl p-6 text-center">
+              <div className="text-2xl mb-3 text-brand-gold">{it.icon}</div>
+              <p className="text-white font-semibold mb-2">{it.title}</p>
+              <p className="text-gray-400 text-sm">{it.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// BLOG PREVIEW SECTION
+interface BlogPost { _id: string; title: string; slug: string; excerpt: string; coverImage: string; }
+function BlogPreview() {
+  const [posts, setPosts] = React.useState<BlogPost[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/blog`);
+        const data = await res.json();
+        setPosts((data.posts || []).slice(0, 3));
+      } catch (e) {
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+  }, []);
+  if (loading) return null;
+  if (posts.length === 0) return null;
+  return (
+    <section className="py-20 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="font-heading text-4xl md:text-5xl text-white mb-3">Stories & Culture</h2>
+          <p className="font-sans text-gray-300">Read interviews, heritage, and process stories</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {posts.map((post) => (
+            <Link key={post._id} href={`/blog/${post.slug}`} className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all">
+              <div className="relative h-56 w-full overflow-hidden">
+                <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-5">
+                <h3 className="text-white font-heading text-xl mb-2 line-clamp-2">{post.title}</h3>
+                <p className="text-gray-400 text-sm line-clamp-2">{post.excerpt}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <div className="text-center mt-10">
+          <Link href="/blog" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Read Stories →</Link>
         </div>
       </div>
     </section>
@@ -237,7 +311,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
 // FOOTER COMPONENT
 function Footer({ t }: { t: (key: string) => string }) {
   return (
-    <footer className="py-16">
+    <footer className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-white/10">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Column 1: Logo and Mission */}
@@ -248,6 +322,12 @@ function Footer({ t }: { t: (key: string) => string }) {
             <p className="font-sans text-gray-400 text-sm leading-relaxed">
               {t('footer.mission')}
             </p>
+            {/* Social icons */}
+            <div className="flex items-center gap-3 mt-4">
+              <a href="#" aria-label="Facebook" className="text-white hover:text-brand-gold">🔗</a>
+              <a href="#" aria-label="Instagram" className="text-white hover:text-brand-gold">🎨</a>
+              <a href="#" aria-label="Twitter" className="text-white hover:text-brand-gold">📰</a>
+            </div>
           </div>
 
           {/* Column 2: Quick Links */}
@@ -319,6 +399,10 @@ function Footer({ t }: { t: (key: string) => string }) {
                 </Link>
               </li>
             </ul>
+            {/* CTA: Learn about artists */}
+            <div className="mt-4">
+              <Link href="/artists" className="inline-block px-4 py-2 border border-brand-gold text-white rounded hover:bg-brand-gold hover:text-gray-900 transition-all text-sm">Learn About Artists</Link>
+            </div>
           </div>
         </div>
 
@@ -340,9 +424,11 @@ export default function Home() {
     <main>
       <Header />
       <Hero t={t} />
-      <ShopByCategory t={t} />
+      <CategoriesShowcase />
       <FeaturedArtists /> {/* NEW: Featured Artists Section */}
       <FeaturedArtworks t={t} />
+      <TrustSection />
+      <BlogPreview />
       <Footer t={t} />
     </main>
   );

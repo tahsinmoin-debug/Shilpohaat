@@ -131,11 +131,11 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-maroon">
+    <div className="min-h-screen relative">
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-brand-maroon text-white py-16 px-4">
+      <section className="text-white py-16 px-4 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-b border-white/10">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
             Art Categories
@@ -150,7 +150,7 @@ export default function CategoriesPage() {
       </section>
 
       {/* Categories Grid */}
-      <section className="py-20 px-4 bg-gradient-to-b from-brand-maroon to-brand-maroon">
+      <section className="py-20 px-4 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-b border-white/10">
         <div className="max-w-6xl mx-auto">
           {/* Style Categories */}
           <div className="mb-20">
@@ -239,7 +239,7 @@ export default function CategoriesPage() {
       {/* Call to Action */}
       <section className="bg-brand-maroon text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Can't find what you're looking for?</h2>
+          <h2 className="text-3xl font-bold mb-4">Can&apos;t find what you&apos;re looking for?</h2>
           <p className="text-slate-300 mb-8">
             Browse all artworks or discover featured collections
           </p>

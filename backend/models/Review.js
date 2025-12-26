@@ -1,71 +1,41 @@
 const mongoose = require('mongoose');
 
 const ReviewSchema = new mongoose.Schema({
-  workshop: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Workshop',
-    required: true
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  enrollment: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Enrollment',
-    required: true
-  },
-  
-  rating: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 5
-  },
-  comment: {
-    type: String,
-    required: true,
-    maxlength: 1000
-  },
-  
-  // Moderation
-  isApproved: {
-    type: Boolean,
-    default: true // Auto-approve, but admin can change
-  },
-  isFlagged: {
-    type: Boolean,
-    default: false
-  },
-  flagReason: String,
-  
-  // Instructor response
-  instructorResponse: {
-    text: String,
-    respondedAt: Date
-  },
-  
-  // Helpful votes
-  helpfulCount: {
-    type: Number,
-    default: 0
-  },
-  helpfulVotes: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+    artwork: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Artwork', // Reference to Artwork
+        required: true,
     },
-    isHelpful: Boolean
-  }]
+    reviewerId: {
+        type: String, // Firebase UID
+        required: true,
+    },
+    reviewerName: {
+        type: String,
+        required: true,
+        trim: true,
+        default: 'Anonymous User',
+    },
+    rating: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5,
+    },
+    comment: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 500,
+    },
+    isRemoved: {
+        type: Boolean,
+        default: false,
+    },
 }, {
-  timestamps: true
+    timestamps: true
 });
 
-// Compound index - one review per user per workshop
-ReviewSchema.index({ workshop: 1, user: 1 }, { unique: true });
-
-// Index for queries
-ReviewSchema.index({ workshop: 1, isApproved: 1, rating: -1 });
+ReviewSchema.index({ artwork: 1, reviewerId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Review', ReviewSchema);

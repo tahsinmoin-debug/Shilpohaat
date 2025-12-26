@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { uploadToCloudinary, uploadMultipleToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary.js');
+const { uploadToCloudinary, uploadRawToCloudinary, uploadMultipleToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary.js');
 
 // Upload single image
 // POST /api/upload/image
@@ -74,6 +74,34 @@ router.delete('/image', async (req, res) => {
     console.error('Image deletion error:', error);
     return res.status(500).json({ 
       message: 'Failed to delete image', 
+      error: error.message 
+    });
+  }
+});
+
+// Upload 3D model (GLB/GLTF)
+// POST /api/upload/model
+router.post('/model', async (req, res) => {
+  try {
+    const { modelData, folder = 'shilpohaat/models', publicId } = req.body;
+
+    if (!modelData) {
+      return res.status(400).json({ message: 'Model data is required' });
+    }
+
+    const result = await uploadRawToCloudinary(modelData, folder, publicId);
+    
+    return res.json({
+      success: true,
+      url: result.url,
+      publicId: result.publicId,
+      bytes: result.bytes,
+      format: result.format,
+    });
+  } catch (error) {
+    console.error('Model upload error:', error);
+    return res.status(500).json({ 
+      message: 'Failed to upload 3D model', 
       error: error.message 
     });
   }

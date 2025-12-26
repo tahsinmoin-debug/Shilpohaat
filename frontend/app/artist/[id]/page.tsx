@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 
 interface ArtistProfile {
@@ -49,7 +50,7 @@ export default function ArtistDetailPage({ params }: PageProps) {
     const fetchArtist = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:5000/api/artist/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/artist/${params.id}`);
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.message || 'Failed to load artist');

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useI18n } from './LanguageProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Artist {
   _id: string;
@@ -32,7 +33,7 @@ export default function FeaturedArtists() {
   React.useEffect(() => {
     const fetchFeaturedArtists = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/artist/featured?limit=6');
+        const res = await fetch(`${API_BASE_URL}/api/artist/featured?limit=6`);
         const data = await res.json();
         setArtists(data.artists || []);
       } catch (error) {
@@ -61,32 +62,37 @@ export default function FeaturedArtists() {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-gray-900/50">
+    <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
+        {/* Section Header - More Emotional */}
         <div className="text-center mb-12">
-          <h2 className="font-heading text-4xl text-white mb-4">
-            {t('featuredArtists.title')}
+          <p className="font-sans text-brand-gold text-sm uppercase tracking-wider mb-3 font-semibold">
+            Meet the Creators
+          </p>
+          <h2 className="font-heading text-4xl md:text-5xl text-white mb-4">
+            Meet the creators behind the canvas
           </h2>
           <p className="font-sans text-gray-300 text-lg max-w-2xl mx-auto">
-            {t('featuredArtists.subtitle')}
+            Discover the artists bringing these masterpieces to life
           </p>
         </div>
 
-        {/* Artists Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {artists.map((artist) => (
+        {/* Artists Grid - Show 6 max */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {artists.slice(0, 6).map((artist) => (
             <Link
               key={artist._id}
               href={`/artist/${artist._id}`}
-              className="bg-gray-800 rounded-lg overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
+              className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group hover:border-brand-gold/50"
             >
               {/* Artist Cover Image */}
               <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
                 {artist.portfolioImages?.[0] ? (
-                  <img
+                  <Image
                     src={artist.portfolioImages[0]}
                     alt={artist.bio}
+                    width={400}
+                    height={256}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 ) : (
@@ -114,9 +120,11 @@ export default function FeaturedArtists() {
                   {/* Profile Picture */}
                   <div className="relative flex-shrink-0">
                     {artist.profilePicture ? (
-                      <img
+                      <Image
                         src={artist.profilePicture}
                         alt={artist.bio}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-700"
                       />
                     ) : (
@@ -136,10 +144,12 @@ export default function FeaturedArtists() {
                   {/* Artist Details */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xl font-heading text-white mb-1 group-hover:text-brand-gold transition-colors truncate">
-                      {artist.bio}
-                    </h3>
-                    <p className="text-sm text-gray-400 mb-2">
                       {artist.user?.name || 'Artist'}
+                    </h3>
+                    
+                    {/* Art Style - Prominent */}
+                    <p className="text-sm font-semibold text-brand-gold mb-2">
+                      {artist.specializations[0] || 'Contemporary Artist'}
                     </p>
                     
                     {/* Rating */}
@@ -163,15 +173,15 @@ export default function FeaturedArtists() {
                       </div>
                     )}
 
-                    {/* Specializations */}
-                    <p className="text-sm text-gray-400 line-clamp-1">
-                      {artist.specializations.slice(0, 2).join(', ')}
+                    {/* Bio */}
+                    <p className="text-sm text-gray-400 line-clamp-2">
+                      {artist.bio}
                     </p>
                   </div>
                 </div>
 
                 {/* Stats Row */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-700/70">
                   <div className="flex items-center gap-1 text-gray-400 text-sm">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -182,11 +192,11 @@ export default function FeaturedArtists() {
                   <button 
                     onClick={(e) => {
                       e.preventDefault();
-                      alert('Follow feature coming soon!');
+                      // Navigate to profile
                     }}
-                    className="px-4 py-2 bg-brand-gold text-gray-900 text-sm font-semibold rounded-md hover:bg-brand-gold-antique transition-colors"
+                    className="px-5 py-2 bg-brand-gold text-[#0b1926] text-sm font-bold rounded-lg hover:bg-brand-gold-antique transition-colors shadow-md"
                   >
-                    {t('featuredArtists.viewProfile')}
+                    View Profile
                   </button>
                 </div>
               </div>

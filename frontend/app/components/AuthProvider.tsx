@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
+ import { API_BASE_URL } from '@/lib/config';
 
 type AppUserRole = 'buyer' | 'artist' | 'admin';
 
@@ -71,7 +72,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        await fetchAppUser(firebaseUser);
+        try {
+          const res = await fetch(`http://localhost:5000/api/auth/me?firebaseUID=${firebaseUser.uid}`);
+          if (res.ok) {
+            const data = await res.json();
+            setAppUser(data.user);
+          } else {
+            setAppUser(null);
+          }
+        } catch {
+          setAppUser(null);
+        }
       } else {
         setAppUser(null);
       }

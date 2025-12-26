@@ -21,6 +21,10 @@ const UserSchema = new mongoose.Schema(
       enum: ['buyer', 'artist', 'admin'],
       default: 'buyer',
     },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
     artistProfile: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ArtistProfile',

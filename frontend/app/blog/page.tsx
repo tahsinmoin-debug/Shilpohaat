@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../components/Header';
 
 interface BlogPost {
@@ -30,13 +31,14 @@ export default function BlogPage() {
 
   useEffect(() => {
     fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
       const categoryParam = selectedCategory !== 'All' ? `?category=${selectedCategory}` : '';
-      const res = await fetch(`http://localhost:5000/api/blog${categoryParam}`);
+      const res = await fetch(`${API_BASE_URL}/api/blog${categoryParam}`);
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (error) {
@@ -56,11 +58,11 @@ export default function BlogPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-900">
+    <main className="min-h-screen">
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-brand-maroon via-gray-900 to-brand-maroon py-20">
+      <section className="py-16 md:py-20 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-heading text-white mb-6">
             Stories & Insights
@@ -72,7 +74,7 @@ export default function BlogPage() {
       </section>
 
       {/* Category Filter */}
-      <div className="sticky top-0 z-40 bg-gray-800 border-b border-gray-700 shadow-lg">
+      <div className="sticky top-0 z-40 bg-[rgba(6,21,35,0.32)] backdrop-blur-md border-b border-white/10 shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-wrap gap-3 justify-center">
             {CATEGORIES.map((category) => (

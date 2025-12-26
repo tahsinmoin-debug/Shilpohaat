@@ -9,29 +9,32 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+      <main className="min-h-screen">
         <Header />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <svg className="w-20 h-20 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-          <h1 className="text-3xl font-heading text-white mb-2">Your Cart is Empty</h1>
-          <p className="text-gray-400 mb-6">Add some beautiful artworks to get started!</p>
-          <Link href="/artworks" className="inline-block px-6 py-3 bg-brand-gold text-gray-900 font-semibold rounded-md hover:bg-brand-gold-antique transition-colors">
-            Continue Shopping
-          </Link>
-        </div>
+        <section className="container mx-auto px-4 py-16">
+          <div className="max-w-xl mx-auto text-center bg-[rgba(6,21,35,0.35)] backdrop-blur-sm border border-white/10 rounded-2xl p-10 shadow-xl">
+            <svg className="w-20 h-20 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <h1 className="text-3xl font-heading text-white mb-2">Your Cart is Empty</h1>
+            <p className="text-gray-200 mb-6">Add some beautiful artworks to get started!</p>
+            <Link href="/artworks" className="inline-block px-6 py-3 bg-brand-gold text-gray-900 font-semibold rounded-md hover:bg-brand-gold-antique transition-colors">
+              Continue Shopping
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen">
       <Header />
       <section className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-heading text-white mb-8">Shopping Cart</h1>
+        <div className="bg-[rgba(6,21,35,0.28)] backdrop-blur-sm border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl">
+          <h1 className="text-3xl font-heading text-white mb-8">Shopping Cart</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
@@ -73,7 +76,7 @@ export default function CartPage() {
               </div>
             ))}
           </div>
-
+ 
           {/* Order Summary */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 h-fit sticky top-20">
             <h2 className="text-xl font-heading text-white mb-4">Order Summary</h2>
@@ -105,6 +108,7 @@ export default function CartPage() {
               Continue Shopping
             </Link>
           </div>
+        </div>
         </div>
       </section>
     </main>

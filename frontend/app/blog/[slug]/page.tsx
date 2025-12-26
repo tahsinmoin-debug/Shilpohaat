@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '@/app/components/Header';
 
 interface BlogPost {
@@ -37,12 +38,13 @@ export default function BlogPostPage() {
     if (slug) {
       fetchPost();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/blog/${slug}`);
+      const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`);
       
       if (!res.ok) {
         throw new Error('Post not found');
@@ -83,7 +85,7 @@ export default function BlogPostPage() {
         <Header />
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-3xl font-heading text-white mb-4">Post Not Found</h1>
-          <p className="text-gray-400 mb-8">The blog post you're looking for doesn't exist.</p>
+          <p className="text-gray-400 mb-8">The blog post you&apos;re looking for doesn&apos;t exist.</p>
           <Link 
             href="/blog"
             className="inline-block px-6 py-3 bg-brand-gold text-gray-900 font-semibold rounded-md hover:bg-brand-gold-antique transition-colors"

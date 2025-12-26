@@ -12,15 +12,17 @@ const config: Config = {
       // We are telling Tailwind what "font-sans" and "font-heading" mean,
       // matching the variables we will set up in layout.tsx.
       fontFamily: {
-        sans: ["var(--font-inter)"],
-        heading: ["var(--font-playfair)"],
+        sans: ["var(--font-manrope)"],
+        heading: ["var(--font-cormorant)"],
       },
       // We are adding your brand colors so you can use them easily
       // e.g., <div className="bg-brand-maroon">
       colors: {
         "brand-maroon": "#4E0303",
-        "brand-gold": "#FFC107", // The original gold you liked
-        "brand-gold-antique": "#D4AF37", // The "Antique Gold" I suggested
+        // Replace yellow accents with oceanic blues to match the global artwork
+        // Using CSS variables from globals.css keeps palette centralized
+        "brand-gold": "var(--accent-strong)",
+        "brand-gold-antique": "var(--accent)",
       },
       // --- END OF NEW PART ---
     },

@@ -32,6 +32,10 @@ const ArtworkSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    arModelUrl: {
+      type: String,
+      default: null,
+    },
     dimensions: {
       width: { type: Number },
       height: { type: Number },
@@ -50,6 +54,11 @@ const ArtworkSchema = new mongoose.Schema(
     featured: {
       type: Boolean,
       default: false,
+    },
+    moderationStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'removed'],
+      default: 'pending',
     },
     views: {
       type: Number,

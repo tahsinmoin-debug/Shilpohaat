@@ -1,21 +1,41 @@
 "use client";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '@/lib/config';
 import Link from 'next/link';
 import Header from '../../components/Header';
+
+interface Order {
+  _id: string;
+  customerName: string;
+  customerEmail: string;
+  totalAmount: number;
+  orderStatus: string;
+  paymentStatus: string;
+  items?: Array<{ title: string; price: number; quantity: number }>;
+  createdAt?: string;
+  paymentMethod?: string;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+}
 
 interface PageProps {
   params: { id: string };
 }
 
 export default function OrderSuccessPage({ params }: PageProps) {
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchOrder = async (): Promise<void> => {
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/orders/${params.id}`);
         const data = await res.json();
         if (res.ok) {
           setOrder(data.order);
@@ -58,7 +78,7 @@ export default function OrderSuccessPage({ params }: PageProps) {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Order Date</p>
-                  <p className="text-white">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  <p className="text-white">{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Total Amount</p>
@@ -74,7 +94,9 @@ export default function OrderSuccessPage({ params }: PageProps) {
               <div>
                 <p className="text-gray-400 text-sm mb-2">Shipping Address</p>
                 <p className="text-white">
-                  {order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                  {order.shippingAddress 
+                    ? `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}, ${order.shippingAddress.country}`
+                    : 'Not provided'}
                 </p>
               </div>
             </div>

@@ -3,8 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
 import { useCart } from '../../components/CartProvider';
+import ArtworkReviews from '../../components/Reviews/ArtworkReviews';
+import ARViewer from '../../components/ARViewer';
+import CameraARViewer from '../../components/CameraARViewer';
+import WebXRViewer from '../../components/WebXRViewer';
+import ARBadge from '../../components/ARBadge'; 
 
 interface ArtistProfile {
   profilePicture?: string;
@@ -29,6 +35,7 @@ interface Artwork {
   category: string;
   price: number;
   images: string[];
+  arModelUrl?: string;
   status: 'available' | 'sold' | 'reserved';
   featured?: boolean;
   materials?: string[];
@@ -59,7 +66,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
     const fetchArtwork = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:5000/api/artworks/${params.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/artworks/${params.id}`);
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.message || 'Failed to load artwork');
@@ -138,7 +145,13 @@ export default function ArtworkDetailPage({ params }: PageProps) {
         </div>
         <div className="relative h-full flex items-center">
           <div className="container mx-auto px-4">
-            <p className="text-sm uppercase tracking-[0.2em] text-brand-gold/80">{artwork.category}</p>
+            <div className="flex items-center gap-3 mb-2">
+              <p className="text-sm uppercase tracking-[0.2em] text-brand-gold/80">{artwork.category}</p>
+              {/* Show AR badge if artwork has images and dimensions */}
+              {artwork.images && artwork.images.length > 0 && artwork.dimensions && (
+                <ARBadge hasARModel={true} compact />
+              )}
+            </div>
             <h1 className="text-3xl md:text-4xl font-heading mt-2 mb-3">{artwork.title}</h1>
             <div className="flex flex-wrap items-center gap-3 text-gray-200">
               <Link href={`/artist/${artist._id}`} className="flex items-center gap-2 group">
@@ -217,6 +230,34 @@ export default function ArtworkDetailPage({ params }: PageProps) {
               </div>
 
               <div className="mt-6 flex flex-col gap-3">
+                {/* AR Viewer Button - Show for all artworks with images */}
+                {artwork.images && artwork.images.length > 0 && artwork.dimensions && (
+                  <>
+                    {artwork.arModelUrl && /\.(glb|gltf)$/i.test(artwork.arModelUrl) ? (
+                      // Prefer WebXR true AR; fall back to model-viewer if unsupported
+                      <WebXRViewer
+                        modelUrl={artwork.arModelUrl}
+                        artworkTitle={artwork.title}
+                        dimensions={artwork.dimensions}
+                        fallback={
+                          <ARViewer
+                            modelUrl={artwork.arModelUrl}
+                            artworkTitle={artwork.title}
+                            dimensions={artwork.dimensions}
+                            poster={artwork.images?.[0]}
+                          />
+                        }
+                      />
+                    ) : (
+                      <CameraARViewer
+                        imageUrl={artwork.images[0]}
+                        artworkTitle={artwork.title}
+                        dimensions={artwork.dimensions}
+                      />
+                    )}
+                  </>
+                )}
+
                 <button
                   onClick={async () => {
                     if (!artwork) return;
@@ -365,6 +406,10 @@ export default function ArtworkDetailPage({ params }: PageProps) {
           >
             Share this artwork
           </button>
+        </div>
+
+        <div className="container mx-auto px-4 pb-10">
+          <ArtworkReviews artworkId={artwork._id} />
         </div>
       </section>
     </main>

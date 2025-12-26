@@ -28,6 +28,7 @@ const CART_STORAGE_KEY = 'shilpohaat_cart';
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [shippingCost, setShippingCost] = useState(0);
 
   // Load cart from localStorage on mount (client-side only)

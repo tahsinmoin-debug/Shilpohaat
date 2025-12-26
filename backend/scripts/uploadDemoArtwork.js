@@ -99,6 +99,7 @@ async function uploadArtwork() {
   
   try {
     const response = await axios.post('http://localhost:5000/api/artworks', artworkData, {
+      const response = await axios.post('http://localhost:5000/api/artworks', artworkData, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -152,4 +153,4 @@ async function uploadArtwork() {
 }
 
 // Run the upload
-uploadArtwork();
+uploadArtwork();}
