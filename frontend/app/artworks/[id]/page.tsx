@@ -9,6 +9,7 @@ import { useCart } from '../../components/CartProvider';
 import ArtworkReviews from '../../components/Reviews/ArtworkReviews';
 import ARViewer from '../../components/ARViewer';
 import CameraARViewer from '../../components/CameraARViewer';
+import WebXRViewer from '../../components/WebXRViewer';
 import ARBadge from '../../components/ARBadge'; 
 
 interface ArtistProfile {
@@ -233,12 +234,19 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                 {artwork.images && artwork.images.length > 0 && artwork.dimensions && (
                   <>
                     {artwork.arModelUrl && /\.(glb|gltf)$/i.test(artwork.arModelUrl) ? (
-                      // Use full 3D viewer if GLB model exists
-                      <ARViewer
+                      // Prefer WebXR true AR; fall back to model-viewer if unsupported
+                      <WebXRViewer
                         modelUrl={artwork.arModelUrl}
                         artworkTitle={artwork.title}
                         dimensions={artwork.dimensions}
-                        poster={artwork.images?.[0]}
+                        fallback={
+                          <ARViewer
+                            modelUrl={artwork.arModelUrl}
+                            artworkTitle={artwork.title}
+                            dimensions={artwork.dimensions}
+                            poster={artwork.images?.[0]}
+                          />
+                        }
                       />
                     ) : (
                       <CameraARViewer

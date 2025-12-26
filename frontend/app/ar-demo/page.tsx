@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Header from '../components/Header';
 import ARViewer from '../components/ARViewer';
+import WebXRViewer from '../components/WebXRViewer';
 
 export default function ARDemoPage() {
   const [selectedModel, setSelectedModel] = useState<string>('');
@@ -121,11 +122,18 @@ export default function ARDemoPage() {
                 </div>
               </div>
               
-              <ARViewer
+              <WebXRViewer
                 modelUrl={selectedModel}
                 artworkTitle={sampleModels.find(m => m.url === selectedModel)?.name || 'Sample Model'}
                 dimensions={{ width: 80, height: 60, depth: 5, unit: 'cm' }}
-                poster={sampleModels.find(m => m.url === selectedModel)?.poster}
+                fallback={
+                  <ARViewer
+                    modelUrl={selectedModel}
+                    artworkTitle={sampleModels.find(m => m.url === selectedModel)?.name || 'Sample Model'}
+                    dimensions={{ width: 80, height: 60, depth: 5, unit: 'cm' }}
+                    poster={sampleModels.find(m => m.url === selectedModel)?.poster}
+                  />
+                }
               />
 
               <div className="mt-6 bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
