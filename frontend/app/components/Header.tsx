@@ -14,6 +14,34 @@ export default function Header() {
   const { t, language, setLanguage } = useI18n();
 
 
+const [directAppUser, setDirectAppUser] = useState<any>(null);
+
+useEffect(() => {
+  const checkUser = async () => {
+    if (user) {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/auth/me?firebaseUID=${user.uid}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setDirectAppUser(data.user);
+            console.log('Direct fetch user:', data.user);
+          }
+        }
+      } catch (err) {
+        console.error('Direct fetch failed:', err);
+      }
+    }
+  };
+  
+  checkUser();
+}, [user]);
+
+
+
+
 console.log('Current user:', user?.email);
 console.log('App user:', appUser);
 console.log('User role:', appUser?.role);
