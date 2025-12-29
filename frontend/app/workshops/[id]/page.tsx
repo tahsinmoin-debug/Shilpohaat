@@ -97,6 +97,19 @@ export default function WorkshopDetailPage() {
             )}
 
 
+
+            {workshop.type === 'live' && (
+              <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500 rounded-lg">
+                <p className="text-blue-400 font-bold">This is a Live Event</p>
+                <p className="text-sm">Meeting Link: {isEnrolled ? (
+                  <a href={workshop.liveSessionUrl} className="text-white underline">Join Live Session</a>
+                ) : (
+                  "Enroll to see link"
+                )}</p>
+              </div>
+            )}
+
+
             {isInstructor ? (
               <Link href={`/artist/workshops/${id}/enrollments`} className="bg-blue-600 px-8 py-3 rounded-lg font-bold">
                 View Enrolled Students

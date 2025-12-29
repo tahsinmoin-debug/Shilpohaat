@@ -5,13 +5,19 @@ import { useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { useI18n } from './LanguageProvider';
 import { ADMIN_EMAIL } from '@/lib/config';
+import { User } from 'firebase/auth';
 
 interface SidebarNavProps {
-  open: boolean;
+  isOpen: boolean;        // This removes the red line!
   onClose: () => void;
+  user: User | null;
+  appUser: any | null;    // Use 'any' for now, or your specific AppUserDoc type
+  logout: () => Promise<void>;
+  t: (key: string) => string;
 }
 
-export default function SidebarNav({ open, onClose }: SidebarNavProps) {
+
+export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
   const { t } = useI18n();
   const { user, loading, appUser } = useAuth();
 

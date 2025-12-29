@@ -71,54 +71,42 @@ exports.getWorkshopById = async (req, res) => {
 // ============= INSTRUCTOR ENDPOINTS =============
 
 // Create new workshop (Artist only)
+// 1. Create the workshop (Initial post)
 exports.createWorkshop = async (req, res) => {
   try {
-    const { firebaseUID } = req.query;
-    
-    if (!firebaseUID) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-    
+    const { firebaseUID, title, description, price, category, type, thumbnail, skillLevel } = req.body;
+
     const user = await User.findOne({ firebaseUID });
-    
     if (!user || user.role !== 'artist') {
       return res.status(403).json({ success: false, message: 'Only artists can create workshops' });
     }
-    
-    const workshopData = {
-      ...req.body,
+
+    const workshop = new Workshop({
       instructor: user._id,
-      status: 'draft'
-    };
-    
-    const workshop = new Workshop(workshopData);
+      title,
+      description,
+      price,
+      category,
+      type,
+      thumbnail,
+      skillLevel,
+      status: 'pending' // Admin must approve
+    });
+
     await workshop.save();
-    
     res.status(201).json({ success: true, workshop });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Get instructor's own workshops
+// 2. Get workshops created by the logged-in artist
 exports.getInstructorWorkshops = async (req, res) => {
   try {
     const { firebaseUID } = req.query;
-    
-    if (!firebaseUID) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-    
     const user = await User.findOne({ firebaseUID });
-    
-    if (!user || user.role !== 'artist') {
-      return res.status(403).json({ success: false, message: 'Only artists can view instructor workshops' });
-    }
-    
-    const workshops = await Workshop.find({ instructor: user._id })
-      .sort('-createdAt')
-      .lean();
-    
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const workshops = await Workshop.find({ instructor: user._id }).sort('-createdAt');
     res.json({ success: true, workshops });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -465,5 +453,68 @@ exports.addLessonToWorkshop = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+// Get workshops created by the logged-in artist
+exports.getInstructorWorkshops = async (req, res) => {
+  try {
+    const { firebaseUID } = req.query;
+    const user = await User.findOne({ firebaseUID });
+    
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const workshops = await Workshop.find({ instructor: user._id }).sort('-createdAt');
+    res.json({ success: true, workshops });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Create new workshop
+exports.createWorkshop = async (req, res) => {
+  try {
+    const { firebaseUID, ...workshopData } = req.body;
+    const user = await User.findOne({ firebaseUID });
+
+    if (!user || user.role !== 'artist') {
+      return res.status(403).json({ success: false, message: 'Only artists can create workshops' });
+    }
+
+    const workshop = new Workshop({
+      ...workshopData,
+      instructor: user._id,
+      status: 'pending' // Requires admin approval
+    });
+
+    await workshop.save();
+    res.status(201).json({ success: true, workshop });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Add tutorial lesson to workshop
+exports.addLessonToWorkshop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, videoUrl, order, firebaseUID } = req.body;
+
+    const user = await User.findOne({ firebaseUID });
+    const workshop = await Workshop.findById(id);
+
+    if (!workshop || workshop.instructor.toString() !== user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+
+    workshop.lessons.push({ title, description, videoUrl, order });
+    await workshop.save();
+
+    res.json({ success: true, message: 'Lesson added successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 
 module.exports = exports;
