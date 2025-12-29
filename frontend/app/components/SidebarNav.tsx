@@ -24,16 +24,17 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
   // Treat configured admin email as admin even if role is missing in DB
   const isAdmin = appUser?.role === 'admin' || (user?.email && ADMIN_EMAIL && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
 
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  
+useEffect(() => {
+  if (isOpen) { // Changed from open
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+  return () => {
+    document.body.style.overflow = '';
+  };
+}, [isOpen]); 
 
   // Navigation items (base)
   const baseLinks: { href: string; label: string; icon: JSX.Element }[] = [
@@ -205,12 +206,12 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      className={`fixed inset-0 z-[100] transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       aria-hidden={!open}
     >
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/50 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/50 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
 
@@ -218,7 +219,7 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
       <aside
         role="dialog"
         aria-modal="true"
-        className={`absolute left-0 top-0 h-full w-[90vw] sm:w-[360px] md:w-[380px] max-w-sm transform transition-transform duration-300 bg-[#0b2438] text-white shadow-2xl border-r border-white/10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`absolute left-0 top-0 h-full w-[90vw] sm:w-[360px] md:w-[380px] max-w-sm transform transition-transform duration-300 bg-[#0b2438] text-white shadow-2xl border-r border-white/10 flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <span className="text-xl font-heading text-brand-gold drop-shadow">শিল্পহাট</span>

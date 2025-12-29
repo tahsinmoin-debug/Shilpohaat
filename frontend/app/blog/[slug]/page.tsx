@@ -31,35 +31,37 @@ export default function BlogPostPage() {
   const slug = params.slug as string;
   
   const [post, setPost] = useState<BlogPost | null>(null);
+  const [readTimeSort, setReadTimeSort] = useState('short'); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (slug) {
-      fetchPost();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+    fetchPosts();
+  }, [readTimeSort]); 
 
-  const fetchPost = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`);
-      
-      if (!res.ok) {
-        throw new Error('Post not found');
-      }
-      
-      const data = await res.json();
-      setPost(data.post);
-    } catch (err) {
-      console.error('Failed to fetch post:', err);
-      setError('Blog post not found');
-    } finally {
-      setLoading(false);
-    }
-  };
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-heading text-white">Our Journal</h2>
+        
+        {/* Read Time Sort Dropdown */}
+        <div className="flex items-center gap-2">
+          <label className="text-gray-400 text-sm">Read Time:</label>
+          <select 
+            value={readTimeSort}
+            onChange={(e) => setReadTimeSort(e.target.value)}
+            className="bg-gray-800 text-white border border-gray-700 rounded-md px-3 py-1 focus:outline-none focus:border-brand-gold"
+          >
+            <option value="short">Shortest First</option>
+            <option value="long">Longest First</option>
+          </select>
+        </div>
+      </div>
 
+      {/* Grid of posts would go here */}
+    </div>
+  );
+}
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',

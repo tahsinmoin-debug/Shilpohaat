@@ -62,27 +62,25 @@ const createPost = async (req, res) => {
   }
 };
 
-// Get all blog posts (with filters)
+
+// Get all blog posts (with dynamic sorting)
 const getAllPosts = async (req, res) => {
   try {
-    const { category, featured, limit = 10, page = 1 } = req.query;
+    const { category, featured, limit = 10, page = 1, sort = 'short' } = req.query;
 
-    // Build query
     let query = { status: 'published' };
     
     if (category && category !== 'All') {
       query.category = category;
     }
     
-    if (featured === 'true') {
-      query.featured = true;
-    }
+    
+    const readTimeOrder = sort === 'long' ? -1 : 1;
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const posts = await BlogPost.find(query)
-      .sort({ publishedAt: -1 })
+      .sort({ readTime: readTimeOrder, publishedAt: -1 })
       .limit(parseInt(limit))
       .skip(skip);
 
