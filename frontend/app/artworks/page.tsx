@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import WishlistButton from '../components/WishlistButton'; // Import the wishlist component
 import { API_BASE_URL } from '@/lib/config';
 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORIES = [
   'All',
@@ -50,11 +51,13 @@ export default function ArtworksPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [filteredArtworks, setFilteredArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [category, setCategory] = useState('All');
+  
+
 
   useEffect(() => {
     fetchArtworks();
@@ -83,8 +86,20 @@ export default function ArtworksPage() {
     let filtered = [...artworks];
 
     // Category filter
-    if (category !== 'All') {
+    if (category == 'All') {
       filtered = filtered.filter((art) => art.category === category);
+    }
+    if (category === 'Oil') {
+      filtered = filtered.filter((art) => art.category === 'Oil');
+    }
+    if (category === 'Portrait') {
+      filtered = filtered.filter((art) => art.category === 'Portrait');
+    }
+    if (category === 'Landscape') {
+      filtered = filtered.filter((art) => art.category === 'Landscape');
+    }
+    if (category === 'Abstract') {
+      filtered = filtered.filter((art) => art.category === 'Abstract');
     }
 
     // Search filter
@@ -93,7 +108,7 @@ export default function ArtworksPage() {
       filtered = filtered.filter(
         (art) =>
           art.title.toLowerCase().includes(query) ||
-          art.description?.toLowerCase().includes(query) ||
+          // art.description?.toLowerCase().includes(query) ||
           art.artist?.name.toLowerCase().includes(query)
       );
     }
@@ -173,6 +188,7 @@ export default function ArtworksPage() {
               <option value="price-high">Price: High to Low</option>
             </select>
 
+            
             {/* Mobile Filters Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -206,9 +222,24 @@ export default function ArtworksPage() {
                   onClick={() => setPriceRange({ min: '', max: '' })}
                   className="text-sm text-brand-gold hover:underline"
                 >
+
+                  
                   Clear
                 </button>
               )}
+
+              {/* filteringartwork */}
+             <select
+              value={sortBy}
+              onChange={(e) => setCategory(e.target.value)}
+              className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none  focus:ring-2 focus:ring-brand-gold"
+            >
+              <option value="newest">All</option>
+              <option value="Oil">Oil</option>
+              <option value="Abstract">Abstract</option>
+              <option value="Portrait">Portrait</option>
+              <option value="Landscape">Landscape</option>
+            </select>
             </div>
           </div>
         </div>
