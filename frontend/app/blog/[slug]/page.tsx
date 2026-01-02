@@ -29,42 +29,45 @@ interface BlogPost {
 export default function BlogPostPage() {
   const params = useParams();
   const slug = params.slug as string;
-
+  
   const [post, setPost] = useState<BlogPost | null>(null);
-  const [readTimeSort, setReadTimeSort] = useState('short');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 1. Helper function for date formatting
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  useEffect(() => {
+    if (slug) {
+      fetchPost();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
-  // 2. The missing fetchPosts function
-  const fetchPosts = async () => {
+  const fetchPost = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/posts/${slug}`);
-      if (!res.ok) throw new Error('Failed to fetch post');
+      const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`);
+      
+      if (!res.ok) {
+        throw new Error('Post not found');
+      }
+      
       const data = await res.json();
-      setPost(data);
+      setPost(data.post);
     } catch (err) {
-      setError('Could not load the post.');
-      console.error(err);
+      console.error('Failed to fetch post:', err);
+      setError('Blog post not found');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPosts();
-  }, [slug, readTimeSort]); // Added slug here so it re-fetches if the URL changes
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
-  // 3. Handle Loading State
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-900">
@@ -76,15 +79,14 @@ export default function BlogPostPage() {
     );
   }
 
-  // 4. Handle Error or Missing Post
   if (error || !post) {
     return (
       <main className="min-h-screen bg-gray-900">
         <Header />
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-3xl font-heading text-white mb-4">Post Not Found</h1>
-          <p className="text-gray-400 mb-8">The blog post you're looking for doesn't exist.</p>
-          <Link
+          <p className="text-gray-400 mb-8">The blog post you&apos;re looking for doesn&apos;t exist.</p>
+          <Link 
             href="/blog"
             className="inline-block px-6 py-3 bg-brand-gold text-gray-900 font-semibold rounded-md hover:bg-brand-gold-antique transition-colors"
           >
@@ -95,12 +97,11 @@ export default function BlogPostPage() {
     );
   }
 
-  // 5. Final Render of the Page
   return (
     <main className="min-h-screen bg-gray-900">
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero Section with Cover Image */}
       <div className="relative h-[400px] md:h-[500px] w-full overflow-hidden">
         <img
           src={post.coverImage}
@@ -108,6 +109,8 @@ export default function BlogPostPage() {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
+        
+        {/* Title Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
           <div className="container mx-auto">
             <div className="inline-block bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-sm font-bold mb-4">
@@ -116,6 +119,8 @@ export default function BlogPostPage() {
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-heading text-white mb-4 max-w-4xl">
               {post.title}
             </h1>
+            
+            {/* Meta Info */}
             <div className="flex flex-wrap items-center gap-6 text-gray-300">
               <div className="flex items-center gap-3">
                 <img
@@ -137,9 +142,10 @@ export default function BlogPostPage() {
         </div>
       </div>
 
-      {/* Article Content */}
+      {/* Article Content - UPDATED WITH BETTER COLORS */}
       <article className="container mx-auto px-4 py-12 max-w-4xl">
-        <div
+        {/* Content with white/light text */}
+        <div 
           className="prose prose-invert prose-lg max-w-none
             prose-headings:font-heading prose-headings:text-white prose-headings:font-bold
             prose-h2:text-3xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:text-white
@@ -191,6 +197,7 @@ export default function BlogPostPage() {
           </div>
         )}
 
+        {/* Back to Blog */}
         <div className="mt-12 text-center">
           <Link
             href="/blog"
