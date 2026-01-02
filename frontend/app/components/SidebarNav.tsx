@@ -197,14 +197,13 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
     }
   }
 
+  if (!open) return null;
+
   return (
-    <div
-      className={`fixed inset-0 z-[100] transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-      aria-hidden={!open}
-    >
+    <>
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/50 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
+        className="fixed inset-0 bg-black/50 z-[60] animate-fadeIn"
         onClick={onClose}
       />
 
@@ -212,13 +211,13 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
       <aside
         role="dialog"
         aria-modal="true"
-        className={`absolute left-0 top-0 h-full w-[90vw] sm:w-[360px] md:w-[380px] max-w-sm transform transition-transform duration-300 bg-[#0b2438] text-white shadow-2xl border-r border-white/10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className="fixed left-0 top-0 h-full w-[280px] sm:w-[320px] md:w-[360px] z-[70] bg-[#0b2438] text-white shadow-2xl border-r border-white/10 flex flex-col animate-slideInLeft overflow-y-auto"
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <span className="text-xl font-heading text-brand-gold drop-shadow">শিল্পহাট</span>
           <button
             onClick={onClose}
-            className="text-white hover:text-brand-gold"
+            className="text-white hover:text-brand-gold transition-colors"
             aria-label="Close menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +232,7 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 active:bg-white/15"
+                className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 active:bg-white/15 transition-colors"
                 onClick={onClose}
               >
                 <span className="text-brand-gold">{item.icon}</span>
@@ -243,8 +242,8 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
           </div>
 
           {/* Bottom actions */}
-          <div className="mt-6 border-top border-white/10 pt-4 space-y-1">
-            <Link href="/learn" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 active:bg-white/15" onClick={onClose}>
+          <div className="mt-6 border-t border-white/10 pt-4 space-y-1">
+            <Link href="/learn" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 active:bg-white/15 transition-colors" onClick={onClose}>
               <span className="text-brand-gold">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" />
@@ -252,7 +251,7 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
               </span>
               <span className="font-sans text-base text-white">Learn</span>
             </Link>
-            <Link href="/more" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 active:bg-white/15" onClick={onClose}>
+            <Link href="/more" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 active:bg-white/15 transition-colors" onClick={onClose}>
               <span className="text-brand-gold">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -263,6 +262,6 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
           </div>
         </nav>
       </aside>
-    </div>
+    </>
   );
 }

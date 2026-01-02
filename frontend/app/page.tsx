@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Header from './components/Header';
 import FeaturedArtists from './components/FeaturedArtists';
 import { useI18n } from './components/LanguageProvider';
+import { motion } from 'framer-motion';
 
 // Add this interface at the top after imports
 interface Artwork {
@@ -36,17 +37,32 @@ function Hero({ t }: { t: (key: string) => string }) {
       <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
         <div className="max-w-3xl md:max-w-4xl text-center">
           {/* Heading - Bold & Emotional */}
-          <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold mb-6 md:mb-8 leading-tight tracking-tight drop-shadow-2xl">
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="font-heading text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold mb-6 md:mb-8 leading-tight tracking-tight drop-shadow-2xl"
+          >
             {headingBn}
-          </h1>
+          </motion.h1>
 
           {/* Subheadline - Cleaner & Shorter */}
-          <p className="font-sans text-xl md:text-2xl text-gray-100 mb-10 md:mb-12 leading-relaxed max-w-2xl mx-auto drop-shadow-lg">
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="font-sans text-xl md:text-2xl text-gray-100 mb-10 md:mb-12 leading-relaxed max-w-2xl mx-auto drop-shadow-lg"
+          >
             {subheadingBn}
-          </p>
+          </motion.p>
 
           {/* Single Primary CTA */}
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            className="flex flex-col sm:flex-row gap-5 justify-center"
+          >
             <Link
               href="/artworks"
               className="font-sans inline-flex items-center justify-center px-12 md:px-14 py-4 bg-brand-gold text-[#0b1926] font-extrabold rounded-lg hover:bg-brand-gold-antique hover:scale-105 transition-all duration-300 text-center shadow-2xl text-lg ring-2 ring-white/10"
@@ -59,7 +75,7 @@ function Hero({ t }: { t: (key: string) => string }) {
             >
               Meet the Artists
             </Link>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -96,7 +112,11 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
     return (
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto"></div>
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="inline-block h-12 w-12 border-4 border-brand-gold border-t-transparent rounded-full"
+          ></motion.div>
         </div>
       </section>
     );
@@ -110,79 +130,104 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
     <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         {/* Heading */}
-        <h2 className="font-heading text-4xl md:text-5xl text-white text-center mb-3">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="font-heading text-4xl md:text-5xl text-white text-center mb-3"
+        >
           Featured Artworks
-        </h2>
+        </motion.h2>
         
         {/* Subheadline */}
-        <p className="font-sans text-gray-300 text-center mb-12 max-w-xl mx-auto text-lg">
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="font-sans text-gray-300 text-center mb-12 max-w-xl mx-auto text-lg"
+        >
           Discover stunning pieces from talented artists
-        </p>
+        </motion.p>
 
         {/* Artworks Grid - Show 6 max */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {artworks.slice(0, 6).map((artwork) => (
-            <Link
+          {artworks.slice(0, 6).map((artwork, index) => (
+            <motion.div
               key={artwork._id}
-              href={`/artworks/${artwork._id}`}
-              className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              {/* Artwork Image with AR Badge */}
-              <div className="relative h-[320px] w-full overflow-hidden">
-                <Image
-                  src={artwork.images?.[0] || 'https://placehold.co/400x400/555/FFF.png'}
-                  alt={artwork.title}
-                  width={400}
-                  height={320}
-                  className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
-                />
-                {/* AR Badge */}
-                {artwork.category && (
-                  <div className="absolute top-3 right-3 bg-brand-gold/95 text-gray-900 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-sm">
-                    <span className="text-sm">🔥</span>
-                    AR Ready
-                  </div>
-                )}
-              </div>
-              
-              {/* Artwork Info */}
-              <div className="p-5">
-                <h3 className="font-heading text-xl text-white mb-2 group-hover:text-brand-gold transition-colors line-clamp-1">
-                  {artwork.title}
-                </h3>
-                <p className="font-sans text-gray-400 text-sm mb-3 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {artwork.artist?.name || 'Unknown Artist'}
-                </p>
-                <p className="font-sans text-brand-gold font-bold text-2xl mb-4">
-                  ৳{artwork.price?.toLocaleString()}
-                </p>
+              <Link
+                href={`/artworks/${artwork._id}`}
+                className="glass-card rounded-xl overflow-hidden hover:shadow-2xl group block"
+              >
+                {/* Artwork Image with AR Badge */}
+                <div className="relative h-[320px] w-full overflow-hidden">
+                  <Image
+                    src={artwork.images?.[0] || 'https://placehold.co/400x400/555/FFF.png'}
+                    alt={artwork.title}
+                    width={400}
+                    height={320}
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                  />
+                  {/* AR Badge */}
+                  {artwork.category && (
+                    <div className="absolute top-3 right-3 bg-brand-gold/95 text-gray-900 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-sm">
+                      <span className="text-sm">🔥</span>
+                      AR Ready
+                    </div>
+                  )}
+                </div>
                 
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Cart functionality coming soon!');
-                  }}
-                  className="w-full bg-brand-gold text-[#0b1926] font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
-                >
-                  View Details
-                </button>
-              </div>
-            </Link>
+                {/* Artwork Info */}
+                <div className="p-5">
+                  <h3 className="font-heading text-xl text-white mb-2 group-hover:text-brand-gold transition-colors line-clamp-1">
+                    {artwork.title}
+                  </h3>
+                  <p className="font-sans text-gray-400 text-sm mb-3 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    {artwork.artist?.name || 'Unknown Artist'}
+                  </p>
+                  <p className="font-sans text-brand-gold font-bold text-2xl mb-4">
+                    ৳{artwork.price?.toLocaleString()}
+                  </p>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      alert('Cart functionality coming soon!');
+                    }}
+                    className="w-full bg-brand-gold text-[#0b1926] font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </div>
 
         {/* View All CTA */}
-        <div className="text-center mt-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-center mt-12"
+        >
           <Link
             href="/artworks"
             className="inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-lg border-2 border-brand-gold hover:bg-brand-gold hover:text-gray-900 transition-all duration-300"
           >
             View All Artworks →
           </Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -203,29 +248,49 @@ function CategoriesShowcase() {
   return (
     <section className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
           <h2 className="font-heading text-4xl md:text-5xl text-white mb-3">Browse by Category</h2>
           <p className="font-sans text-gray-300 max-w-xl mx-auto">Find artworks by style and medium</p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {HOMEPAGE_CATEGORIES.map((cat) => (
-            <Link key={cat.id} href={`/artworks?category=${encodeURIComponent(cat.name)}`} className="group rounded-xl overflow-hidden relative">
-              <div className="h-56 w-full overflow-hidden">
-                <Image src={cat.image} alt={cat.name} width={600} height={300} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-              </div>
-              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
-              <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between">
-                <h3 className="text-white font-heading text-xl">{cat.name}</h3>
-                <span className="px-4 py-1.5 bg-brand-gold text-gray-900 text-sm font-semibold rounded-full">Browse</span>
-              </div>
-            </Link>
+          {HOMEPAGE_CATEGORIES.map((cat, index) => (
+            <motion.div
+              key={cat.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Link href={`/artworks?category=${encodeURIComponent(cat.name)}`} className="group rounded-xl overflow-hidden relative block">
+                <div className="h-56 w-full overflow-hidden">
+                  <Image src={cat.image} alt={cat.name} width={600} height={300} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                </div>
+                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+                <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between">
+                  <h3 className="text-white font-heading text-xl">{cat.name}</h3>
+                  <span className="px-4 py-1.5 bg-brand-gold text-gray-900 text-sm font-semibold rounded-full group-hover:scale-110 transition-transform">Browse</span>
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </div>
 
-        <div className="text-center mt-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-center mt-10"
+        >
           <Link href="/categories" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Browse All Categories →</Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -242,16 +307,29 @@ function TrustSection() {
   return (
     <section className="py-20 bg-[rgba(6,21,35,0.26)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-10"
+        >
           <h2 className="font-heading text-3xl md:text-4xl text-white">Why buy from ShilpoHaat?</h2>
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {items.map((it) => (
-            <div key={it.title} className="glass-card rounded-xl p-6 text-center">
+          {items.map((it, index) => (
+            <motion.div 
+              key={it.title} 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="glass-card rounded-xl p-6 text-center"
+            >
               <div className="text-2xl mb-3 text-brand-gold">{it.icon}</div>
               <p className="text-white font-semibold mb-2">{it.title}</p>
               <p className="text-gray-400 text-sm">{it.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -283,26 +361,46 @@ function BlogPreview() {
   return (
     <section className="py-20 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
           <h2 className="font-heading text-4xl md:text-5xl text-white mb-3">Stories & Culture</h2>
           <p className="font-sans text-gray-300">Read interviews, heritage, and process stories</p>
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {posts.map((post) => (
-            <Link key={post._id} href={`/blog/${post.slug}`} className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all">
-              <div className="relative h-56 w-full overflow-hidden">
-                <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-5">
-                <h3 className="text-white font-heading text-xl mb-2 line-clamp-2">{post.title}</h3>
-                <p className="text-gray-400 text-sm line-clamp-2">{post.excerpt}</p>
-              </div>
-            </Link>
+          {posts.map((post, index) => (
+            <motion.div
+              key={post._id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Link href={`/blog/${post.slug}`} className="glass-card rounded-xl overflow-hidden hover:shadow-2xl block group">
+                <div className="relative h-56 w-full overflow-hidden">
+                  <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-white font-heading text-xl mb-2 line-clamp-2 group-hover:text-brand-gold transition-colors">{post.title}</h3>
+                  <p className="text-gray-400 text-sm line-clamp-2">{post.excerpt}</p>
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </div>
-        <div className="text-center mt-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-center mt-10"
+        >
           <Link href="/blog" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Read Stories →</Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

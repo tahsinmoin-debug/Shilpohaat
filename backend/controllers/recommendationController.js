@@ -15,6 +15,7 @@ const openai = new OpenAI({
 exports.getRecommendations = async (req, res) => {
   try {
     const { category, budget_min, budget_max, materials, limit = 5 } = req.body;
+    const limitNum = Math.min(Math.max(Number(limit) || 5, 3), 20); // keep between 3 and 20
 
     console.log('[RECOMMENDATIONS] Filters applied:', { category, budget_min, budget_max, materials });
 
@@ -39,7 +40,7 @@ exports.getRecommendations = async (req, res) => {
     // Step 2: Fetch filtered artworks from MongoDB
     const filteredArtworks = await Artwork.find(filters)
       .populate("artist", "name bio specializations")
-      .limit(20) // Get more than needed for AI to rank
+      .limit(50) // get a larger candidate pool for better recall
       .lean();
 
     console.log('[RECOMMENDATIONS] Found', filteredArtworks.length, 'artworks matching filters');
@@ -76,7 +77,7 @@ Here are ${artworkList.length} filtered artworks that match the budget and categ
 ${JSON.stringify(artworkList, null, 2)}
 
 Your task:
-1. Rank the TOP 5 MOST SUITABLE artworks for this user
+1. Rank the TOP ${limitNum} MOST SUITABLE artworks for this user
 2. Consider: artistic quality, price value, artist reputation, material match, and uniqueness
 3. Return ONLY a valid JSON array (no extra text)
 4. Each item must have: { "artworkId": "id_string", "reason": "short reason (max 50 chars)" }
@@ -119,7 +120,7 @@ IMPORTANT: Return ONLY the JSON array, nothing else. Start with [ and end with ]
 
     // Step 6: Map ranked IDs back to full artwork objects
     const recommendations = rankedIds
-      .slice(0, limit)
+      .slice(0, limitNum)
       .map((item) => {
         const artwork = filteredArtworks.find(
           (a) => a._id.toString() === item.artworkId
@@ -133,10 +134,21 @@ IMPORTANT: Return ONLY the JSON array, nothing else. Start with [ and end with ]
       })
       .filter((item) => item !== null);
 
+    // If AI returned fewer than requested, top up with remaining filtered items
+    if (recommendations.length < limitNum) {
+      const already = new Set(recommendations.map((r) => r._id.toString()));
+      const fillers = filteredArtworks
+        .filter((a) => !already.has(a._id.toString()))
+        .sort((a, b) => a.price - b.price)
+        .slice(0, limitNum - recommendations.length)
+        .map((a) => ({ ...a, aiReason: a.aiReason || 'Good match for your budget and style' }));
+      recommendations.push(...fillers);
+    }
+
     // Step 7: Return ranked recommendations with AI explanation
     res.status(200).json({
       success: true,
-      recommendations,
+      recommendations: recommendations.slice(0, limitNum),
       aiExplanation: `Based on your preferences for ${category || "any category"} art within your budget, I've curated these pieces. Each combines artistic merit, value, and uniqueness.`,
       fallback: false,
     });
@@ -157,7 +169,7 @@ IMPORTANT: Return ONLY the JSON array, nothing else. Start with [ and end with ]
 
       const fallbackResults = await Artwork.find(filters)
         .populate("artist", "name bio specializations")
-        .limit(5)
+        .limit(limitNum)
         .lean();
 
       res.status(200).json({
@@ -212,7 +224,7 @@ Return ONLY the JSON, no extra text.`;
       budget_min: 0,
       budget_max: preferences.max_budget,
       materials: preferences.materials,
-      limit: 3,
+      limit: 10, // allow richer result set for chatbot
     };
 
     // Reuse main recommendation logic
