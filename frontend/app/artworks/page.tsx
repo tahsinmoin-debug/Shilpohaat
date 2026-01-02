@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import WishlistButton from '../components/WishlistButton'; // Import the wishlist component
 import { API_BASE_URL } from '@/lib/config';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -151,7 +152,12 @@ export default function ArtworksPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="text-white py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-white py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10"
+      >
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-heading mb-4">
             Discover Authentic Artworks
@@ -160,7 +166,7 @@ export default function ArtworksPage() {
             Explore unique creations by talented Bengali artists
           </p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Filters Bar */}
       <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
@@ -256,12 +262,23 @@ export default function ArtworksPage() {
       <div className="container mx-auto px-4 pb-16">
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold"></div>
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="h-12 w-12 border-4 border-brand-gold border-t-transparent rounded-full"
+            ></motion.div>
           </div>
         ) : filteredArtworks.length === 0 ? (
-          <div className="text-center py-20">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center py-20"
+          >
             <p className="text-gray-400 text-lg">No artworks found matching your criteria</p>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setCategory('All');
                 setSearchQuery('');
@@ -270,89 +287,105 @@ export default function ArtworksPage() {
               className="mt-4 text-brand-gold hover:underline"
             >
               Clear all filters
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredArtworks.map((artwork) => (
-              <div
-                key={artwork._id}
-                onClick={() => handleArtworkClick(artwork._id)}
-                className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-              >
-                {/* Artwork Image Container */}
-                <div className="relative aspect-square overflow-hidden bg-gray-700">
-                  <img
-                    src={artwork.images[0] || 'https://placehold.co/400x400/333/fff.png'}
-                    alt={artwork.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  
-                  {/* WISHLIST HEART BUTTON - TOP RIGHT */}
-                  <div 
-                    className="absolute top-3 right-3 z-10"
-                    onClick={(e) => e.stopPropagation()} 
-                  >
-                    <div className="bg-gray-900/40 backdrop-blur-sm rounded-full p-0.5 hover:bg-gray-900/60 transition-colors">
-                      <WishlistButton artworkId={artwork._id} />
+            <AnimatePresence mode="popLayout">
+              {filteredArtworks.map((artwork, index) => (
+                <motion.div
+                  key={artwork._id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
+                  onClick={() => handleArtworkClick(artwork._id)}
+                  className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl cursor-pointer group"
+                  whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                >
+                  {/* Artwork Image Container */}
+                  <div className="relative aspect-square overflow-hidden bg-gray-700">
+                    <img
+                      src={artwork.images[0] || 'https://placehold.co/400x400/333/fff.png'}
+                      alt={artwork.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    
+                    {/* WISHLIST HEART BUTTON - TOP RIGHT */}
+                    <div 
+                      className="absolute top-3 right-3 z-10"
+                      onClick={(e) => e.stopPropagation()} 
+                    >
+                      <div className="bg-gray-900/40 backdrop-blur-sm rounded-full p-0.5 hover:bg-gray-900/60 transition-colors">
+                        <WishlistButton artworkId={artwork._id} />
+                      </div>
                     </div>
+
+                    {/* Status Badge */}
+                    {artwork.status !== 'available' && (
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase"
+                      >
+                        {artwork.status}
+                      </motion.div>
+                    )}
+                    {artwork.featured && (
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-10 left-2 bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-xs font-semibold"
+                      >
+                        Featured
+                      </motion.div>
+                    )}
                   </div>
 
-                  {/* Status Badge */}
-                  {artwork.status !== 'available' && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
-                      {artwork.status}
-                    </div>
-                  )}
-                  {artwork.featured && (
-                    <div className="absolute top-10 left-2 bg-brand-gold text-gray-900 px-3 py-1 rounded-full text-xs font-semibold">
-                      Featured
-                    </div>
-                  )}
-                </div>
+                  {/* Artwork Info */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors">
+                      {artwork.title}
+                    </h3>
 
-                {/* Artwork Info */}
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors">
-                    {artwork.title}
-                  </h3>
-
-                  {/* Artist Info */}
-                  <div
-                    onClick={(e) => handleArtistClick(e, artwork.artist._id)}
-                    className="flex items-center gap-2 mb-3 hover:text-brand-gold transition-colors"
-                  >
-                    <div className="relative">
-                      <img
-                        src={artwork.artist.artistProfile?.profilePicture || 'https://placehold.co/32x32/666/fff.png'}
-                        alt={artwork.artist.name}
-                        className="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
-                      />
-                      <span
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
-                          artwork.artist.artistProfile?.availability === 'available'
-                            ? 'bg-green-500'
-                            : artwork.artist.artistProfile?.availability === 'busy'
-                            ? 'bg-yellow-500'
-                            : 'bg-gray-500'
-                        }`}
-                      ></span>
+                    {/* Artist Info */}
+                    <div
+                      onClick={(e) => handleArtistClick(e, artwork.artist._id)}
+                      className="flex items-center gap-2 mb-3 hover:text-brand-gold transition-colors"
+                    >
+                      <div className="relative">
+                        <img
+                          src={artwork.artist.artistProfile?.profilePicture || 'https://placehold.co/32x32/666/fff.png'}
+                          alt={artwork.artist.name}
+                          className="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
+                        />
+                        <span
+                          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
+                            artwork.artist.artistProfile?.availability === 'available'
+                              ? 'bg-green-500'
+                              : artwork.artist.artistProfile?.availability === 'busy'
+                              ? 'bg-yellow-500'
+                              : 'bg-gray-500'
+                          }`}
+                        ></span>
+                      </div>
+                      <p className="text-sm text-gray-400">{artwork.artist.name}</p>
                     </div>
-                    <p className="text-sm text-gray-400">{artwork.artist.name}</p>
+
+                    {/* Price and Category */}
+                    <div className="flex justify-between items-center">
+                      <p className="text-xl font-bold text-brand-gold">
+                        ৳{artwork.price.toLocaleString()}
+                      </p>
+                      <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                        {artwork.category}
+                      </span>
+                    </div>
                   </div>
-
-                  {/* Price and Category */}
-                  <div className="flex justify-between items-center">
-                    <p className="text-xl font-bold text-brand-gold">
-                      ৳{artwork.price.toLocaleString()}
-                    </p>
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
-                      {artwork.category}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>

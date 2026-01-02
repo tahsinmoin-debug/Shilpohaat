@@ -155,7 +155,7 @@ export default function AIChatbot() {
 
       {/* Chatbot Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-24px)] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border-2 border-brand-gold">
+        <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-24px)] h-[600px] rounded-2xl shadow-2xl flex flex-col z-50 border border-white/10 bg-[rgba(6,21,35,0.9)] backdrop-blur-xl">
           {/* Header */}
           <div className="bg-gradient-to-r from-brand-maroon to-brand-maroon/80 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
             <div>
@@ -171,14 +171,14 @@ export default function AIChatbot() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgba(10,27,43,0.75)]">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-xl ${
+                  className={`max-w-xs px-4 py-2 rounded-xl border ${
                     msg.type === 'user'
-                      ? 'bg-brand-gold text-gray-900'
-                      : 'bg-gray-200 text-gray-800'
+                      ? 'bg-brand-gold text-gray-900 border-brand-gold/60'
+                      : 'bg-[rgba(255,255,255,0.08)] text-[#e9f3ff] border-white/10'
                   }`}
                 >
                   <p className="text-sm">{msg.content}</p>
@@ -190,7 +190,7 @@ export default function AIChatbot() {
                         <Link
                           key={rec._id}
                           href={`/artworks/${rec._id}`}
-                          className="flex gap-2 p-2 bg-white rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                          className="flex gap-2 p-2 rounded-lg border border-white/10 bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] transition-colors cursor-pointer"
                         >
                           <div className="w-16 h-16 rounded relative flex-shrink-0">
                             <Image
@@ -202,11 +202,11 @@ export default function AIChatbot() {
                             />
                           </div>
                           <div className="flex-1 text-xs">
-                            <p className="font-semibold text-gray-800 line-clamp-1">{rec.title}</p>
-                            <p className="text-gray-600">
+                            <p className="font-semibold text-[#f5f9ff] line-clamp-1">{rec.title}</p>
+                            <p className="text-gray-200">
                               <strong>৳{rec.price?.toLocaleString()}</strong>
                             </p>
-                            <p className="text-gray-700 line-clamp-1">{rec.artist?.name}</p>
+                            <p className="text-gray-300 line-clamp-1">{rec.artist?.name}</p>
                             {rec.aiReason && (
                               <p className="text-brand-gold text-xs italic mt-1">{rec.aiReason}</p>
                             )}
@@ -220,11 +220,11 @@ export default function AIChatbot() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-gray-200 px-4 py-2 rounded-xl">
+                <div className="bg-[rgba(255,255,255,0.08)] px-4 py-2 rounded-xl">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -234,10 +234,10 @@ export default function AIChatbot() {
 
           {/* Filter Options Toggle */}
           {!showPreferences && (
-            <div className="px-4 py-2 border-t border-gray-200">
+            <div className="px-4 py-2 border-t border-white/10">
               <button
                 onClick={() => setShowPreferences(true)}
-                className="text-xs text-brand-maroon hover:text-brand-gold font-semibold"
+                className="text-xs text-brand-gold hover:text-white font-semibold"
               >
                 + Advanced Search
               </button>
@@ -246,11 +246,11 @@ export default function AIChatbot() {
 
           {/* Advanced Search Form */}
           {showPreferences && (
-            <div className="px-4 py-3 bg-gray-100 border-t border-gray-200 space-y-2">
+            <div className="px-4 py-3 bg-[rgba(255,255,255,0.06)] border-t border-white/10 space-y-2">
               <select
                 value={preferences.category}
                 onChange={(e) => setPreferences({ ...preferences, category: e.target.value })}
-                className="w-full px-2 py-1 text-xs border rounded"
+                className="w-full px-2 py-1 text-xs border border-white/15 bg-[rgba(4,22,36,0.6)] text-[#e9f3ff] rounded"
               >
                 <option value="">Any Category</option>
                 <option value="Abstract">Abstract</option>
@@ -266,14 +266,14 @@ export default function AIChatbot() {
                   placeholder="Min ৳"
                   value={preferences.budget_min}
                   onChange={(e) => setPreferences({ ...preferences, budget_min: e.target.value })}
-                  className="w-1/2 px-2 py-1 text-xs border rounded"
+                  className="w-1/2 px-2 py-1 text-xs border border-white/15 bg-[rgba(4,22,36,0.6)] text-[#e9f3ff] rounded"
                 />
                 <input
                   type="number"
                   placeholder="Max ৳"
                   value={preferences.budget_max}
                   onChange={(e) => setPreferences({ ...preferences, budget_max: e.target.value })}
-                  className="w-1/2 px-2 py-1 text-xs border rounded"
+                  className="w-1/2 px-2 py-1 text-xs border border-white/15 bg-[rgba(4,22,36,0.6)] text-[#e9f3ff] rounded"
                 />
               </div>
 
@@ -282,7 +282,7 @@ export default function AIChatbot() {
                 placeholder="Material (e.g., Oil, Watercolor)"
                 value={preferences.materials}
                 onChange={(e) => setPreferences({ ...preferences, materials: e.target.value })}
-                className="w-full px-2 py-1 text-xs border rounded"
+                className="w-full px-2 py-1 text-xs border border-white/15 bg-[rgba(4,22,36,0.6)] text-[#e9f3ff] rounded"
               />
 
               <div className="flex gap-1">
@@ -295,7 +295,7 @@ export default function AIChatbot() {
                 </button>
                 <button
                   onClick={() => setShowPreferences(false)}
-                  className="flex-1 px-2 py-1 bg-gray-300 text-gray-900 text-xs rounded hover:bg-gray-400"
+                  className="flex-1 px-2 py-1 bg-[rgba(255,255,255,0.12)] text-[#e9f3ff] text-xs rounded hover:bg-[rgba(255,255,255,0.2)]"
                 >
                   Close
                 </button>
@@ -304,13 +304,13 @@ export default function AIChatbot() {
           )}
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="border-t border-gray-200 p-4 flex gap-2">
+          <form onSubmit={handleSendMessage} className="border-t border-white/10 p-4 flex gap-2 bg-[rgba(6,21,35,0.9)]">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask for recommendations..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold"
+              className="flex-1 px-3 py-2 border border-white/15 bg-[rgba(4,22,36,0.7)] text-[#e9f3ff] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold"
               disabled={loading}
             />
             <button
