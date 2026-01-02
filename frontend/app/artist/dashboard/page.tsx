@@ -95,10 +95,14 @@ export default function ArtistDashboardPage() {
             <p className="text-gray-400 text-sm">Welcome back, {appUser?.name}</p>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center gap-2 bg-gray-800 border border-gray-700 px-4 py-2 rounded-full shadow-sm">
-              <span className="text-xl">🌱</span>
-              <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">Rising Talent</span>
+          <div className="flex flex-wrap gap-4 items-center">
+            {/* Professional Base Badge */}
+            <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 px-5 py-2 rounded-xl shadow-lg border-b-2 border-b-gray-600">
+              <span className="text-2xl filter drop-shadow-md">🏅</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-tight">Current Rank</span>
+                <span className="text-xs font-black text-gray-300 uppercase tracking-tighter">Rising Talent</span>
+              </div>
             </div>
 
             {badges.map((badge, index) => (
