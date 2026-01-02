@@ -63,7 +63,7 @@ const createPost = async (req, res) => {
 };
 
 
-// Get all blog posts (with dynamic sorting)
+// Get all blog posts 
 const getAllPosts = async (req, res) => {
   try {
     const { category, featured, limit = 10, page = 1, sort = 'short' } = req.query;
@@ -74,13 +74,13 @@ const getAllPosts = async (req, res) => {
       query.category = category;
     }
     
-    
-    const readTimeOrder = sort === 'long' ? -1 : 1;
+
+    const readTimeOrder = sort === 'short' ? -1 : 1;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const posts = await BlogPost.find(query)
-      .sort({ readTime: readTimeOrder, publishedAt: -1 })
+      .sort({ readTime: readTimeOrder -1})
       .limit(parseInt(limit))
       .skip(skip);
 
