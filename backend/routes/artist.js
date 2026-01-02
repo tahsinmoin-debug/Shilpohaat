@@ -4,24 +4,19 @@ const {
   updateArtistProfile, 
   getAllArtists,
   getFeaturedArtists,
-  getArtistById
+  getArtistById,
+  getHubArtists 
 } = require('../controllers/artistController.js');
 
-// GET /api/artist/all (public - all artists)
+// Public routes
 router.get('/all', getAllArtists);
-
-// GET /api/artist/featured (public - featured artists for homepage)
 router.get('/featured', getFeaturedArtists);
+router.get('/:id', getArtistById);
 
-// PATCH /api/artist/profile?firebaseUID=... (update artist profile)
-router.patch('/profile', updateArtistProfile);
-
-const { 
-    getHubArtists 
-} = require('../controllers/artistController');
-// New route for the messaging hub artist list
+// Messaging Hub specific route
 router.get('/hub-artists', getHubArtists); 
 
+// Protected route
+router.patch('/profile', updateArtistProfile);
+
 module.exports = router;
-
-
