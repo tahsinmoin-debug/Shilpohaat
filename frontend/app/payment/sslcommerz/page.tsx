@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import SSLCommerzRedirectContent from '../sslcommerz-content';
-import Header from '@/app/components/Header';
+import Header from '../../components/Header.tsx';
 
 export default function SSLCommerzPage() {
   return (

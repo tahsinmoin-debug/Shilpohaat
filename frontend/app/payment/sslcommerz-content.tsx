@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Header from '@/app/components/Header';
+import Header from '../components/Header.tsx';
 
 export default function SSLCommerzRedirectContent() {
   const params = useSearchParams();
