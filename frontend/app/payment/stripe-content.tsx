@@ -9,7 +9,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import Header from '../components/Header';
+import Header from '@/app/components/Header';
 import { API_BASE_URL } from '@/lib/config';
 import Link from 'next/link';
 

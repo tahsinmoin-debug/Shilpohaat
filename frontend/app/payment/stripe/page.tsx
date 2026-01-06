@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import StripePaymentContent from '../stripe-content';
-import Header from '../../components/Header';
+import Header from '@/app/components/Header';
 
 export default function StripePage() {
   return (
