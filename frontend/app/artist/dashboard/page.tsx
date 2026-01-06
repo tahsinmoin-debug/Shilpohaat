@@ -96,11 +96,7 @@ export default function ArtistDashboardPage() {
           </div>
           
           <div className="flex flex-wrap gap-4 items-center">
-<<<<<<< HEAD
-            {/* Professional Base Badge */}
-=======
             {/* Reverted Professional Base Badge */}
->>>>>>> 89d252a
             <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 px-5 py-2 rounded-xl shadow-lg border-b-2 border-b-gray-600">
               <span className="text-2xl filter drop-shadow-md">🏅</span>
               <div className="flex flex-col">

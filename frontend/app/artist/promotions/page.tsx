@@ -25,10 +25,6 @@ export default function ArtistPromotionPage() {
         description: 'Artist Discount'
     });
 
-<<<<<<< HEAD
-    // 1. Fetch existing promotions for this artist
-=======
->>>>>>> 89d252a
     const fetchPromotions = async () => {
         if (!user) return;
         try {
@@ -44,8 +40,6 @@ export default function ArtistPromotionPage() {
         fetchPromotions();
     }, [user]);
 
-<<<<<<< HEAD
-=======
     // Handy Feature: Delete Promotion
     const handleDelete = async (promoId: string) => {
         if (!confirm("Are you sure you want to delete this promotion?")) return;
@@ -67,53 +61,12 @@ export default function ArtistPromotionPage() {
         alert(`Code ${code} copied to clipboard! 📋`);
     };
 
->>>>>>> 89d252a
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
         if (!promoData.code || promoData.value <= 0) {
             alert("Please provide a valid code and value.");
-<<<<<<< HEAD
-=======
-            return;
-        }
-
-        if (new Date(promoData.endDate) <= new Date(promoData.startDate)) {
-            alert("Expiry date must be after the start date.");
->>>>>>> 89d252a
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
-            const res = await fetch(`http://localhost:5000/api/promotions/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    ...promoData, 
-                    artistId: user?.uid 
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                alert("Promotion activated successfully! 🎊");
-                setPromoData({
-                    code: '',
-                    type: 'percentage',
-                    value: 0,
-                    minPurchase: 0,
-                    startDate: new Date().toISOString().split('T')[0],
-                    endDate: '',
-                    description: 'Artist Discount'
-                });
-<<<<<<< HEAD
-                fetchPromotions(); // Refresh the list
-=======
                 fetchPromotions();
->>>>>>> 89d252a
             } else {
                 alert(`Error: ${data.message || "Failed to create"}`);
             }
@@ -128,19 +81,6 @@ export default function ArtistPromotionPage() {
         <main className="min-h-screen bg-gray-900 text-white">
             <Header />
             <div className="container mx-auto px-4 py-12">
-<<<<<<< HEAD
-                <div className="max-w-4xl mx-auto">
-                    <h1 className="text-3xl font-heading mb-2 text-brand-gold">Promotional Tools</h1>
-                    <p className="text-gray-400 mb-8">Create and manage discounts to boost your sales.</p>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* LEFT: CREATE FORM */}
-                        <div className="lg:col-span-2 bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-2xl h-fit">
-                            <h2 className="text-xl font-semibold mb-6">Create New Coupon</h2>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm mb-2 text-gray-400">Coupon Code (Unique)</label>
-=======
                 <div className="max-w-5xl mx-auto">
                     <div className="mb-8">
                         <h1 className="text-3xl font-heading text-brand-gold">Promotional Tools</h1>
@@ -156,34 +96,21 @@ export default function ArtistPromotionPage() {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div>
                                     <label className="block text-sm mb-2 text-gray-400 font-medium">Coupon Code</label>
->>>>>>> 89d252a
                                     <input 
                                         type="text"
                                         required
                                         value={promoData.code}
-<<<<<<< HEAD
-                                        className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 focus:ring-2 focus:ring-brand-gold outline-none uppercase font-mono tracking-widest"
-                                        placeholder="e.g. MONSOON20"
-                                        onChange={e => setPromoData({...promoData, code: e.target.value.toUpperCase()})}
-=======
                                         className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 focus:ring-2 focus:ring-brand-gold outline-none uppercase font-mono tracking-widest transition-all"
                                         placeholder="e.g. MONSOON20"
                                         onChange={e => setPromoData({...promoData, code: e.target.value.toUpperCase().replace(/\s/g, '')})}
->>>>>>> 89d252a
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-<<<<<<< HEAD
-                                        <label className="block text-sm mb-2 text-gray-400">Type</label>
-                                        <select 
-                                            className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 outline-none"
-=======
                                         <label className="block text-sm mb-2 text-gray-400 font-medium">Type</label>
                                         <select 
                                             className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 outline-none cursor-pointer"
->>>>>>> 89d252a
                                             value={promoData.type}
                                             onChange={e => setPromoData({...promoData, type: e.target.value})}
                                         >
@@ -192,57 +119,28 @@ export default function ArtistPromotionPage() {
                                         </select>
                                     </div>
                                     <div>
-<<<<<<< HEAD
-                                        <label className="block text-sm mb-2 text-gray-400">Discount Value</label>
-=======
                                         <label className="block text-sm mb-2 text-gray-400 font-medium">Value</label>
->>>>>>> 89d252a
                                         <input 
                                             type="number" 
                                             required 
                                             value={promoData.value || ''}
                                             className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 outline-none" 
-<<<<<<< HEAD
-=======
-                                            placeholder={promoData.type === 'percentage' ? "20" : "500"}
->>>>>>> 89d252a
-                                            onChange={e => setPromoData({...promoData, value: Number(e.target.value)})} 
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-<<<<<<< HEAD
-                                        <label className="block text-sm mb-2 text-gray-400">Start Date</label>
-                                        <input 
-                                            type="date" 
-                                            required 
-=======
                                         <label className="block text-sm mb-2 text-gray-400 font-medium">Start Date</label>
                                         <input 
                                             type="date" 
                                             required 
                                             min={new Date().toISOString().split('T')[0]}
->>>>>>> 89d252a
                                             value={promoData.startDate}
                                             className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 text-gray-300" 
                                             onChange={e => setPromoData({...promoData, startDate: e.target.value})} 
                                         />
                                     </div>
                                     <div>
-<<<<<<< HEAD
-                                        <label className="block text-sm mb-2 text-gray-400">Expiry Date</label>
-                                        <input 
-                                            type="date" 
-                                            required 
-=======
                                         <label className="block text-sm mb-2 text-gray-400 font-medium">Expiry Date</label>
                                         <input 
                                             type="date" 
                                             required 
                                             min={promoData.startDate}
->>>>>>> 89d252a
                                             value={promoData.endDate}
                                             className="w-full p-3 bg-gray-900 rounded-lg border border-gray-700 text-gray-300" 
                                             onChange={e => setPromoData({...promoData, endDate: e.target.value})} 
@@ -253,42 +151,14 @@ export default function ArtistPromotionPage() {
                                 <button 
                                     type="submit" 
                                     disabled={isLoading} 
-<<<<<<< HEAD
-                                    className="w-full py-4 bg-brand-gold text-black font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg transform active:scale-[0.98] disabled:opacity-50"
-                                >
-                                    {isLoading ? "Validating..." : "Activate Promotion"}
-=======
                                     className="w-full py-4 bg-brand-gold text-black font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg active:scale-95 disabled:opacity-50"
                                 >
                                     {isLoading ? "Generating..." : "Activate Promotional Tool"}
->>>>>>> 89d252a
                                 </button>
                             </form>
                         </div>
 
                         {/* RIGHT: ACTIVE PROMOS LIST */}
-<<<<<<< HEAD
-                        <div className="lg:col-span-1 space-y-4">
-                            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Active Tools
-                            </h2>
-                            {activePromos.length === 0 ? (
-                                <div className="p-6 bg-gray-800/50 border border-dashed border-gray-700 rounded-2xl text-center">
-                                    <p className="text-gray-500 text-sm">No active coupons.</p>
-                                </div>
-                            ) : (
-                                activePromos.map((promo) => (
-                                    <div key={promo._id} className="p-4 bg-gray-800 border border-gray-700 rounded-xl relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-2 bg-brand-gold/10 text-brand-gold text-[10px] font-bold uppercase">
-                                            {promo.type === 'percentage' ? `${promo.value}% Off` : `৳${promo.value} Off`}
-                                        </div>
-                                        <p className="text-lg font-mono font-bold text-white mb-1">{promo.code}</p>
-                                        <p className="text-xs text-gray-400">Expires: {new Date(promo.endDate).toLocaleDateString()}</p>
-                                    </div>
-                                ))
-                            )}
-=======
                         <div className="lg:col-span-1">
                             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -331,7 +201,6 @@ export default function ArtistPromotionPage() {
                                     ))
                                 )}
                             </div>
->>>>>>> 89d252a
                         </div>
                     </div>
                 </div>

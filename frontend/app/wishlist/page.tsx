@@ -35,34 +35,6 @@ export default function WishlistPage() {
     }
   };
 
-<<<<<<< HEAD
-  // 1. Fetch Wishlist Data
-  const fetchWishlist = async () => {
-    if (user) {
-      try {
-        const res = await fetch(`http://localhost:5000/api/wishlist/${user.uid}`);
-        const data = await res.json();
-        setItems(data);
-      } catch (err) {
-        console.error("Error fetching wishlist:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login'); // Redirect to login if not authenticated
-      return;
-    }
-    fetchWishlist();
-  }, [user, authLoading]);
-
-  // 2. NEW: Remove Item Function
-  const handleRemove = async (artworkId: string) => {
-    if (!user) return;
-=======
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -75,7 +47,6 @@ export default function WishlistPage() {
   const handleRemove = async (artworkId: string) => {
     if (!user) return;
     setIsRemoving(artworkId);
->>>>>>> 89d252a
     
     try {
       const res = await fetch('http://localhost:5000/api/wishlist/toggle', {
@@ -85,19 +56,10 @@ export default function WishlistPage() {
       });
       
       if (res.ok) {
-<<<<<<< HEAD
-        // Update local state to remove the item immediately
-=======
->>>>>>> 89d252a
         setItems(items.filter(item => item._id !== artworkId));
       }
     } catch (error) {
       console.error("Error removing item:", error);
-<<<<<<< HEAD
-    }
-  };
-
-=======
     } finally {
       setIsRemoving(null);
     }
@@ -106,7 +68,6 @@ export default function WishlistPage() {
   // Handy Tool: Calculate total value of wishlist
   const totalWishlistValue = items.reduce((sum, item) => sum + item.price, 0);
 
->>>>>>> 89d252a
   if (loading || authLoading) {
     return (
       <main className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -146,21 +107,12 @@ export default function WishlistPage() {
         </div>
 
         {items.length === 0 ? (
-<<<<<<< HEAD
-          <div className="text-center py-20 bg-gray-800 rounded-xl border border-gray-700 shadow-xl">
-            <span className="text-6xl mb-4 block">🎨</span>
-            <h2 className="text-xl font-semibold mb-2">Your wishlist is empty</h2>
-            <p className="text-gray-400 mb-8 max-w-md mx-auto">
-              You haven't saved any artworks yet. Explore our collection and find pieces that inspire you.
-            </p>
-=======
           <div className="flex flex-col items-center justify-center py-32 bg-gray-900/20 border border-dashed border-gray-800 rounded-[3rem] text-center">
             <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mb-6 opacity-30">
                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
             </div>
             <h2 className="text-2xl font-semibold mb-2">No masterpieces saved yet</h2>
             <p className="text-gray-500 mb-8 text-sm">Your dream collection is just one click away.</p>
->>>>>>> 89d252a
             <Link 
               href="/artworks" 
               className="bg-brand-gold text-black px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all active:scale-95"
@@ -173,25 +125,6 @@ export default function WishlistPage() {
             {items.map((artwork) => (
               <div 
                 key={artwork._id} 
-<<<<<<< HEAD
-                className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 group hover:border-brand-gold/50 transition-all shadow-lg relative"
-              >
-                {/* REMOVE BUTTON */}
-                <button 
-                  onClick={() => handleRemove(artwork._id)}
-                  className="absolute top-2 right-2 z-10 p-2 bg-gray-900/60 hover:bg-red-500 text-white rounded-full transition-colors"
-                  title="Remove from wishlist"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-
-                <div className="relative h-56 overflow-hidden">
-                  <img 
-                    src={artwork.images[0] || 'https://placehold.co/600x400/333/fff.png'} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-=======
                 className={`group relative bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden hover:border-brand-gold/40 transition-all duration-500 ${isRemoving === artwork._id ? 'opacity-50 scale-95' : 'opacity-100'}`}
               >
                 {/* IMAGE AREA */}
@@ -199,7 +132,6 @@ export default function WishlistPage() {
                   <img 
                     src={artwork.images[0] || 'https://placehold.co/600x800/333/fff.png'} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
->>>>>>> 89d252a
                     alt={artwork.title} 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80" />
