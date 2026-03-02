@@ -22,6 +22,15 @@ const MessageSchema = new mongoose.Schema({
     required: true,
     maxlength: 5000
   },
+  type: {
+    type: String,
+    enum: ['text', 'image'],
+    default: 'text'
+  },
+  imageUrl: {
+    type: String,
+    default: null
+  },
   readStatus: {
     type: Boolean,
     default: false,

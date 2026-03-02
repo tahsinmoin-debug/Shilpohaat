@@ -1,109 +1,45 @@
 const express = require('express');
 const router = express.Router();
-const { uploadToCloudinary, uploadRawToCloudinary, uploadMultipleToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary.js');
+const multer = require('multer');
+const cloudinary = require('../config/cloudinary');
 
-// Upload single image
-// POST /api/upload/image
-router.post('/image', async (req, res) => {
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// Upload message image
+router.post('/message-image', upload.single('image'), async (req, res) => {
   try {
-    const { image, folder = 'shilpohaat/general' } = req.body;
-
-    if (!image) {
-      return res.status(400).json({ message: 'Image data is required' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
     }
 
-    const result = await uploadToCloudinary(image, folder);
-    
-    return res.json({
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'shilpohaat/messages',
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file.buffer);
+    });
+
+    res.json({
       success: true,
-      url: result.url,
-      publicId: result.publicId,
+      url: result.secure_url,
+      publicId: result.public_id,
     });
   } catch (error) {
     console.error('Image upload error:', error);
-    return res.status(500).json({ 
-      message: 'Failed to upload image', 
-      error: error.message 
-    });
-  }
-});
-
-// Upload multiple images
-// POST /api/upload/images
-router.post('/images', async (req, res) => {
-  try {
-    const { images, folder = 'shilpohaat/general' } = req.body;
-
-    if (!images || !Array.isArray(images) || images.length === 0) {
-      return res.status(400).json({ message: 'Images array is required' });
-    }
-
-    const urls = await uploadMultipleToCloudinary(images, folder);
-    
-    return res.json({
-      success: true,
-      urls,
-      count: urls.length,
-    });
-  } catch (error) {
-    console.error('Multiple images upload error:', error);
-    return res.status(500).json({ 
-      message: 'Failed to upload images', 
-      error: error.message 
-    });
-  }
-});
-
-// Delete image
-// DELETE /api/upload/image
-router.delete('/image', async (req, res) => {
-  try {
-    const { publicId } = req.body;
-
-    if (!publicId) {
-      return res.status(400).json({ message: 'Public ID is required' });
-    }
-
-    const result = await deleteFromCloudinary(publicId);
-    
-    return res.json({
-      success: result.success,
-      message: result.success ? 'Image deleted successfully' : 'Failed to delete image',
-    });
-  } catch (error) {
-    console.error('Image deletion error:', error);
-    return res.status(500).json({ 
-      message: 'Failed to delete image', 
-      error: error.message 
-    });
-  }
-});
-
-// Upload 3D model (GLB/GLTF)
-// POST /api/upload/model
-router.post('/model', async (req, res) => {
-  try {
-    const { modelData, folder = 'shilpohaat/models', publicId } = req.body;
-
-    if (!modelData) {
-      return res.status(400).json({ message: 'Model data is required' });
-    }
-
-    const result = await uploadRawToCloudinary(modelData, folder, publicId);
-    
-    return res.json({
-      success: true,
-      url: result.url,
-      publicId: result.publicId,
-      bytes: result.bytes,
-      format: result.format,
-    });
-  } catch (error) {
-    console.error('Model upload error:', error);
-    return res.status(500).json({ 
-      message: 'Failed to upload 3D model', 
-      error: error.message 
-    });
+    res.status(500).json({ error: 'Failed to upload image' });
   }
 });
 

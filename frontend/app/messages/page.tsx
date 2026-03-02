@@ -21,6 +21,8 @@ interface Message {
   message: string;
   timestamp: number;
   isOwnMessage: boolean;
+  imageUrl?: string;
+  type?: 'text' | 'image';
 }
 
 export default function MessagesPage() {
@@ -36,9 +38,11 @@ export default function MessagesPage() {
   const [socket, setSocket] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasAutoSelected = useRef(false);
   const selectedContactRef = useRef<Contact | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -113,6 +117,8 @@ export default function MessagesPage() {
             message: data.message,
             timestamp: data.timestamp || Date.now(),
             isOwnMessage: false,
+            imageUrl: data.imageUrl,
+            type: data.type || 'text',
           }];
         }
         return prev;
@@ -144,11 +150,15 @@ export default function MessagesPage() {
 
   // Only auto-scroll when new messages arrive, not on initial load
   const prevMessagesLengthRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
+  
   useEffect(() => {
-    if (messages.length > prevMessagesLengthRef.current && prevMessagesLengthRef.current > 0) {
+    // Only scroll to bottom when a NEW message is added (not on initial history load)
+    if (messages.length > prevMessagesLengthRef.current && !isInitialLoadRef.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
     prevMessagesLengthRef.current = messages.length;
+    isInitialLoadRef.current = false;
   }, [messages]);
 
   const handleSelectContact = useCallback(async (contactId: string) => {
@@ -161,6 +171,7 @@ export default function MessagesPage() {
 
     setSelectedContact(contact);
     setMessages([]);
+    isInitialLoadRef.current = true; // Mark as initial load
     setShowSidebar(false); // Hide sidebar on mobile when contact selected
 
     try {
@@ -180,6 +191,8 @@ export default function MessagesPage() {
             message: msg.content,
             timestamp: new Date(msg.createdAt).getTime(),
             isOwnMessage: msg.senderId === user.uid,
+            imageUrl: msg.imageUrl,
+            type: msg.type || (msg.imageUrl ? 'image' : 'text'),
           }));
           console.log('Formatted messages:', formattedMessages);
           setMessages(formattedMessages);
@@ -249,7 +262,69 @@ export default function MessagesPage() {
     }]);
 
     setNewMessage('');
+    setShowEmojiPicker(false);
   };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedContact || !socket || !user) return;
+
+    try {
+      // Upload image to backend
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`${API_URL}/upload/message-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const imageUrl = data.url;
+
+        // Send image message
+        const messageData = {
+          senderId: user.uid,
+          recipientId: selectedContact.id,
+          message: imageUrl,
+          timestamp: Date.now(),
+          type: 'image',
+          imageUrl: imageUrl,
+        };
+
+        socket.emit('privateMessage', messageData);
+
+        setMessages(prev => [...prev, {
+          senderId: user.uid,
+          message: imageUrl,
+          timestamp: messageData.timestamp,
+          isOwnMessage: true,
+          imageUrl: imageUrl,
+          type: 'image',
+        }]);
+      } else {
+        const errorData = await response.json();
+        console.error('Upload error:', errorData);
+        alert('Failed to upload image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Common emojis for quick access
+  const commonEmojis = ['😊', '😂', '❤️', '👍', '🙏', '🎨', '✨', '🔥', '💯', '👏', '🤝', '💪', '🌟', '🎉', '😍', '🥰', '😎', '🤔', '👌', '✅'];
 
   const filteredContacts = contacts.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -416,10 +491,26 @@ export default function MessagesPage() {
                             : 'bg-gray-700 text-white rounded-bl-sm'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
-                        <p className={`text-xs mt-1.5 ${msg.isOwnMessage ? 'text-gray-700' : 'text-gray-400'}`}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        {msg.type === 'image' || msg.imageUrl ? (
+                          <div>
+                            <img 
+                              src={msg.imageUrl || msg.message} 
+                              alt="Shared image" 
+                              className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(msg.imageUrl || msg.message, '_blank')}
+                            />
+                            <p className={`text-xs mt-1.5 ${msg.isOwnMessage ? 'text-gray-700' : 'text-gray-400'}`}>
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                            <p className={`text-xs mt-1.5 ${msg.isOwnMessage ? 'text-gray-700' : 'text-gray-400'}`}>
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
@@ -429,7 +520,65 @@ export default function MessagesPage() {
 
               {/* Input Box - Fixed at Bottom, Always Visible */}
               <div className="flex-shrink-0 bg-gray-800 border-t border-gray-700 p-4">
-                <div className="flex space-x-3 items-center">
+                {/* Emoji Picker */}
+                {showEmojiPicker && (
+                  <div className="mb-3 p-3 bg-gray-700 rounded-lg border border-gray-600">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-400">Quick Emojis</span>
+                      <button
+                        onClick={() => setShowEmojiPicker(false)}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-10 gap-2">
+                      {commonEmojis.map((emoji, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleEmojiSelect(emoji)}
+                          className="text-2xl hover:bg-gray-600 rounded p-1 transition-colors"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-2 items-center">
+                  {/* Emoji Button */}
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="p-3 text-gray-400 hover:text-brand-gold hover:bg-gray-700 rounded-xl transition-all flex-shrink-0"
+                    aria-label="Add emoji"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+
+                  {/* Image Upload Button */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-3 text-gray-400 hover:text-brand-gold hover:bg-gray-700 rounded-xl transition-all flex-shrink-0"
+                    aria-label="Attach image"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+
+                  {/* Message Input */}
                   <input
                     type="text"
                     value={newMessage}
@@ -443,6 +592,8 @@ export default function MessagesPage() {
                     placeholder="Type a message..."
                     className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent text-white placeholder-gray-400 transition-all"
                   />
+
+                  {/* Send Button */}
                   <button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}

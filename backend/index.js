@@ -48,9 +48,9 @@ io.on('connection', (socket) => {
         io.emit('onlineUsers', Array.from(activeUsers.keys()));
     });
 
-    socket.on('privateMessage', async ({ recipientId, senderId, message, timestamp }) => {
+    socket.on('privateMessage', async ({ recipientId, senderId, message, timestamp, type, imageUrl }) => {
         const recipientSocketId = activeUsers.get(recipientId);
-        console.log(`[MSG] From: ${senderId} to: ${recipientId}.`);
+        console.log(`[MSG] From: ${senderId} to: ${recipientId}. Type: ${type || 'text'}`);
         
         try {
             // Sort participants to ensure consistent ordering
@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
                     },
                     $set: {
                         lastMessageAt: new Date(),
-                        lastMessageContent: message.substring(0, 200)
+                        lastMessageContent: type === 'image' ? '📷 Image' : message.substring(0, 200)
                     }
                 },
                 { upsert: true, new: true }
@@ -78,6 +78,8 @@ io.on('connection', (socket) => {
                 senderId,
                 recipientId,
                 content: message,
+                type: type || 'text',
+                imageUrl: imageUrl || null,
                 readStatus: false
             });
             await newMessage.save();
@@ -88,10 +90,16 @@ io.on('connection', (socket) => {
             await conversation.save();
             
             // Emit real-time Socket.io events (preserve existing behavior)
-            const messageData = { senderId, message, timestamp: timestamp || Date.now() };
+            const messageData = { 
+                senderId, 
+                message, 
+                timestamp: timestamp || Date.now(),
+                type: type || 'text',
+                imageUrl: imageUrl || null
+            };
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit('receiveMessage', messageData);
-                io.to(socket.id).emit('messageSent', { recipientId, message, timestamp: messageData.timestamp }); 
+                io.to(socket.id).emit('messageSent', { recipientId, message, timestamp: messageData.timestamp, type, imageUrl }); 
             } else {
                 io.to(socket.id).emit('messageFailed', { message: 'Recipient is currently offline.' });
             }
