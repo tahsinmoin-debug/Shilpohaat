@@ -1,0 +1,7 @@
+Checking API Key: Present
+Testing gemini-1.5-flash... FAILED ❌ (404 Not Found)
+Testing gemini-1.5-flash-latest... FAILED ❌ (404 Not Found)
+Testing gemini-1.5-flash-001... FAILED ❌ (404 Not Found)
+Testing gemini-pro... FAILED ❌ (404 Not Found)
+Testing gemini-1.0-pro... FAILED ❌ (404 Not Found)
+Testing defaults/gemini-1.5-flash... FAILED ❌ (404 Not Found)

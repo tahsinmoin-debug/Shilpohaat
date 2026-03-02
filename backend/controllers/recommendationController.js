@@ -1,11 +1,12 @@
-const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Artwork = require("../models/Artwork");
 const User = require("../models/User"); // Required for populate to work
+const ArtistProfile = require("../models/ArtistProfile"); // Required for nested populate
 
-// Initialize OpenAI client with API key from environment
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize Google Gemini client
+// Note: Ensure GEMINI_API_KEY is in your .env
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 /**
  * Get AI-powered artwork recommendations
@@ -13,9 +14,10 @@ const openai = new OpenAI({
  * Body: { category, budget_min, budget_max, materials, limit = 5 }
  */
 exports.getRecommendations = async (req, res) => {
+  const { category, budget_min, budget_max, materials, limit = 5 } = req.body;
+  const limitNum = Math.min(Math.max(Number(limit) || 5, 3), 20); // keep between 3 and 20
+
   try {
-    const { category, budget_min, budget_max, materials, limit = 5 } = req.body;
-    const limitNum = Math.min(Math.max(Number(limit) || 5, 3), 20); // keep between 3 and 20
 
     console.log('[RECOMMENDATIONS] Filters applied:', { category, budget_min, budget_max, materials });
 
@@ -39,7 +41,14 @@ exports.getRecommendations = async (req, res) => {
 
     // Step 2: Fetch filtered artworks from MongoDB
     const filteredArtworks = await Artwork.find(filters)
-      .populate("artist", "name bio specializations")
+      .populate({
+        path: "artist",
+        select: "name artistProfile",
+        populate: {
+          path: "artistProfile",
+          select: "bio specializations artistStory",
+        },
+      })
       .limit(50) // get a larger candidate pool for better recall
       .lean();
 
@@ -54,66 +63,65 @@ exports.getRecommendations = async (req, res) => {
       });
     }
 
-    // Step 3: Prepare data for OpenAI
-    const artworkList = filteredArtworks.map((art) => ({
-      id: art._id.toString(),
-      title: art.title,
-      price: art.price,
-      category: art.category,
-      artist: art.artist?.name || "Unknown",
-      description: art.description || "",
-      hasAR: art.arModelUrl ? true : false,
-    }));
-
-    // Step 4: Call OpenAI API to rank artworks
-    const aiPrompt = `You are an expert art curator for ShilpoHaat, a Bengali art marketplace.
-    
-A user with the following preferences is looking for artwork recommendations:
-- Budget Range: ৳${budget_min || "Any"} - ৳${budget_max || "Any"}
-- Category: ${category || "Any"}
-- Materials Preference: ${materials || "Any"}
-
-Here are ${artworkList.length} filtered artworks that match the budget and category:
-${JSON.stringify(artworkList, null, 2)}
-
-Your task:
-1. Rank the TOP ${limitNum} MOST SUITABLE artworks for this user
-2. Consider: artistic quality, price value, artist reputation, material match, and uniqueness
-3. Return ONLY a valid JSON array (no extra text)
-4. Each item must have: { "artworkId": "id_string", "reason": "short reason (max 50 chars)" }
-
-IMPORTANT: Return ONLY the JSON array, nothing else. Start with [ and end with ]`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using mini for faster/cheaper responses
-      messages: [
-        {
-          role: "user",
-          content: aiPrompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
+    // Step 3: Prepare data for AI
+    const artworkList = filteredArtworks.map((art) => {
+      const profile = art.artist?.artistProfile;
+      return {
+        id: art._id.toString(),
+        title: art.title,
+        price: art.price,
+        category: art.category,
+        materials: art.materials, // Added materials
+        artist: art.artist?.name || "Unknown",
+        artist_bio: profile?.bio || "A talented local artist.",
+        artist_specialization: profile?.specializations?.join(", ") || "General",
+        description: art.description || "",
+      };
     });
 
-    const aiResponse = completion.choices[0].message.content.trim();
+    // Step 4: Call Gemini API to rank artworks
+    const aiPrompt = `You are a passionate Bengali Art Curator for ShilpoHaat.
+    
+User Preferences:
+- Budget: ৳${budget_min || "Any"} - ৳${budget_max || "Any"}
+- Category: ${category || "Any"}
+- Materials: ${materials || "Any"}
 
-    // Step 5: Parse AI response
+Candidate Artworks:
+${JSON.stringify(artworkList, null, 2)}
+
+Task:
+1. Select the TOP ${limitNum} artworks that best match the user's taste and budget.
+2. For each, write a "curator's note" (reason). Be storytelling and evocative.
+3. Return ONLY a valid JSON array.
+   - Format: [ { "artworkId": "id", "reason": "Story-driven note (max 150 chars)" } ]
+4. Do not include Markdown formatting (like \`\`\`json). Just the raw JSON.`;
+
     let rankedIds = [];
+    let aiReasonGlobal = "Curated just for you.";
+
     try {
-      const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("No JSON found in response");
-      rankedIds = JSON.parse(jsonMatch[0]);
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", aiResponse);
+      const result = await model.generateContent(aiPrompt);
+      const response = await result.response;
+      const aiResponse = response.text().trim();
+
+      // Remove any markdown code block syntax if present
+      const cleanJson = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+      rankedIds = JSON.parse(cleanJson);
+      aiReasonGlobal = `Based on your preferences for ${category || "any category"} art within your budget, I've curated these pieces. Each combines artistic merit, value, and uniqueness.`;
+    } catch (aiError) {
+      console.error("AI Generation/Parsing failed:", aiError);
+      // We will fall back to price sorting below
+    }
+
+    if (rankedIds.length === 0) {
       // Fallback: return filtered results in price ascending order
       return res.status(200).json({
         success: true,
         recommendations: filteredArtworks
           .sort((a, b) => a.price - b.price)
           .slice(0, limit),
-        aiExplanation:
-          "AI ranking unavailable. Showing best matches by price.",
+        aiExplanation: "AI ranking unavailable. Showing best matches by price.",
         fallback: true,
       });
     }
@@ -127,9 +135,9 @@ IMPORTANT: Return ONLY the JSON array, nothing else. Start with [ and end with ]
         );
         return artwork
           ? {
-              ...artwork,
-              aiReason: item.reason,
-            }
+            ...artwork,
+            aiReason: item.reason,
+          }
           : null;
       })
       .filter((item) => item !== null);
@@ -149,42 +157,16 @@ IMPORTANT: Return ONLY the JSON array, nothing else. Start with [ and end with ]
     res.status(200).json({
       success: true,
       recommendations: recommendations.slice(0, limitNum),
-      aiExplanation: `Based on your preferences for ${category || "any category"} art within your budget, I've curated these pieces. Each combines artistic merit, value, and uniqueness.`,
+      aiExplanation: aiReasonGlobal,
       fallback: false,
     });
   } catch (error) {
     console.error("Recommendation error:", error.message);
-
-    // Fallback: return basic filtered results
-    try {
-      const filters = { moderationStatus: 'approved', status: 'available' };
-      if (req.body.category && req.body.category !== "All") {
-        filters.category = req.body.category;
-      }
-      if (req.body.budget_min || req.body.budget_max) {
-        filters.price = {};
-        if (req.body.budget_min) filters.price.$gte = Number(req.body.budget_min);
-        if (req.body.budget_max) filters.price.$lte = Number(req.body.budget_max);
-      }
-
-      const fallbackResults = await Artwork.find(filters)
-        .populate("artist", "name bio specializations")
-        .limit(limitNum)
-        .lean();
-
-      res.status(200).json({
-        success: true,
-        recommendations: fallbackResults,
-        aiExplanation: "Showing curated results (AI unavailable).",
-        fallback: true,
-      });
-    } catch (fallbackError) {
-      res.status(500).json({
-        success: false,
-        message: "Failed to get recommendations",
-        error: fallbackError.message,
-      });
-    }
+    res.status(500).json({
+      success: false,
+      message: "Failed to get recommendations",
+      error: error.message,
+    });
   }
 };
 
@@ -196,26 +178,22 @@ exports.getQuickRecommendations = async (req, res) => {
   try {
     const { query } = req.body; // e.g., "I want modern art under 5000 taka"
 
-    // Step 1: Use OpenAI to extract preferences from natural language
+    // Step 1: Use Gemini to extract preferences from natural language
     const extractionPrompt = `Extract artwork preferences from this query: "${query}"
 Return a JSON object with: { category: "string or null", max_budget: number or null, materials: "string or null" }
-Return ONLY the JSON, no extra text.`;
+Return ONLY the raw JSON, no markdown.`;
 
-    const extractionResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: extractionPrompt }],
-      temperature: 0.3,
-      max_tokens: 200,
-    });
-
-    const extractedText = extractionResponse.choices[0].message.content.trim();
     let preferences = {};
 
     try {
-      const jsonMatch = extractedText.match(/\{[\s\S]*\}/);
+      const result = await model.generateContent(extractionPrompt);
+      const extractedText = result.response.text().trim();
+      const cleanJson = extractedText.replace(/```json/g, '').replace(/```/g, '').trim();
+      const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
       if (jsonMatch) preferences = JSON.parse(jsonMatch[0]);
-    } catch {
-      preferences = {};
+    } catch (e) {
+      console.error("AI Extraction failed:", e);
+      // continue with empty preferences
     }
 
     // Step 2: Get recommendations using the extracted preferences
