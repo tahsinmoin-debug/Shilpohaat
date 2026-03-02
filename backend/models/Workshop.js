@@ -20,16 +20,16 @@ const WorkshopSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    title: { 
-      type: String, 
-      required: true 
+    title: {
+      type: String,
+      required: true
     },
-    description: { 
-      type: String, 
-      required: true 
+    description: {
+      type: String,
+      required: true
     },
-    category: { 
-      type: String, 
+    category: {
+      type: String,
       required: true,
       enum: ['Painting', 'Sculpture', 'Crafts', 'Textile', 'Digital Art', 'Photography', 'Other']
     },
@@ -43,35 +43,37 @@ const WorkshopSchema = new mongoose.Schema(
       enum: ['recorded', 'live'],
       required: true,
     },
-    thumbnail: { 
+
+    // Thumbnail is now OPTIONAL — frontend sends a placeholder if blank
+    thumbnail: {
       type: String,
-      required: true 
+      default: 'https://placehold.co/800x450/0b2438/B8860B?text=Workshop'
     },
-    
-    // For recorded workshops - multiple lessons
+
+    // For recorded workshops
     lessons: [LessonSchema],
-    
+
     // For live workshops
     liveSessionUrl: { type: String }, // Zoom/Meet link
     scheduledAt: { type: Date },
     duration: { type: Number }, // in minutes
-    
-    // Requirements
+
+    // Required materials
     requiredMaterials: [{
       item: String,
       description: String,
       optional: { type: Boolean, default: false }
     }],
-    
-    price: { 
-      type: Number, 
-      default: 0 
+
+    price: {
+      type: Number,
+      default: 0
     },
     currency: {
       type: String,
       default: 'BDT'
     },
-    
+
     // Status & Approval
     status: {
       type: String,
@@ -84,7 +86,7 @@ const WorkshopSchema = new mongoose.Schema(
       ref: 'User'
     },
     approvedAt: { type: Date },
-    
+
     // Stats
     enrollmentCount: {
       type: Number,
@@ -100,9 +102,9 @@ const WorkshopSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    
+
     // Settings
-    maxStudents: { type: Number }, // for live workshops
+    maxStudents: { type: Number },
     isPublished: {
       type: Boolean,
       default: false
@@ -112,8 +114,8 @@ const WorkshopSchema = new mongoose.Schema(
       default: false
     }
   },
-  { 
-    timestamps: true 
+  {
+    timestamps: true
   }
 );
 

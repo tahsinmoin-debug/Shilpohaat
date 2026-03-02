@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import WishlistButton from '../components/WishlistButton'; // Import the wishlist component
 import { API_BASE_URL } from '@/lib/config';
 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORIES = [
   'All',
@@ -50,11 +51,13 @@ export default function ArtworksPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [filteredArtworks, setFilteredArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [category, setCategory] = useState('All');
+  
+
 
   useEffect(() => {
     fetchArtworks();
@@ -82,7 +85,9 @@ export default function ArtworksPage() {
   const applyFilters = () => {
     let filtered = [...artworks];
 
-    // Category filter
+    // --- FIXED CATEGORY FILTER ---
+    // If category is 'All', do not filter by category.
+    // If it is anything else, match the artwork's category exactly.
     if (category !== 'All') {
       filtered = filtered.filter((art) => art.category === category);
     }
@@ -93,7 +98,6 @@ export default function ArtworksPage() {
       filtered = filtered.filter(
         (art) =>
           art.title.toLowerCase().includes(query) ||
-          art.description?.toLowerCase().includes(query) ||
           art.artist?.name.toLowerCase().includes(query)
       );
     }
@@ -173,6 +177,7 @@ export default function ArtworksPage() {
               <option value="price-high">Price: High to Low</option>
             </select>
 
+            
             {/* Mobile Filters Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -209,6 +214,19 @@ export default function ArtworksPage() {
                   Clear
                 </button>
               )}
+
+              <span className="text-gray-300 text-sm ml-4">Category:</span>
+              <select
+               value={category} // FIXED: Changed from sortBy to category
+               onChange={(e) => setCategory(e.target.value)} // FIXED: correctly updates category state
+               className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
+              >
+               {CATEGORIES.map((cat) => (
+                 <option key={cat} value={cat}>
+                   {cat}
+                 </option>
+               ))}
+              </select>
             </div>
           </div>
         </div>

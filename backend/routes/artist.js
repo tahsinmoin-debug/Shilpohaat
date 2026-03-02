@@ -4,60 +4,17 @@ const {
   updateArtistProfile, 
   getAllArtists,
   getFeaturedArtists,
-  getArtistById
+  getArtistById,
+  getHubArtists 
 } = require('../controllers/artistController.js');
-
-
-
-// POST: Create new artist (Add this route)
-router.post('/artists', async (req, res) => {
-  try {
-    const { name, bio, profileImage, rating, popularity, isFeatured, specialization, location } = req.body;
-    
-    const newArtist = new Artist({
-      name,
-      bio,
-      profileImage,
-      rating,
-      popularity,
-      isFeatured,
-      specialization,
-      location
-    });
-    
-    await newArtist.save();
-    
-    res.status(201).json({
-      success: true,
-      message: 'Artist created successfully',
-      data: newArtist
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error creating artist',
-      error: error.message
-    });
-  }
-});
-
-
-
-// GET /api/artist/all (public - all artists)
+ 
+// Public routes
 router.get('/all', getAllArtists);
-
-// GET /api/artist/featured (public - featured artists for homepage)
 router.get('/featured', getFeaturedArtists);
-
-// PATCH /api/artist/profile?firebaseUID=... (update artist profile)
+router.get('/hub-artists', getHubArtists);  // MUST be before /:id
+router.get('/:id', getArtistById);
+ 
+// Protected route
 router.patch('/profile', updateArtistProfile);
-
-const { 
-    getHubArtists 
-} = require('../controllers/artistController');
-// New route for the messaging hub artist list
-router.get('/hub-artists', getHubArtists); 
-
+ 
 module.exports = router;
-
-

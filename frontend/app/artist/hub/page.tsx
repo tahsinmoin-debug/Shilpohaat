@@ -34,15 +34,11 @@ export default function CollaborationHubPage() {
     const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
     const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    
-    // 💡 NEW: Ref to hold the current recipient ID
     const selectedRecipientIdRef = useRef(selectedRecipientId);
     
-    // 💡 NEW: Update the Ref whenever selectedRecipientId changes
     useEffect(() => {
         selectedRecipientIdRef.current = selectedRecipientId;
     }, [selectedRecipientId]);
-    
 
     const fetchAllArtists = useCallback(async () => {
         if (!user) return;
@@ -50,19 +46,16 @@ export default function CollaborationHubPage() {
             const response = await fetch(`${API_BASE_URL}/artist/hub-artists`);
             if (!response.ok) throw new Error('Failed to fetch artists');
             
-            const data: { id: string, name: string }[] = await response.json();
+            // Backend now sends array directly
+            const data: Artist[] = await response.json();
             
-            const filteredArtists: Artist[] = data
-                .filter((artist: { id: string }) => artist.id !== user.uid)
-                .map((artist: { id: string, name: string }) => ({
-                    id: artist.id,
-                    name: artist.name,
-                    isOnline: false,
-                }));
+            const filteredArtists = data
+                .filter(artist => artist.id !== user.uid)
+                .map(artist => ({ ...artist, isOnline: false }));
 
             setAllArtists(filteredArtists);
         } catch (error) {
-            console.error(error);
+            console.error("Hub Fetch Error:", error);
         }
     }, [user]);
 
@@ -73,22 +66,15 @@ export default function CollaborationHubPage() {
     }, [user, appUser, loading, router]);
 
     useEffect(() => {
-        if (user?.uid) {
-            fetchAllArtists();
-        }
+        if (user?.uid) fetchAllArtists();
     }, [user?.uid, fetchAllArtists]);
 
     useEffect(() => {
         if (!user || loading) return;
 
         socket = io(SOCKET_SERVER_URL); 
-
         socket.on('connect', () => {
-            // console.log("SUCCESS: Socket Connected!"); // Removed diagnostic
-            if (user?.uid) {
-                // console.log("Attempting to register UID:", user.uid); // Removed diagnostic
-                socket.emit('registerUser', user.uid);
-            }
+            if (user?.uid) socket.emit('registerUser', user.uid);
         });
 
         socket.on('onlineUsers', (userIds: string[]) => {
@@ -96,34 +82,17 @@ export default function CollaborationHubPage() {
         });
 
         socket.on('receiveMessage', (messageData: { senderId: string, message: string }) => {
-            
             if (messageData.senderId === selectedRecipientIdRef.current) {
-                const newMessage: Message = { 
-                    ...messageData, 
-                    timestamp: Date.now(), 
-                    isOwnMessage: false 
-                };
-                
-                setMessages(prev => [...prev, newMessage]);
-                
-                
-                console.log(`[RECEIVER] Received and displayed message from: ${messageData.senderId}`); // <-- NEW LOG
-            } else {
-                 console.log(`[RECEIVER] Message received but ignored (Not current chat): ${messageData.senderId}`); // <-- NEW LOG
+                setMessages(prev => [...prev, { ...messageData, timestamp: Date.now(), isOwnMessage: false }]);
             }
         });
 
-        return () => {
-            if (socket) {
-                socket.disconnect();
-            }
-        };
+        return () => { if (socket) socket.disconnect(); };
     }, [loading, user]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
-
 
     const sendMessage = (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,13 +105,7 @@ export default function CollaborationHubPage() {
         };
 
         socket.emit('privateMessage', messageData);
-
-        const sentMessage: Message = { 
-            ...messageData, 
-            timestamp: Date.now(), 
-            isOwnMessage: true 
-        };
-        setMessages(prev => [...prev, sentMessage]);
+        setMessages(prev => [...prev, { ...messageData, timestamp: Date.now(), isOwnMessage: true }]);
         setInputMessage('');
     };
 
@@ -152,116 +115,126 @@ export default function CollaborationHubPage() {
     };
 
     const sortedArtists = allArtists
-        .map(artist => ({
-            ...artist,
-            isOnline: onlineUserIds.includes(artist.id),
-        }))
-        .sort((a, b) => {
-            if (a.isOnline === b.isOnline) return 0;
-            if (a.isOnline) return -1; 
-            return 1;
-        });
+        .map(artist => ({ ...artist, isOnline: onlineUserIds.includes(artist.id) }))
+        .sort((a, b) => (a.isOnline === b.isOnline ? 0 : a.isOnline ? -1 : 1));
 
-
-    if (loading || !user) {
-        return (
-            <main>
-                <Header />
-                <div className="min-h-screen flex items-center justify-center">
-                    <p className="text-white text-lg">Loading...</p>
-                </div>
-            </main>
-        );
-    }
-    
     return (
-        <main className="min-h-screen bg-gray-900 text-white flex flex-col">
+        <main className="min-h-screen bg-gray-950 text-white flex flex-col">
             <Header />
-            <div className="container mx-auto px-4 py-12 flex-1 flex flex-col">
-                <h1 className="text-3xl font-heading text-white mb-8">Artist Messaging Hub</h1>
+            <div className="container mx-auto px-4 py-8 flex-1 flex flex-col min-h-0 max-w-6xl">
+                
+                <header className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-heading text-white">Collaboration Hub</h1>
+                        <p className="text-gray-500 text-sm">Connect and create with fellow artists in real-time.</p>
+                    </div>
+                </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-1">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 flex-1 min-h-[550px] mb-6">
                     
-                    <div className="lg:col-span-1 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-                        <div className="bg-gray-800 rounded-lg p-4 shadow-xl border border-gray-700">
-                            <h2 className="text-xl font-semibold mb-3 border-b border-gray-700 pb-2">All Artists ({allArtists.length})</h2>
-                            <ul className="space-y-2">
+                    {/* SIDEBAR */}
+                    <aside className="lg:col-span-1 bg-gray-900 border border-gray-800 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
+                        <div className="p-4 border-b border-gray-800 bg-gray-900/50 text-center">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold">Artist Registry</h2>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                            <ul className="space-y-1">
                                 {sortedArtists.map((artist) => (
                                     <li key={artist.id}>
                                         <button 
                                             onClick={() => handleSelectRecipient(artist.id)}
-                                            className={`w-full text-left p-3 rounded-lg transition-colors flex justify-between items-center ${
+                                            className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-3 ${
                                                 selectedRecipientId === artist.id 
-                                                ? 'bg-brand-gold text-gray-900 font-medium' 
-                                                : 'hover:bg-gray-700 text-gray-300'
+                                                ? 'bg-brand-gold text-gray-950 shadow-lg' 
+                                                : 'hover:bg-gray-800 text-gray-400'
                                             }`}
                                         >
-                                            <span className="truncate">{artist.name}</span>
-                                            {artist.isOnline && (
-                                                <span className="h-2 w-2 bg-green-500 rounded-full ml-2 flex-shrink-0" aria-label="Online"></span>
-                                            )}
+                                            <div className="relative">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${selectedRecipientId === artist.id ? 'bg-gray-950 text-white' : 'bg-gray-800 text-brand-gold'}`}>
+                                                    {artist.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                {artist.isOnline && (
+                                                    <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-gray-900 animate-pulse"></span>
+                                                )}
+                                            </div>
+                                            <span className="font-semibold text-sm truncate">{artist.name}</span>
                                         </button>
                                     </li>
                                 ))}
                             </ul>
-                            {allArtists.length === 0 && (
-                                <p className="text-gray-500 text-sm mt-4">No artists registered yet.</p>
-                            )}
                         </div>
-                    </div>
+                    </aside>
                     
-                    <div className="lg:col-span-3 bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700 flex flex-col max-h-[calc(100vh-200px)]">
-                        <h2 className="text-2xl font-heading mb-4 text-brand-gold border-b border-gray-700 pb-2">
-                            {selectedRecipientId ? `Chatting with: ${sortedArtists.find(a => a.id === selectedRecipientId)?.name || selectedRecipientId}` : 'Select an Artist to Chat'}
-                        </h2>
-                        
-                        <div className="flex-1 overflow-y-auto rounded-lg p-4 mb-4 space-y-4">
-                            {!selectedRecipientId ? (
-                                <div className="text-gray-500 text-center py-10">
-                                    Choose an artist from the list to start a conversation.
+                    {/* CHAT WINDOW */}
+                    <section className="lg:col-span-3 bg-gray-900 rounded-3xl shadow-2xl border border-gray-800 flex flex-col overflow-hidden relative">
+                        <div className="p-5 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
+                            {selectedRecipientId ? (
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center font-bold text-brand-gold text-xs border border-brand-gold/20">
+                                        {sortedArtists.find(a => a.id === selectedRecipientId)?.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h2 className="text-md font-bold text-white uppercase tracking-tight">{sortedArtists.find(a => a.id === selectedRecipientId)?.name}</h2>
+                                        <span className="text-[10px] text-green-500 font-bold uppercase tracking-widest flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Secure Session</span>
+                                    </div>
                                 </div>
                             ) : (
-                                messages.map((msg, index) => (
-                                    <div 
-                                        key={index} 
-                                        className={`flex ${msg.isOwnMessage ? 'justify-end' : 'justify-start'}`}
-                                    >
-                                        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-xl ${
-                                            msg.isOwnMessage 
-                                            ? 'bg-brand-gold text-gray-900 rounded-br-none' 
-                                            : 'bg-gray-700 text-white rounded-tl-none'
-                                        }`}>
-                                            <p className="text-sm">{msg.message}</p>
-                                            <span className={`block text-xs mt-1 ${msg.isOwnMessage ? 'text-gray-700' : 'text-gray-400'}`}>
-                                                {new Date(msg.timestamp).toLocaleTimeString()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))
+                                <h2 className="text-sm font-bold text-gray-600 uppercase tracking-widest">Select a collaborator to begin</h2>
                             )}
-                            <div ref={messagesEndRef} />
                         </div>
                         
-                        <form onSubmit={sendMessage} className="flex gap-3">
-                            <input 
-                                type="text"
-                                value={inputMessage}
-                                onChange={(e) => setInputMessage(e.target.value)}
-                                placeholder={selectedRecipientId ? 'Type your message...' : 'Select an artist first...'}
-                                disabled={!selectedRecipientId}
-                                className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold disabled:opacity-50"
-                            />
-                            <button 
-                                type="submit"
-                                disabled={!selectedRecipientId || !inputMessage.trim()}
-                                className="px-6 py-2 bg-brand-gold text-gray-900 font-semibold rounded-lg hover:bg-brand-gold-antique transition-colors disabled:opacity-50"
-                            >
-                                Send
-                            </button>
-                        </form>
-                    </div>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#0a0a0b] custom-scrollbar">
+                            {!selectedRecipientId ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
+                                    <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                    <p className="text-sm font-medium">Choose an artist from the registry</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {messages.map((msg, index) => (
+                                        <div key={index} className={`flex flex-col ${msg.isOwnMessage ? 'items-end' : 'items-start'}`}>
+                                            <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                                                msg.isOwnMessage 
+                                                ? 'bg-brand-gold text-gray-950 rounded-br-none shadow-md' 
+                                                : 'bg-gray-800 text-gray-200 rounded-bl-none border border-gray-700'
+                                            }`}>
+                                                {msg.message}
+                                            </div>
+                                            <span className="text-[9px] text-gray-600 mt-1 uppercase font-black tracking-tighter px-1">
+                                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    <div ref={messagesEndRef} />
+                                </>
+                            )}
+                        </div>
+                        
+                        <div className="p-5 bg-gray-900 border-t border-gray-800">
+                            <form onSubmit={sendMessage} className="flex items-center gap-3">
+                                <input 
+                                    type="text" value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
+                                    placeholder={selectedRecipientId ? 'Send message...' : 'Registry inactive'}
+                                    disabled={!selectedRecipientId}
+                                    className="flex-1 px-5 py-3.5 bg-black border border-gray-800 rounded-2xl focus:border-brand-gold outline-none text-sm transition-all disabled:opacity-20 shadow-inner"
+                                />
+                                <button 
+                                    type="submit" disabled={!selectedRecipientId || !inputMessage.trim()}
+                                    className="w-14 h-14 flex items-center justify-center bg-brand-gold text-gray-950 rounded-2xl hover:bg-yellow-500 transition-all active:scale-90 disabled:opacity-20 shadow-lg"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </section>
                 </div>
             </div>
+            
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 10px; }
+            `}</style>
         </main>
     );
 }

@@ -64,8 +64,10 @@ const getAllArtworks = async (req, res) => {
     const includeAll = req.query.includeAll === 'true';
     const moderationStatus = req.query.moderationStatus;
     if (!includeAll && !moderationStatus) {
+      // Show approved and pending artworks by default so freshly uploaded items are visible
       query.$or = [
         { moderationStatus: 'approved' },
+        { moderationStatus: 'pending' },
         { moderationStatus: { $exists: false } },
       ];
     } else if (moderationStatus) {
