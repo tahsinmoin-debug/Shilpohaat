@@ -3,29 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
-import WishlistButton from '../components/WishlistButton'; // Import the wishlist component
+import WishlistButton from '../components/WishlistButton';
+import { ArtworkCardSkeleton } from '../components/Skeleton';
+import SearchInterface from '../components/Filters/SearchInterface';
 import { API_BASE_URL } from '@/lib/config';
-
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const CATEGORIES = [
-  'All',
-  'Abstract',
-  'Landscape',
-  'Portrait',
-  'Modern Art',
-  'Traditional Art',
-  'Nature & Wildlife',
-  'Cityscape',
-  'Floral Art',
-  'Minimalist',
-  'Pop Art',
-  'Digital Art',
-  'Acrylic',
-  'Oil',
-  'Watercolor',
-  'Mixed Media',
-];
 
 interface Artwork {
   _id: string;
@@ -36,6 +17,12 @@ interface Artwork {
   images: string[];
   status: 'available' | 'sold' | 'reserved';
   featured: boolean;
+  material?: string;
+  dimensions?: {
+    width: number;
+    height: number;
+    unit: string;
+  };
   artist: {
     _id: string;
     name: string;
@@ -51,22 +38,10 @@ export default function ArtworksPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [filteredArtworks, setFilteredArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [sortBy, setSortBy] = useState('newest');
-  const [showFilters, setShowFilters] = useState(false);
-  const [category, setCategory] = useState('All');
-  
-
 
   useEffect(() => {
     fetchArtworks();
   }, []);
-
-  useEffect(() => {
-    applyFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, searchQuery, priceRange, sortBy, artworks]);
 
   const fetchArtworks = async () => {
     try {
@@ -80,50 +55,6 @@ export default function ArtworksPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...artworks];
-
-    // --- FIXED CATEGORY FILTER ---
-    // If category is 'All', do not filter by category.
-    // If it is anything else, match the artwork's category exactly.
-    if (category !== 'All') {
-      filtered = filtered.filter((art) => art.category === category);
-    }
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (art) =>
-          art.title.toLowerCase().includes(query) ||
-          art.artist?.name.toLowerCase().includes(query)
-      );
-    }
-
-    // Price range filter
-    if (priceRange.min) {
-      filtered = filtered.filter((art) => art.price >= Number(priceRange.min));
-    }
-    if (priceRange.max) {
-      filtered = filtered.filter((art) => art.price <= Number(priceRange.max));
-    }
-
-    // Sort
-    switch (sortBy) {
-      case 'newest':
-        // Already sorted by createdAt desc from backend
-        break;
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-    }
-
-    setFilteredArtworks(filtered);
   };
 
   const handleArtworkClick = (id: string) => {
@@ -151,86 +82,11 @@ export default function ArtworksPage() {
         </div>
       </section>
 
-      {/* Filters Bar */}
-      <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search artworks or artists..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
-              />
-            </div>
-
-            {/* Sort */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
-            >
-              <option value="newest">Newest First</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-            </select>
-
-            
-            {/* Mobile Filters Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="md:hidden px-4 py-2 bg-brand-gold text-gray-900 font-semibold rounded-lg hover:bg-brand-gold-antique transition-colors"
-            >
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-          </div>
-
-          {/* Price Range */}
-          <div className={`${showFilters ? 'block' : 'hidden'} md:block mt-4`}>
-            <div className="flex gap-4 items-center">
-              <span className="text-gray-300 text-sm">Price Range (৳):</span>
-              <input
-                type="number"
-                placeholder="Min"
-                value={priceRange.min}
-                onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                className="w-24 px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
-              />
-              <span className="text-gray-300">-</span>
-              <input
-                type="number"
-                placeholder="Max"
-                value={priceRange.max}
-                onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                className="w-24 px-3 py-1 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
-              />
-              {(priceRange.min || priceRange.max) && (
-                <button
-                  onClick={() => setPriceRange({ min: '', max: '' })}
-                  className="text-sm text-brand-gold hover:underline"
-                >
-                  Clear
-                </button>
-              )}
-
-              <span className="text-gray-300 text-sm ml-4">Category:</span>
-              <select
-               value={category} // FIXED: Changed from sortBy to category
-               onChange={(e) => setCategory(e.target.value)} // FIXED: correctly updates category state
-               className="px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
-              >
-               {CATEGORIES.map((cat) => (
-                 <option key={cat} value={cat}>
-                   {cat}
-                 </option>
-               ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Search Interface - New Component */}
+      <SearchInterface
+        artworks={artworks}
+        onFilteredResultsChange={setFilteredArtworks}
+      />
 
       {/* Results Count */}
       <div className="container mx-auto px-4 py-6">
@@ -242,22 +98,14 @@ export default function ArtworksPage() {
       {/* Artworks Grid */}
       <div className="container mx-auto px-4 pb-16">
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <ArtworkCardSkeleton key={index} />
+            ))}
           </div>
         ) : filteredArtworks.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg">No artworks found matching your criteria</p>
-            <button
-              onClick={() => {
-                setCategory('All');
-                setSearchQuery('');
-                setPriceRange({ min: '', max: '' });
-              }}
-              className="mt-4 text-brand-gold hover:underline"
-            >
-              Clear all filters
-            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

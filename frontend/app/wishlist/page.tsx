@@ -5,12 +5,20 @@ import Header from '../components/Header';
 import { useAuth } from '../components/AuthProvider';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Artwork {
   _id: string;
   title: string;
   price: number;
   images: string[];
+  category?: string;
+  status?: 'available' | 'sold' | 'reserved';
+  artist?: {
+    _id: string;
+    name: string;
+  };
 }
 
 export default function WishlistPage() {
@@ -19,12 +27,14 @@ export default function WishlistPage() {
   const [items, setItems] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // 1. Fetch Wishlist Data
   const fetchWishlist = async () => {
     if (user) {
       try {
-        const res = await fetch(`http://localhost:5000/api/wishlist/${user.uid}`);
+        const res = await fetch(`${API_BASE_URL}/api/wishlist/${user.uid}`);
         const data = await res.json();
         setItems(data);
       } catch (err) {
@@ -49,7 +59,7 @@ export default function WishlistPage() {
     setIsRemoving(artworkId);
     
     try {
-      const res = await fetch('http://localhost:5000/api/wishlist/toggle', {
+      const res = await fetch(`${API_BASE_URL}/api/wishlist/toggle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.uid, artworkId })
@@ -65,13 +75,62 @@ export default function WishlistPage() {
     }
   };
 
+  // 3. Clear All Items
+  const handleClearAll = async () => {
+    if (!user || items.length === 0) return;
+    setIsClearing(true);
+    
+    try {
+      const promises = items.map(item =>
+        fetch(`${API_BASE_URL}/api/wishlist/toggle`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.uid, artworkId: item._id })
+        })
+      );
+      
+      await Promise.all(promises);
+      setItems([]);
+      setShowClearConfirm(false);
+    } catch (error) {
+      console.error("Error clearing wishlist:", error);
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   // Handy Tool: Calculate total value of wishlist
   const totalWishlistValue = items.reduce((sum, item) => sum + item.price, 0);
 
   if (loading || authLoading) {
     return (
       <main className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-brand-gold"></div>
+        <LoadingSpinner size="lg" />
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-gray-950 text-white">
+        <Header />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mb-6 mx-auto opacity-30">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold mb-4">Sign in to view your wishlist</h2>
+            <p className="text-gray-400 mb-8">Save your favorite artworks and access them anytime</p>
+            <Link 
+              href="/login" 
+              className="inline-block bg-brand-gold text-black px-8 py-3 rounded-lg font-bold hover:bg-brand-gold-antique transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
       </main>
     );
   }
@@ -91,20 +150,54 @@ export default function WishlistPage() {
           </div>
           
           {items.length > 0 && (
-            <div className="bg-gray-900 border border-gray-800 px-6 py-3 rounded-2xl flex items-center gap-6 shadow-xl">
-              <div>
-                <p className="text-[10px] uppercase tracking-tighter text-gray-500 font-bold">Estimated Value</p>
-                <p className="text-xl font-bold text-brand-gold">৳{totalWishlistValue.toLocaleString()}</p>
+            <div className="flex gap-3">
+              <div className="bg-gray-900 border border-gray-800 px-6 py-3 rounded-2xl flex items-center gap-6 shadow-xl">
+                <div>
+                  <p className="text-[10px] uppercase tracking-tighter text-gray-500 font-bold">Estimated Value</p>
+                  <p className="text-xl font-bold text-brand-gold">৳{totalWishlistValue.toLocaleString()}</p>
+                </div>
+                <Link 
+                  href="/artworks" 
+                  className="bg-gray-800 hover:bg-gray-700 text-xs font-bold py-2 px-4 rounded-xl transition-all border border-gray-700"
+                >
+                  Add More
+                </Link>
               </div>
-              <Link 
-                href="/artworks" 
-                className="bg-gray-800 hover:bg-gray-700 text-xs font-bold py-2 px-4 rounded-xl transition-all border border-gray-700"
+              <button
+                onClick={() => setShowClearConfirm(true)}
+                className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 px-4 py-2 rounded-xl text-sm font-bold transition-all"
               >
-                Add More
-              </Link>
+                Clear All
+              </button>
             </div>
           )}
         </div>
+
+        {/* Clear All Confirmation Modal */}
+        {showClearConfirm && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full">
+              <h3 className="text-2xl font-bold mb-4">Clear All Items?</h3>
+              <p className="text-gray-400 mb-6">This will remove all {items.length} artworks from your wishlist. This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-xl font-bold transition-all"
+                  disabled={isClearing}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleClearAll}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl font-bold transition-all disabled:opacity-50"
+                  disabled={isClearing}
+                >
+                  {isClearing ? 'Clearing...' : 'Clear All'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 bg-gray-900/20 border border-dashed border-gray-800 rounded-[3rem] text-center">
@@ -136,6 +229,16 @@ export default function WishlistPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80" />
                   
+                  {/* Status Badge */}
+                  {artwork.status && artwork.status !== 'available' && (
+                    <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                      artwork.status === 'sold' ? 'bg-red-500 text-white' :
+                      artwork.status === 'reserved' ? 'bg-yellow-500 text-gray-900' : ''
+                    }`}>
+                      {artwork.status}
+                    </div>
+                  )}
+                  
                   {/* QUICK ACTIONS ON HOVER */}
                   <div className="absolute inset-0 flex flex-col justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex justify-end">
@@ -151,10 +254,20 @@ export default function WishlistPage() {
                     </div>
                   </div>
 
-                  {/* TITLE & PRICE ON IMAGE */}
+                  {/* TITLE, ARTIST & PRICE ON IMAGE */}
                   <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
                     <h3 className="text-white font-bold text-xl mb-1 line-clamp-1 group-hover:text-brand-gold transition-colors">{artwork.title}</h3>
-                    <p className="text-brand-gold text-sm font-black tracking-widest uppercase">৳{artwork.price.toLocaleString()}</p>
+                    {artwork.artist && (
+                      <p className="text-gray-300 text-sm mb-2">by {artwork.artist.name}</p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <p className="text-brand-gold text-sm font-black tracking-widest uppercase">৳{artwork.price.toLocaleString()}</p>
+                      {artwork.category && (
+                        <span className="text-xs bg-gray-800/80 backdrop-blur-sm text-gray-300 px-2 py-1 rounded-lg">
+                          {artwork.category}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 

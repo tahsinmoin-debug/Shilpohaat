@@ -18,12 +18,18 @@ router.post('/check-milestones/:userId', async (req, res) => {
         const totalRevenue = orders[0]?.total || 0;
         let newBadges = [];
 
-        // 2. Logic for Sales Milestones
-        if (totalRevenue >= 10000) {
-            newBadges.push({ name: "Silver Seller", icon: "🥈", category: "Sales" });
+        // 2. Artist-themed Sales Milestones
+        if (totalRevenue >= 5000 && totalRevenue < 25000) {
+            newBadges.push({ name: "Emerging Artist", icon: "🎨", category: "Sales" });
         }
-        if (totalRevenue >= 50000) {
-            newBadges.push({ name: "Gold Seller", icon: "🥇", category: "Sales" });
+        if (totalRevenue >= 25000 && totalRevenue < 100000) {
+            newBadges.push({ name: "Rising Creator", icon: "✨", category: "Sales" });
+        }
+        if (totalRevenue >= 100000 && totalRevenue < 500000) {
+            newBadges.push({ name: "Master Artisan", icon: "🏆", category: "Sales" });
+        }
+        if (totalRevenue >= 500000) {
+            newBadges.push({ name: "Gallery Legend", icon: "👑", category: "Sales" });
         }
 
         // 3. Save only if they don't already have the badge

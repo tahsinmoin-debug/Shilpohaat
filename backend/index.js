@@ -18,6 +18,10 @@ const adminRoutes = require('./routes/admin.js');
 const commissionRoutes = require('./routes/commissions.js');
 const recommendationRoutes = require('./routes/recommendations.js');
 
+// Import Message and Conversation models for database persistence
+const Message = require('./models/Message');
+const Conversation = require('./models/Conversation');
+
 connectDB();
 
 const app = express();
@@ -44,14 +48,55 @@ io.on('connection', (socket) => {
         io.emit('onlineUsers', Array.from(activeUsers.keys()));
     });
 
-    socket.on('privateMessage', ({ recipientId, senderId, message }) => {
+    socket.on('privateMessage', async ({ recipientId, senderId, message }) => {
         const recipientSocketId = activeUsers.get(recipientId);
         console.log(`[MSG] From: ${senderId} to: ${recipientId}.`);
-        if (recipientSocketId) {
-            io.to(recipientSocketId).emit('receiveMessage', { senderId, message });
-            io.to(socket.id).emit('messageSent', { recipientId, message }); 
-        } else {
-            io.to(socket.id).emit('messageFailed', { message: 'Recipient is currently offline.' });
+        
+        try {
+            // Sort participants to ensure consistent ordering
+            const participants = [senderId, recipientId].sort();
+            
+            // Find or create conversation
+            let conversation = await Conversation.findOneAndUpdate(
+                { participants },
+                {
+                    $setOnInsert: {
+                        participants,
+                        unreadCount: new Map([[senderId, 0], [recipientId, 0]])
+                    },
+                    $set: {
+                        lastMessageAt: new Date(),
+                        lastMessageContent: message.substring(0, 200)
+                    }
+                },
+                { upsert: true, new: true }
+            );
+            
+            // Create and save message to database
+            const newMessage = new Message({
+                conversationId: conversation._id,
+                senderId,
+                recipientId,
+                content: message,
+                readStatus: false
+            });
+            await newMessage.save();
+            
+            // Increment unread count for recipient
+            const currentUnreadCount = conversation.unreadCount.get(recipientId) || 0;
+            conversation.unreadCount.set(recipientId, currentUnreadCount + 1);
+            await conversation.save();
+            
+            // Emit real-time Socket.io events (preserve existing behavior)
+            if (recipientSocketId) {
+                io.to(recipientSocketId).emit('receiveMessage', { senderId, message });
+                io.to(socket.id).emit('messageSent', { recipientId, message }); 
+            } else {
+                io.to(socket.id).emit('messageFailed', { message: 'Recipient is currently offline.' });
+            }
+        } catch (error) {
+            console.error('Error saving message to database:', error);
+            io.to(socket.id).emit('messageFailed', { message: 'Failed to save message.' });
         }
     });
 
@@ -103,6 +148,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/messages', require('./routes/messages'));
 app.use('/api/promotions', require('./routes/promotionRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/verify', require('./routes/verificationRoutes'));

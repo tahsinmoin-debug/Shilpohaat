@@ -17,6 +17,10 @@ const OrderSchema = new mongoose.Schema(
           ref: 'Artwork',
           required: true,
         },
+        artistId: {
+          type: String,
+          required: false, // Optional for backward compatibility with existing orders
+        },
         title: {
           type: String,
           required: true,

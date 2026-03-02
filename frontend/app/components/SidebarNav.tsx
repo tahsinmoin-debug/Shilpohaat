@@ -111,6 +111,17 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
     console.log('SidebarNav - User logged in, appUser:', appUser);
     console.log('SidebarNav - appUser?.role:', appUser?.role);
     
+    // Messages link for all logged-in users
+    roleLinks.push({
+      href: '/artist/hub',
+      label: 'Messages',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z" />
+        </svg>
+      ),
+    });
+    
     if (appUser?.role === 'artist') {
       roleLinks.push(
         {
@@ -128,15 +139,6 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m4-4H8" />
-            </svg>
-          ),
-        },
-        {
-          href: '/artist/hub',
-          label: 'Collaboration Hub',
-          icon: (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z" />
             </svg>
           ),
         },

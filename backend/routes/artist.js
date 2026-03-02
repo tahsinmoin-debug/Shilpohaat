@@ -11,10 +11,12 @@ const {
 // Public routes
 router.get('/all', getAllArtists);
 router.get('/featured', getFeaturedArtists);
-router.get('/:id', getArtistById);
 
-// Messaging Hub specific route
-router.get('/hub-artists', getHubArtists); 
+// Messaging Hub specific route (MUST be before /:id to avoid conflict)
+router.get('/hub-artists', getHubArtists);
+
+// Dynamic ID route (MUST be last among GET routes)
+router.get('/:id', getArtistById); 
 
 // Protected route
 router.patch('/profile', updateArtistProfile);

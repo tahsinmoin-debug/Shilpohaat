@@ -83,14 +83,30 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Desktop Navigation - Simplified */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Center: Desktop Navigation - Enhanced */}
+          <nav className="hidden lg:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
             <Link href="/" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.home')}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link href="/artworks" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.artworks')}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link href="/artists" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+              {t('nav.artists')}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link href="/categories" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+              {t('nav.categories')}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link href="/blog" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+              {t('nav.blog')}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link href="/wishlist" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+              Wishlist
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </nav>
@@ -113,10 +129,10 @@ export default function Header() {
               ))}
             </div>
 
-            {/* Artist hub shortcut (desktop) */}
-            {!loading && user && appUser?.role === 'artist' && (
+            {/* Messages icon for all logged-in users */}
+            {!loading && user && (
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/artist/hub" className="text-white hover:text-brand-gold transition-colors" aria-label="Collaboration Hub">
+                <Link href="/artist/hub" className="text-white hover:text-brand-gold transition-colors" aria-label="Messages">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z" />
                   </svg>
@@ -156,6 +172,18 @@ export default function Header() {
               </motion.span>
             ) : user ? (
               <div className="flex items-center gap-2">
+                {/* User Profile Icon */}
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                  <Link 
+                    href={appUser?.role === 'artist' ? '/artist/dashboard' : '/account'} 
+                    className="text-white hover:text-brand-gold transition-colors" 
+                    aria-label="Profile"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </Link>
+                </motion.div>
                 <span className="text-white text-sm hidden sm:inline">{user.displayName || user.email}</span>
                 <motion.button 
                   whileHover={{ scale: 1.05 }}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import { useAuth } from '../../components/AuthProvider';
+import { API_BASE_URL } from '@/lib/config';
 
 // 1. Define Interfaces to fix the "type never" errors
 interface Badge {
@@ -46,7 +47,7 @@ export default function ArtistDashboardPage() {
       const fetchDashboardData = async () => {
         try {
           // Fetch Analytics
-          const resStats = await fetch(`http://localhost:5000/api/analytics/artist-stats?firebaseUID=${user.uid}`);
+          const resStats = await fetch(`${API_BASE_URL}/api/analytics/artist-stats?firebaseUID=${user.uid}`);
           const dataStats = await resStats.json();
           
           if (resStats.ok) {
@@ -58,7 +59,7 @@ export default function ArtistDashboardPage() {
           }
 
           // Fetch/Check Badges
-          const resBadges = await fetch(`http://localhost:5000/api/badges/check-milestones/${user.uid}`, {
+          const resBadges = await fetch(`${API_BASE_URL}/api/badges/check-milestones/${user.uid}`, {
             method: 'POST'
           });
           const dataBadges = await resBadges.json();
@@ -95,25 +96,42 @@ export default function ArtistDashboardPage() {
             <p className="text-gray-400 text-sm">Welcome back to the gallery, {appUser?.name}</p>
           </div>
           
-          <div className="flex flex-wrap gap-4 items-center">
-            {/* Reverted Professional Base Badge */}
-            <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 px-5 py-2 rounded-xl shadow-lg border-b-2 border-b-gray-600">
-              <span className="text-2xl filter drop-shadow-md">🏅</span>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-tight">Current Rank</span>
-                <span className="text-xs font-black text-gray-300 uppercase tracking-tighter">Rising Talent</span>
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Show highest earned badge or default badge */}
+            {badges.length > 0 ? (
+              // Show the most recent/highest badge
+              <div className="flex items-center gap-3 bg-gradient-to-r from-brand-gold/20 to-yellow-600/20 border-2 border-brand-gold px-5 py-3 rounded-xl shadow-lg">
+                <span className="text-3xl filter drop-shadow-md">{badges[badges.length - 1].badgeIcon}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-brand-gold/80 uppercase tracking-widest leading-tight">Achievement</span>
+                  <span className="text-sm font-black text-white uppercase tracking-tight">{badges[badges.length - 1].badgeName}</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              // Default badge for new artists
+              <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 px-5 py-3 rounded-xl shadow-lg">
+                <span className="text-2xl filter drop-shadow-md">🎨</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-tight">Starting Journey</span>
+                  <span className="text-xs font-black text-gray-300 uppercase tracking-tight">New Artist</span>
+                </div>
+              </div>
+            )}
 
-            {badges.map((badge, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-2 bg-gray-800 border border-brand-gold/40 px-4 py-2 rounded-full shadow-md transition-transform hover:scale-105"
-              >
-                <span className="text-xl">{badge.badgeIcon}</span>
-                <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">{badge.badgeName}</span>
+            {/* Show all other badges as smaller icons */}
+            {badges.length > 1 && (
+              <div className="flex gap-2">
+                {badges.slice(0, -1).map((badge, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-center w-10 h-10 bg-gray-800 border border-gray-700 rounded-full shadow-md hover:scale-110 transition-transform"
+                    title={badge.badgeName}
+                  >
+                    <span className="text-lg">{badge.badgeIcon}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
 
