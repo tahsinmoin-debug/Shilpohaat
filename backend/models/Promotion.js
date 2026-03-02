@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const promotionSchema = new mongoose.Schema({
-    // Changed to String to prevent "Cast to ObjectId failed" with Firebase UIDs
     artistId: { type: String, required: true }, 
     code: { type: String, unique: true, required: true },
     description: { type: String, required: true, default: "Artist Promotion" },
@@ -10,7 +9,11 @@ const promotionSchema = new mongoose.Schema({
     minPurchase: { type: Number, default: 0 },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    // Artwork selection: empty array means applies to all artworks
+    applicableArtworks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Artwork' }],
+    usageLimit: { type: Number, default: null }, // null = unlimited
+    usedCount: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Promotion', promotionSchema);

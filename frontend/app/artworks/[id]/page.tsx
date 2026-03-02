@@ -25,6 +25,7 @@ interface ArtistProfile {
 interface Artist {
   _id: string;
   name: string;
+  firebaseUID?: string;
   artistProfile?: ArtistProfile;
 }
 
@@ -283,7 +284,14 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                   {artwork.status !== 'available' ? `Not Available (${artwork.status})` : isAddingToCart ? 'Adding...' : 'Add to Cart'}
                 </button>
                 <button
-                  onClick={() => alert('Contact seller feature coming soon!')}
+                  onClick={() => {
+                    const artistId = artwork.artist?.firebaseUID || artwork.artist?._id || artwork.artist;
+                    if (artistId) {
+                      router.push(`/messages?artistId=${artistId}`);
+                    } else {
+                      alert('Artist information not available');
+                    }
+                  }}
                   className="w-full bg-gray-700 text-white font-semibold py-3 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
                 >
                   Contact the Artist
@@ -393,22 +401,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-10">
-          <button
-            onClick={() => router.push('/artworks')}
-            className="text-brand-gold hover:underline"
-          >
-            ← Back to all artworks
-          </button>
-          <button
-            onClick={() => navigator.clipboard.writeText(window.location.href)}
-            className="text-sm text-gray-400 hover:text-brand-gold"
-          >
-            Share this artwork
-          </button>
-        </div>
-
-        <div className="container mx-auto px-4 pb-10">
+        <div className="mt-10">
           <ArtworkReviews artworkId={artwork._id} />
         </div>
       </section>

@@ -3,7 +3,7 @@ const http = require('http');
 
 // Get a Firebase UID from a user in the database
 const mongoose = require('mongoose');
-const User = require('./models/User');
+const User = require('../models/User');
 
 async function testAdminEndpoints() {
   try {

@@ -298,3 +298,60 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Custom scrollbar for messaging interface */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.8);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.9);
+}
+
+.scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.9);
+}
+
+.scrollbar-thumb-gray-700::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.9);
+}
+
+.scrollbar-track-gray-800::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.6);
+}
+
+.scrollbar-track-gray-900::-webkit-scrollbar-track {
+  background: rgba(17, 24, 39, 0.6);
+}
+
+/* Hover effect for scrollbar */
+.hover\:scrollbar-thumb-gray-500:hover::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 1);
+}
+
+/* Smooth fade-in animation for messages */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}

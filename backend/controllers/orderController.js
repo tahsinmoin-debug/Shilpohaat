@@ -40,10 +40,21 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ message: 'Complete shipping address is required' });
     }
 
+    // Fetch artwork details to get artistId for each item
+    const enrichedItems = await Promise.all(
+      items.map(async (item) => {
+        const artwork = await Artwork.findById(item.artworkId).populate('artist', 'firebaseUID');
+        return {
+          ...item,
+          artistId: artwork?.artist?.firebaseUID || null
+        };
+      })
+    );
+
     // Create order
     const order = new Order({
       userId: user._id,
-      items,
+      items: enrichedItems,
       subtotal,
       shippingCost,
       totalAmount,

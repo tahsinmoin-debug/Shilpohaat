@@ -1,50 +1,20 @@
 const express = require('express');
-const router = express.Router(); // This fixes the "router is not defined" error
-const Promotion = require('../models/Promotion');
+const router = express.Router();
+const promotionController = require('../controllers/promotionController');
 
-router.post('/create', async (req, res) => {
-    try {
-        const { artistId, code, type, value, minPurchase, startDate, endDate, description } = req.body;
-        
-        const promo = new Promotion({
-            artistId: artistId,
-            code: code,
-            description: description || "Artist Promotion", // Fixes "Path description is required"
-            type: type,
-            value: value,
-            minPurchase: minPurchase || 0,
-            startDate: startDate,
-            endDate: endDate
-        });
+// Create promotion
+router.post('/', promotionController.createPromotion);
 
-        await promo.save();
-        res.status(201).json({ success: true, promo });
-    } catch (error) {
-        console.error("Promo Creation Error:", error.message);
-        res.status(400).json({ success: false, message: error.message });
-    }
-});
+// Get artist promotions
+router.get('/artist/:artistId', promotionController.getArtistPromotions);
 
-router.post('/validate', async (req, res) => {
-    const { code, cartTotal } = req.body;
-    try {
-        const promo = await Promotion.findOne({ code, isActive: true });
-        
-        if (!promo) return res.status(404).json({ message: "Invalid coupon code" });
-        
-        const now = new Date();
-        if (now < promo.startDate || now > promo.endDate) {
-            return res.status(400).json({ message: "Coupon has expired" });
-        }
-        
-        if (cartTotal < promo.minPurchase) {
-            return res.status(400).json({ message: `Minimum purchase of ৳${promo.minPurchase} required` });
-        }
+// Delete promotion
+router.delete('/:id', promotionController.deletePromotion);
 
-        res.json({ success: true, discountValue: promo.value, type: promo.type });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-});
+// Validate coupon
+router.post('/validate', promotionController.validateCoupon);
+
+// Apply coupon (increment usage)
+router.post('/apply', promotionController.applyCoupon);
 
 module.exports = router;

@@ -121,12 +121,12 @@ const getAllArtworks = async (req, res) => {
 const getArtwork = async (req, res) => {
   try {
     const artwork = await Artwork.findById(req.params.id)
-      .populate('artist', 'name email')
+      .populate('artist', 'name email firebaseUID')
       .populate({
         path: 'artist',
         populate: {
           path: 'artistProfile',
-          select: 'bio profilePicture specializations contactPhone website instagram',
+          select: 'bio profilePicture specializations contactPhone website instagram availability',
         },
       });
 

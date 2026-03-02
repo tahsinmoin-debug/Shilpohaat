@@ -37,7 +37,7 @@ exports.createReview = async (req, res) => {
 
         // 2. Check for duplicate review (One user, one review per artwork)
         const existingReview = await Review.findOne({ 
-            artwork: new mongoose.Types.ObjectId(artworkId), 
+            artwork: artworkId, 
             reviewerId 
         });
         
@@ -47,7 +47,7 @@ exports.createReview = async (req, res) => {
 
         // 3. Create Review
         const newReview = await Review.create({ 
-            artwork: new mongoose.Types.ObjectId(artworkId), 
+            artwork: artworkId, 
             reviewerId, 
             reviewerName: reviewerName || 'Anonymous User', 
             rating, 
@@ -62,6 +62,8 @@ exports.createReview = async (req, res) => {
 
     } catch (error) {
         console.error("FATAL Error submitting review:", error);
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
         if (error.name === 'ValidationError') {
             const message = Object.values(error.errors).map(val => val.message);
             return res.status(400).json({ success: false, message: message.join(', ') });

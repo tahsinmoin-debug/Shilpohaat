@@ -163,26 +163,28 @@ const getArtistById = async (req, res) => {
 };
 
 /**
- * FIXED: getHubArtists
- * Removed the { success, artists } wrapper. 
- * Returning the array directly so frontend .filter works instantly.
+ * UPDATED: getHubArtists - Universal Messaging
+ * Returns ALL users (artists, buyers, everyone) for universal messaging.
+ * Anyone can message anyone.
  */
 const getHubArtists = async (req, res) => {
     try {
-        const artists = await User.find({ role: 'artist' })
-            .select('firebaseUID name email')
+        // Get ALL users regardless of role
+        const users = await User.find({})
+            .select('firebaseUID name email role')
             .lean();
 
-        const artistList = artists.map(artist => ({
-            id: artist.firebaseUID,
-            name: artist.name || artist.email?.split('@')[0] || 'Artist'
+        const userList = users.map(user => ({
+            id: user.firebaseUID,
+            name: user.name || user.email?.split('@')[0] || 'User',
+            role: user.role || 'buyer'
         }));
 
         // Return array directly
-        res.json(artistList); 
+        res.json(userList); 
     } catch (error) {
-        console.error('Hub Artists Error:', error);
-        res.status(500).json({ message: 'Failed to retrieve artist list.' });
+        console.error('Hub Users Error:', error);
+        res.status(500).json({ message: 'Failed to retrieve user list.' });
     }
 };
 

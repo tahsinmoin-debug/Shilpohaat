@@ -1,9 +1,9 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const ArtistProfile = require('./models/ArtistProfile');
-const BlogPost = require('./models/BlogPost');
-const Artwork = require('./models/Artwork');
+const User = require('../models/User');
+const ArtistProfile = require('../models/ArtistProfile');
+const BlogPost = require('../models/BlogPost');
+const Artwork = require('../models/Artwork');
 
 async function checkData() {
   try {

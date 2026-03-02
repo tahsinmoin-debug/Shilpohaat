@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Artwork = require('./models/Artwork');
+const Artwork = require('../models/Artwork');
 
 async function approveAll() {
   try {
