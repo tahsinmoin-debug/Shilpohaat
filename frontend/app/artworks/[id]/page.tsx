@@ -287,7 +287,7 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                   onClick={() => {
                     const artistId = artwork.artist?.firebaseUID || artwork.artist?._id || artwork.artist;
                     if (artistId) {
-                      router.push(`/artist/hub?artistId=${artistId}`);
+                      router.push(`/messages?artistId=${artistId}`);
                     } else {
                       alert('Artist information not available');
                     }

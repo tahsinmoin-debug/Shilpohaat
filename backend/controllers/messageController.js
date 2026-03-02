@@ -1,3 +1,7 @@
+const Message = require('../models/Message');
+const Conversation = require('../models/Conversation');
+const User = require('../models/User');
+
 /**
  * Get all users who have had conversations with the current user
  * Returns only users with existing message history
@@ -45,7 +49,6 @@ exports.getConversationPartners = async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve conversation partners.' });
     }
 };
-const User = require('../models/User');
 
 // Get all conversations for current user with unread counts
 exports.getConversations = async (req, res) => {

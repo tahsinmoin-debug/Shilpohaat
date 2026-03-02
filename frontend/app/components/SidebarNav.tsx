@@ -113,7 +113,7 @@ export default function SidebarNav({ open, onClose }: SidebarNavProps) {
     
     // Messages link for all logged-in users
     roleLinks.push({
-      href: '/artist/hub',
+      href: '/messages',
       label: 'Messages',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

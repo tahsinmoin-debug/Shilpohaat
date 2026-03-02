@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
         io.emit('onlineUsers', Array.from(activeUsers.keys()));
     });
 
-    socket.on('privateMessage', async ({ recipientId, senderId, message }) => {
+    socket.on('privateMessage', async ({ recipientId, senderId, message, timestamp }) => {
         const recipientSocketId = activeUsers.get(recipientId);
         console.log(`[MSG] From: ${senderId} to: ${recipientId}.`);
         
@@ -88,9 +88,10 @@ io.on('connection', (socket) => {
             await conversation.save();
             
             // Emit real-time Socket.io events (preserve existing behavior)
+            const messageData = { senderId, message, timestamp: timestamp || Date.now() };
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('receiveMessage', { senderId, message });
-                io.to(socket.id).emit('messageSent', { recipientId, message }); 
+                io.to(recipientSocketId).emit('receiveMessage', messageData);
+                io.to(socket.id).emit('messageSent', { recipientId, message, timestamp: messageData.timestamp }); 
             } else {
                 io.to(socket.id).emit('messageFailed', { message: 'Recipient is currently offline.' });
             }
