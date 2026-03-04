@@ -155,9 +155,9 @@ export default function AIChatbot() {
 
       {/* Chatbot Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-24px)] h-[600px] rounded-2xl shadow-2xl flex flex-col z-50 border border-white/10 bg-[rgba(6,21,35,0.9)] backdrop-blur-xl">
+        <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-24px)] h-[600px] rounded-2xl shadow-2xl flex flex-col z-50 border border-white/10 bg-[rgba(6,21,35,0.34)] backdrop-blur-xl">
           {/* Header */}
-          <div className="bg-gradient-to-r from-brand-maroon to-brand-maroon/80 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+          <div className="bg-[rgba(6,21,35,0.45)] backdrop-blur-sm border-b border-white/10 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
             <div>
               <h3 className="font-heading text-lg">Art Recommender</h3>
               <p className="text-xs text-gray-200">Powered by AI</p>
@@ -171,7 +171,7 @@ export default function AIChatbot() {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgba(10,27,43,0.75)]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[rgba(6,21,35,0.22)]">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
@@ -246,7 +246,7 @@ export default function AIChatbot() {
 
           {/* Advanced Search Form */}
           {showPreferences && (
-            <div className="px-4 py-3 bg-[rgba(255,255,255,0.06)] border-t border-white/10 space-y-2">
+            <div className="px-4 py-3 bg-[rgba(6,21,35,0.28)] backdrop-blur-sm border-t border-white/10 space-y-2">
               <select
                 value={preferences.category}
                 onChange={(e) => setPreferences({ ...preferences, category: e.target.value })}
@@ -304,7 +304,7 @@ export default function AIChatbot() {
           )}
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="border-t border-white/10 p-4 flex gap-2 bg-[rgba(6,21,35,0.9)]">
+          <form onSubmit={handleSendMessage} className="border-t border-white/10 p-4 flex gap-2 bg-[rgba(6,21,35,0.35)] backdrop-blur-sm">
             <input
               type="text"
               value={input}

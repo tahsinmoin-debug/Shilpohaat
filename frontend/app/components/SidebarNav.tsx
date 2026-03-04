@@ -53,7 +53,7 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
   // ── Base links (shown to everyone) ────────────────────────────────────
   const baseLinks = [
     { href: '/', label: t('nav.home') || 'Home', icon: icons.home },
-    { href: '/artworks', label: t('nav.shop') || 'Shop', icon: icons.shop },
+    { href: '/artworks', label: t('nav.artworks') || 'Artworks', icon: icons.shop },
     // Workshops link — destination changes based on role (see below)
     { href: '/artists', label: t('nav.artists') || 'Artists', icon: icons.artists },
     { href: '/blog', label: t('nav.blog') || 'Blog', icon: icons.blog },
@@ -165,10 +165,10 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
               <span className="text-brand-gold">{icons.home}</span>
               <span className="text-base text-white">{t('nav.home') || 'Home'}</span>
             </Link>
-            {/* Shop */}
+            {/* Artworks */}
             <Link href="/artworks" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 transition-colors" onClick={onClose}>
               <span className="text-brand-gold">{icons.shop}</span>
-              <span className="text-base text-white">{t('nav.shop') || 'Shop'}</span>
+              <span className="text-base text-white">{t('nav.artworks') || 'Artworks'}</span>
             </Link>
             {/* Workshops — smart link based on role */}
             <Link href={workshopsHref} className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 transition-colors" onClick={onClose}>

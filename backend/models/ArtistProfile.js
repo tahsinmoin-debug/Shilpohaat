@@ -89,4 +89,9 @@ const ArtistProfileSchema = new mongoose.Schema(
   }
 );
 
+// Query hot paths for public artist pages/admin
+ArtistProfileSchema.index({ user: 1 }, { unique: true });
+ArtistProfileSchema.index({ isProfileComplete: 1, createdAt: -1 });
+ArtistProfileSchema.index({ isFeatured: 1, rating: -1, profileViews: -1, totalArtworks: -1 });
+
 module.exports = mongoose.model('ArtistProfile', ArtistProfileSchema);

@@ -25,7 +25,10 @@ const getOverview = async (req, res) => {
 const getPendingArtworks = async (req, res) => {
   try {
     const artworks = await Artwork.find({ moderationStatus: 'pending' })
-      .populate('artist', 'name email');
+      .select('title artist category price moderationStatus createdAt')
+      .populate('artist', 'name email')
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ artworks });
   } catch (err) {
     console.error('Get pending artworks error:', err);
@@ -93,7 +96,10 @@ const removeArtwork = async (req, res) => {
 // Users management
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('name email role isSuspended');
+    const users = await User.find({})
+      .select('name email role isSuspended')
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ users });
   } catch (err) {
     console.error('Get users error:', err);
@@ -117,7 +123,11 @@ const suspendUser = async (req, res) => {
 // Artists management
 const getArtists = async (req, res) => {
   try {
-    const artists = await ArtistProfile.find({}).populate('user', 'name email role');
+    const artists = await ArtistProfile.find({})
+      .select('user bio isFeatured isSuspended availability rating totalArtworks createdAt')
+      .populate('user', 'name email role')
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ artists });
   } catch (err) {
     console.error('Get artists error:', err);
@@ -154,7 +164,10 @@ const suspendArtist = async (req, res) => {
 // Reviews moderation
 const getReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({}).populate('artwork', 'title');
+    const reviews = await Review.find({})
+      .populate('artwork', 'title')
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ reviews });
   } catch (err) {
     console.error('Get reviews error:', err);
@@ -190,7 +203,7 @@ const deleteReview = async (req, res) => {
 // Reports
 const getReports = async (req, res) => {
   try {
-    const reports = await Report.find({}).sort({ createdAt: -1 });
+    const reports = await Report.find({}).sort({ createdAt: -1 }).lean();
     res.json({ reports });
   } catch (err) {
     console.error('Get reports error:', err);
@@ -246,6 +259,7 @@ module.exports = {
 
       const result = await Order.aggregate([
         { $match: matchStage },
+        { $project: { items: 1, createdAt: 1 } },
         { $unwind: '$items' },
         {
           $lookup: {

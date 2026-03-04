@@ -66,7 +66,7 @@ export default function Header() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link href="/artworks" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
-              {t('nav.shop') || 'Shop'}
+              {t('nav.artworks') || 'Artworks'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link href="/artists" className="font-sans text-white hover:text-brand-gold transition-colors relative group">

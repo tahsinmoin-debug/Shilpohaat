@@ -68,7 +68,7 @@ export default function InstructorWorkshopsPage() {
 
   if (authLoading || loading) {
     return (
-      <main className="min-h-screen bg-brand-maroon">
+      <main className="min-h-screen">
         <Header />
         <div className="container mx-auto px-4 py-12 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto"></div>
@@ -79,14 +79,14 @@ export default function InstructorWorkshopsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen">
       <Header />
       
       <div className="container mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border border-white/10 rounded-xl p-6 shadow-xl">
           <div>
             <h1 className="text-4xl font-heading text-white mb-2">My Workshops</h1>
-            <p className="text-gray-400">Create and manage your workshops</p>
+            <p className="text-gray-200">Create and manage your workshops</p>
           </div>
           <Link
             href="/artist/workshops/create"
@@ -97,7 +97,7 @@ export default function InstructorWorkshopsPage() {
         </div>
 
         {workshops.length === 0 ? (
-          <div className="text-center py-16 bg-gray-800 rounded-lg border border-gray-700">
+          <div className="text-center py-16 bg-[rgba(6,21,35,0.32)] backdrop-blur-md rounded-lg border border-white/10 shadow-xl">
             <div className="text-6xl mb-4">🎨</div>
             <h2 className="text-2xl font-heading text-white mb-4">No Workshops Yet</h2>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
@@ -113,7 +113,7 @@ export default function InstructorWorkshopsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {workshops.map((workshop) => (
-              <div key={workshop._id} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-brand-gold transition-colors">
+              <div key={workshop._id} className="bg-[rgba(6,21,35,0.58)] backdrop-blur-sm rounded-lg overflow-hidden border border-white/10 hover:border-brand-gold transition-colors shadow-xl">
                 <div className="relative h-48">
                   <img
                     src={workshop.thumbnail || 'https://placehold.co/400x300/333/FFF'}
@@ -127,10 +127,10 @@ export default function InstructorWorkshopsPage() {
                 
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                    <span className="text-xs bg-[rgba(255,255,255,0.14)] text-gray-200 px-2 py-1 rounded">
                       {workshop.category}
                     </span>
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                    <span className="text-xs bg-[rgba(255,255,255,0.14)] text-gray-200 px-2 py-1 rounded">
                       {workshop.type}
                     </span>
                   </div>

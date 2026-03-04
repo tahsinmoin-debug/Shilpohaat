@@ -12,6 +12,8 @@ const paymentRoutes = require('./routes/payments.js');
 const blogRoutes = require('./routes/blog.js');
 const uploadRoutes = require('./routes/upload.js');
 const workshopRoutes = require('./routes/workshops.js');
+const recommendationRoutes = require('./routes/recommendations.js');
+const adminRoutes = require('./routes/admin.js');
 
 connectDB();
 
@@ -26,7 +28,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-firebase-uid');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
@@ -35,11 +37,11 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to Shilpohaat API' });
+  res.json({ message: 'Welcome to Shilpohaat API' });
 });
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Server is running' });
+  res.json({ status: 'OK', message: 'Server is running' });
 });
 
 app.use('/api/auth', authRoutes);
@@ -50,12 +52,14 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/workshops', workshopRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 5000;

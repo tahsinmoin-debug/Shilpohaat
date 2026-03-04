@@ -3,6 +3,8 @@ const User = require('../models/User.js');
 const Artwork = require('../models/Artwork.js');
 const { uploadToCloudinary, uploadMultipleToCloudinary, replaceImages } = require('../utils/cloudinary.js');
 
+const escapeRegex = (text = '') => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
   try {
@@ -84,34 +86,35 @@ const updateArtistProfile = async (req, res) => {
 const getAllArtists = async (req, res) => {
   try {
     const { letter, search } = req.query;
-    let userQuery = { role: 'artist' };
-    const users = await User.find(userQuery);
-    const userIds = users.map(u => u._id);
+    const profileQuery = { isProfileComplete: true };
 
-    let profileQuery = {
-      user: { $in: userIds },
-      isProfileComplete: true,
-    };
-
-    const profiles = await ArtistProfile.find(profileQuery)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 });
-
-    let filteredProfiles = profiles;
     if (letter) {
-      filteredProfiles = profiles.filter(p => p.bio.toLowerCase().startsWith(letter.toLowerCase()));
+      profileQuery.bio = { $regex: `^${escapeRegex(letter)}`, $options: 'i' };
     }
 
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredProfiles = filteredProfiles.filter(p =>
-        p.bio.toLowerCase().includes(searchLower) ||
-        p.specializations.some(s => s.toLowerCase().includes(searchLower))
-      );
+      const safe = escapeRegex(search);
+      profileQuery.$or = [
+        { bio: { $regex: safe, $options: 'i' } },
+        { specializations: { $elemMatch: { $regex: safe, $options: 'i' } } },
+      ];
     }
 
-    return res.json({ success: true, count: filteredProfiles.length, artists: filteredProfiles });
+    const profiles = await ArtistProfile.find(profileQuery)
+      .select('bio specializations profilePicture portfolioImages availability isFeatured rating totalReviews profileViews totalArtworks user createdAt')
+      .populate({
+        path: 'user',
+        select: 'name email role',
+        match: { role: 'artist' },
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const artists = profiles.filter((p) => p.user);
+
+    return res.json({ success: true, count: artists.length, artists });
   } catch (error) {
+    console.error('Get artists error:', error);
     return res.status(500).json({ message: 'Server error.' });
   }
 };
@@ -119,27 +122,23 @@ const getAllArtists = async (req, res) => {
 // NEW: Get featured artists
 const getFeaturedArtists = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 6;
-    const users = await User.find({ role: 'artist' });
-    const userIds = users.map(u => u._id);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 6, 1), 24);
 
-    let profiles = await ArtistProfile.find({ user: { $in: userIds }, isProfileComplete: true })
-      .populate('user', 'name email')
-      .limit(limit);
+    const profiles = await ArtistProfile.find({ isProfileComplete: true })
+      .select('bio specializations profilePicture portfolioImages availability isFeatured rating totalReviews profileViews totalArtworks user')
+      .populate({
+        path: 'user',
+        select: 'name email role',
+        match: { role: 'artist' },
+      })
+      .sort({ isFeatured: -1, rating: -1, profileViews: -1, totalArtworks: -1, createdAt: -1 })
+      .limit(limit * 2)
+      .lean();
 
-    const scoredProfiles = profiles.map(profile => {
-      let score = 0;
-      if (profile.isFeatured) score += 1000;
-      if (profile.rating) score += profile.rating * 100;
-      if (profile.profileViews) score += Math.min(profile.profileViews, 1000) * 0.3;
-      if (profile.totalArtworks) score += Math.min(profile.totalArtworks, 50) * 4;
-      return { ...profile.toObject(), score };
-    });
-
-    scoredProfiles.sort((a, b) => b.score - a.score);
-    const featuredArtists = scoredProfiles.slice(0, limit);
+    const featuredArtists = profiles.filter((p) => p.user).slice(0, limit);
     return res.json({ success: true, count: featuredArtists.length, artists: featuredArtists });
   } catch (error) {
+    console.error('Get featured artists error:', error);
     return res.status(500).json({ message: 'Server error.' });
   }
 };
@@ -148,16 +147,25 @@ const getFeaturedArtists = async (req, res) => {
 const getArtistById = async (req, res) => {
   try {
     const { id } = req.params;
-    let profile = await ArtistProfile.findById(id).populate('user', 'name email role artistProfile');
+    let profile = await ArtistProfile.findById(id)
+      .populate('user', 'name email role artistProfile')
+      .lean();
     if (!profile) {
-      profile = await ArtistProfile.findOne({ user: id }).populate('user', 'name email role artistProfile');
+      profile = await ArtistProfile.findOne({ user: id })
+        .populate('user', 'name email role artistProfile')
+        .lean();
     }
     if (!profile || !profile.isProfileComplete) {
       return res.status(404).json({ message: 'Artist not found' });
     }
-    const artworks = await Artwork.find({ artist: profile.user._id }).sort({ createdAt: -1 }).limit(20);
+    const artworks = await Artwork.find({ artist: profile.user._id })
+      .select('title description category price images status featured createdAt')
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
     return res.json({ success: true, artist: profile, artworks });
   } catch (error) {
+    console.error('Get artist by id error:', error);
     return res.status(500).json({ message: 'Server error.' });
   }
 };
