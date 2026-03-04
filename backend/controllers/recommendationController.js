@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const OpenAI = require("openai");
 const Artwork = require("../models/Artwork");
 const User = require("../models/User"); // Required for populate to work
 const ArtistProfile = require("../models/ArtistProfile"); // Required for nested populate
@@ -7,6 +8,11 @@ const ArtistProfile = require("../models/ArtistProfile"); // Required for nested
 // Note: Ensure GEMINI_API_KEY is in your .env
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
@@ -188,7 +194,7 @@ const callGemini = async (prompt) => {
 const rankArtworksWithAI = async ({ aiPrompt, filteredArtworks, limitNum }) => {
   let aiResponse = "";
 
-  if (process.env.OPENAI_API_KEY) {
+  if (openai) {
     try {
       const completion = await openai.chat.completions.create({
         model: OPENAI_MODEL,
@@ -379,7 +385,7 @@ Return a JSON object with: { category: "string or null", max_budget: number or n
 Return ONLY the JSON, no extra text.`;
     let extractedText = "";
 
-    if (process.env.OPENAI_API_KEY) {
+    if (openai) {
       try {
         const extractionResponse = await openai.chat.completions.create({
           model: OPENAI_MODEL,
