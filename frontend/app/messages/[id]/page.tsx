@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import Header from '@/app/components/Header';
 import { auth } from '@/lib/firebase';
+import { API_BASE_URL } from '@/lib/config';
 
 interface Message {
   _id: string;
@@ -58,7 +59,7 @@ export default function ChatPage() {
           setCurrentUserId(userData.user._id);
           
           // 2. Initialize Socket
-          socketRef.current = io('http://localhost:5000');
+          socketRef.current = io(API_BASE_URL);
           socketRef.current.emit('join', userData.user._id);
         }
 
