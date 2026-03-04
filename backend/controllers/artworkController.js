@@ -136,9 +136,9 @@ const getArtwork = async (req, res) => {
       return res.status(404).json({ message: 'Artwork not found' });
     }
 
-    // Increment views
-    artwork.views += 1;
-    await artwork.save();
+    // Increment views asynchronously so detail response is not delayed by a write round-trip.
+    Artwork.updateOne({ _id: artwork._id }, { $inc: { views: 1 } })
+      .catch((err) => console.error('Artwork view increment failed:', err.message));
 
     return res.json({ success: true, artwork });
   } catch (error) {

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import WishlistButton from '../components/WishlistButton';
 import { ArtworkCardSkeleton } from '../components/Skeleton';
-import SearchInterface from '../components/Filters/SearchInterface';
 import { API_BASE_URL } from '@/lib/config';
 
 
@@ -70,6 +69,10 @@ export default function ArtworksPage() {
   useEffect(() => {
     fetchArtworks();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [artworks, searchQuery, priceRange.min, priceRange.max, sortBy, category]);
 
   const fetchArtworks = async () => {
     try {

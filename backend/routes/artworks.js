@@ -11,10 +11,10 @@ const {
 router.get('/', getAllArtworks);
 
 // GET /api/artworks/:id - Get single artwork
-router.get('/:id', getArtwork);
-
-// GET /api/artworks/artist/:artistId - Get artworks by artist
 router.get('/artist/:artistId', getArtworksByArtist);
+
+// GET /api/artworks/:id - Get single artwork
+router.get('/:id', getArtwork);
 
 // POST /api/artworks - Create new artwork
 router.post('/', createArtwork);
