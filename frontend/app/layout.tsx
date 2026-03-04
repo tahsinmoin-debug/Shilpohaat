@@ -5,7 +5,7 @@ import { Manrope, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import AIChatbot from "./components/AIChatbot";
-import NavigationLoader from "./components/NavigationLoader";
+import ApiBaseUrlShim from "./components/ApiBaseUrlShim";
 
 // Setup the font variables
 const manrope = Manrope({
@@ -43,7 +43,7 @@ export default function RootLayout({
       */}
       <body className={`${manrope.variable} ${cormorant.variable} font-sans antialiased`}>
         <Providers>
-          <NavigationLoader />
+          <ApiBaseUrlShim />
           {children}
           <AIChatbot />
         </Providers>

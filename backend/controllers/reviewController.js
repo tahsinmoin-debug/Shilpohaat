@@ -1,73 +1,369 @@
-// backend/controllers/reviewController.js
-
 const Review = require('../models/Review');
-const mongoose = require('mongoose');
+const Enrollment = require('../models/Enrollment');
+const Workshop = require('../models/Workshop');
+const User = require('../models/User');
 
-// Ensure Artwork model is loaded
-try {
-    mongoose.model('Artwork'); 
-} catch (e) {
-    require('../models/Artwork'); 
+// Create review (only enrolled users)
+exports.createReview = async (req, res) => {
+  try {
+    const { workshopId } = req.params;
+    const { rating, comment, firebaseUID } = req.body;
+    
+    if (!firebaseUID) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const user = await User.findOne({ firebaseUID });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    // Check if enrolled and paid
+    const enrollment = await Enrollment.findOne({
+      user: user._id,
+      workshop: workshopId,
+      paymentStatus: 'paid'
+    });
+    
+    if (!enrollment) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You must be enrolled in this workshop to leave a review' 
+      });
+    }
+    
+    // Check if already reviewed
+    const existingReview = await Review.findOne({
+      user: user._id,
+      workshop: workshopId
+    });
+    
+    if (existingReview) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You have already reviewed this workshop' 
+      });
+    }
+    
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rating must be between 1 and 5' 
+      });
+    }
+    
+    if (!comment || comment.trim().length < 10) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Review comment must be at least 10 characters' 
+      });
+    }
+    
+    // Create review
+    const review = new Review({
+      workshop: workshopId,
+      user: user._id,
+      enrollment: enrollment._id,
+      rating,
+      comment: comment.trim()
+    });
+    
+    await review.save();
+    
+    // Update workshop rating
+    await updateWorkshopRating(workshopId);
+    
+    const populatedReview = await Review.findById(review._id)
+      .populate('user', 'name')
+      .lean();
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Review submitted successfully',
+      review: populatedReview
+    });
+  } catch (error) {
+    console.error('Create review error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get workshop reviews
+exports.getWorkshopReviews = async (req, res) => {
+  try {
+    const { workshopId } = req.params;
+    const { sort = '-createdAt', limit = 20, page = 1 } = req.query;
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const reviews = await Review.find({ 
+      workshop: workshopId,
+      isApproved: true
+    })
+      .populate('user', 'name')
+      .sort(sort)
+      .limit(parseInt(limit))
+      .skip(skip)
+      .lean();
+    
+    const total = await Review.countDocuments({ 
+      workshop: workshopId,
+      isApproved: true
+    });
+    
+    res.json({ 
+      success: true, 
+      reviews,
+      pagination: {
+        total,
+        page: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update review (user can edit their own review)
+exports.updateReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { rating, comment, firebaseUID } = req.body;
+    
+    if (!firebaseUID) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const user = await User.findOne({ firebaseUID });
+    const review = await Review.findById(reviewId);
+    
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+    
+    if (review.user.toString() !== user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+    
+    if (rating) {
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Rating must be between 1 and 5' 
+        });
+      }
+      review.rating = rating;
+    }
+    
+    if (comment) {
+      if (comment.trim().length < 10) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Review comment must be at least 10 characters' 
+        });
+      }
+      review.comment = comment.trim();
+    }
+    
+    await review.save();
+    
+    // Update workshop rating
+    await updateWorkshopRating(review.workshop);
+    
+    res.json({ 
+      success: true, 
+      message: 'Review updated successfully',
+      review
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete review
+exports.deleteReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { firebaseUID } = req.query;
+    
+    if (!firebaseUID) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const user = await User.findOne({ firebaseUID });
+    const review = await Review.findById(reviewId);
+    
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+    
+    // Only review owner or admin can delete
+    if (review.user.toString() !== user._id.toString() && user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+    
+    const workshopId = review.workshop;
+    
+    await Review.findByIdAndDelete(reviewId);
+    
+    // Update workshop rating
+    await updateWorkshopRating(workshopId);
+    
+    res.json({ 
+      success: true, 
+      message: 'Review deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Instructor response to review
+exports.respondToReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { response, firebaseUID } = req.body;
+    
+    if (!firebaseUID) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const user = await User.findOne({ firebaseUID });
+    const review = await Review.findById(reviewId).populate('workshop');
+    
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+    
+    // Check if user is the instructor
+    if (review.workshop.instructor.toString() !== user._id.toString()) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Only the instructor can respond to reviews' 
+      });
+    }
+    
+    if (!response || response.trim().length < 10) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Response must be at least 10 characters' 
+      });
+    }
+    
+    review.instructorResponse = {
+      text: response.trim(),
+      respondedAt: new Date()
+    };
+    
+    await review.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'Response added successfully',
+      review
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Admin: Flag/unflag review
+exports.toggleReviewFlag = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const { isFlagged, flagReason, firebaseUID } = req.body;
+    
+    if (!firebaseUID) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const user = await User.findOne({ firebaseUID });
+    
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    
+    const review = await Review.findById(reviewId);
+    
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found' });
+    }
+    
+    review.isFlagged = isFlagged;
+    review.flagReason = isFlagged ? flagReason : undefined;
+    
+    if (isFlagged) {
+      review.isApproved = false;
+    }
+    
+    await review.save();
+    
+    res.json({ 
+      success: true, 
+      message: isFlagged ? 'Review flagged' : 'Review unflagged',
+      review
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Admin: Get flagged reviews
+exports.getFlaggedReviews = async (req, res) => {
+  try {
+    const { firebaseUID } = req.query;
+    
+    if (!firebaseUID) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const user = await User.findOne({ firebaseUID });
+    
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    
+    const reviews = await Review.find({ isFlagged: true })
+      .populate('user', 'name email')
+      .populate('workshop', 'title')
+      .sort('-createdAt')
+      .lean();
+    
+    res.json({ success: true, reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Helper function to update workshop rating
+async function updateWorkshopRating(workshopId) {
+  try {
+    const reviews = await Review.find({ 
+      workshop: workshopId,
+      isApproved: true
+    });
+    
+    if (reviews.length === 0) {
+      await Workshop.findByIdAndUpdate(workshopId, {
+        averageRating: 0,
+        totalReviews: 0
+      });
+      return;
+    }
+    
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+    
+    await Workshop.findByIdAndUpdate(workshopId, {
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      totalReviews: reviews.length
+    });
+  } catch (error) {
+    console.error('Error updating workshop rating:', error);
+  }
 }
 
-exports.getArtworkReviews = async (req, res) => {
-    try {
-        // Use req.params.artworkId to match the route definition
-        const reviews = await Review.find({ artwork: req.params.artworkId })
-            .sort({ createdAt: -1 });
-        res.status(200).json({ success: true, count: reviews.length, reviews });
-    } catch (error) {
-        console.error("Error fetching reviews:", error);
-        res.status(500).json({ success: false, message: 'Server error while fetching reviews.' });
-    }
-};
-
-exports.createReview = async (req, res) => {
-    try {
-        const { artworkId } = req.params;
-        const { rating, comment, reviewerId, reviewerName } = req.body;
-
-        // 1. Validation
-        if (!mongoose.Types.ObjectId.isValid(artworkId)) {
-            return res.status(400).json({ success: false, message: 'Invalid artwork ID format.' });
-        }
-        if (!rating || !comment || !reviewerId) {
-            return res.status(400).json({ success: false, message: 'Missing required fields (rating, comment, or ID).' });
-        }
-
-        // 2. Check for duplicate review (One user, one review per artwork)
-        const existingReview = await Review.findOne({ 
-            artwork: artworkId, 
-            reviewerId 
-        });
-        
-        if (existingReview) {
-            return res.status(400).json({ success: false, message: 'You have already submitted a review for this artwork.' });
-        }
-
-        // 3. Create Review
-        const newReview = await Review.create({ 
-            artwork: artworkId, 
-            reviewerId, 
-            reviewerName: reviewerName || 'Anonymous User', 
-            rating, 
-            comment 
-        });
-
-        res.status(201).json({ 
-            success: true, 
-            message: 'Review submitted successfully.', 
-            review: newReview 
-        });
-
-    } catch (error) {
-        console.error("FATAL Error submitting review:", error);
-        console.error("Error details:", error.message);
-        console.error("Error stack:", error.stack);
-        if (error.name === 'ValidationError') {
-            const message = Object.values(error.errors).map(val => val.message);
-            return res.status(400).json({ success: false, message: message.join(', ') });
-        }
-        res.status(500).json({ success: false, message: 'Server error during review submission.' });
-    }
-};
+module.exports = exports;

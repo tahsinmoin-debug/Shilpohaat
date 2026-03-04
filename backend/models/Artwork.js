@@ -74,4 +74,10 @@ const ArtworkSchema = new mongoose.Schema(
   }
 );
 
+// Query hot paths for listing/filtering/recommendation/admin
+ArtworkSchema.index({ status: 1, moderationStatus: 1, createdAt: -1 });
+ArtworkSchema.index({ category: 1, price: 1, createdAt: -1 });
+ArtworkSchema.index({ artist: 1, createdAt: -1 });
+ArtworkSchema.index({ featured: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Artwork', ArtworkSchema);

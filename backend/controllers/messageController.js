@@ -1,259 +1,203 @@
-const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const User = require('../models/User');
 
-/**
- * Get all users who have had conversations with the current user
- * Returns only users with existing message history
- */
-exports.getConversationPartners = async (req, res) => {
-    try {
-        const firebaseUID = req.headers['x-firebase-uid'];
-        if (!firebaseUID) {
-            return res.status(400).json({ message: 'Firebase UID is required' });
-        }
-
-        // Find all messages where user is sender or recipient
-        const messages = await Message.find({
-            $or: [
-                { senderId: firebaseUID },
-                { recipientId: firebaseUID }
-            ]
-        }).select('senderId recipientId').lean();
-
-        // Extract unique partner IDs
-        const partnerIds = new Set();
-        messages.forEach(msg => {
-            if (msg.senderId !== firebaseUID) {
-                partnerIds.add(msg.senderId);
-            }
-            if (msg.recipientId !== firebaseUID) {
-                partnerIds.add(msg.recipientId);
-            }
-        });
-
-        // Get user details for all partners
-        const partners = await User.find({
-            firebaseUID: { $in: Array.from(partnerIds) }
-        }).select('firebaseUID name email role').lean();
-
-        const partnerList = partners.map(user => ({
-            id: user.firebaseUID,
-            name: user.name || user.email?.split('@')[0] || 'User',
-            role: user.role || 'buyer'
-        }));
-
-        res.json(partnerList);
-    } catch (error) {
-        console.error('Get conversation partners error:', error);
-        res.status(500).json({ message: 'Failed to retrieve conversation partners.' });
-    }
-};
-
-// Get all conversations for current user with unread counts
-exports.getConversations = async (req, res) => {
+// 1. Send a message
+const sendMessage = async (req, res) => {
   try {
+    const { recipientId, content } = req.body;
     const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
-    
+
     if (!firebaseUID) {
       return res.status(400).json({ message: 'firebaseUID is required' });
     }
 
-    // Find all conversations where user is a participant
+    // Find current user (sender)
+    const sender = await User.findOne({ firebaseUID });
+    if (!sender) return res.status(404).json({ message: 'Sender not found' });
+
+    // Check if conversation already exists between these two participants
+    let conversation = await Conversation.findOne({
+      participants: { $all: [sender._id, recipientId] }
+    });
+
+    // If no conversation exists, create a new one
+    if (!conversation) {
+      conversation = new Conversation({ 
+        participants: [sender._id, recipientId], 
+        messages: [] 
+      });
+    }
+
+    // Create the message object
+    const newMessage = { 
+      sender: sender._id, 
+      content, 
+      isRead: false 
+    };
+
+    // Update conversation metadata
+    conversation.messages.push(newMessage);
+    conversation.lastMessage = content;
+    conversation.lastMessageTime = Date.now();
+    
+    await conversation.save();
+
+    // CRITICAL: Fetch the conversation again and populate the sender 
+    // This prevents the frontend from crashing when it tries to read msg.sender.name
+    const conversationData = await Conversation.findById(conversation._id)
+      .populate({
+        path: 'messages.sender',
+        select: 'name email role'
+      });
+    
+    const addedMessage = conversationData.messages[conversationData.messages.length - 1];
+
+    return res.status(201).json({
+      success: true,
+      message: addedMessage,
+      conversationId: conversation._id
+    });
+  } catch (error) {
+    console.error('Send message error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 2. Get all conversations for a user
+const getConversations = async (req, res) => {
+  try {
+    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
+    if (!firebaseUID) {
+      return res.status(400).json({ message: 'firebaseUID is required' });
+    }
+
+    const currentUser = await User.findOne({ firebaseUID });
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     const conversations = await Conversation.find({
-      participants: firebaseUID
-    }).sort({ lastMessageAt: -1 });
-
-    // Populate participant details
-    const enrichedConversations = await Promise.all(
-      conversations.map(async (conv) => {
-        const otherUserId = conv.participants.find(p => p !== firebaseUID);
-        const otherUser = await User.findOne({ firebaseUID: otherUserId });
-        
-        return {
-          _id: conv._id,
-          participants: conv.participants,
-          otherUser: otherUser ? {
-            firebaseUID: otherUser.firebaseUID,
-            name: otherUser.name,
-            email: otherUser.email,
-            role: otherUser.role
-          } : null,
-          lastMessageAt: conv.lastMessageAt,
-          lastMessageContent: conv.lastMessageContent,
-          unreadCount: conv.unreadCount.get(firebaseUID) || 0
-        };
+      participants: currentUser._id,
+    })
+      .populate('participants', 'name email role firebaseUID')
+      .populate({
+        path: 'messages.sender',
+        select: 'name email role',
       })
-    );
+      .sort({ lastMessageTime: -1 });
 
-    res.json({ success: true, conversations: enrichedConversations });
+    const formattedConversations = conversations.map((conv) => {
+      const otherParticipant = conv.participants.find(
+        (p) => p._id.toString() !== currentUser._id.toString()
+      );
+
+      const unreadCount = conv.messages.filter(
+        (msg) =>
+          msg.sender._id.toString() !== currentUser._id.toString() && !msg.isRead
+      ).length;
+
+      return {
+        _id: conv._id,
+        otherParticipant,
+        lastMessage: conv.lastMessage,
+        lastMessageTime: conv.lastMessageTime,
+        unreadCount,
+        createdAt: conv.createdAt,
+      };
+    });
+
+    return res.json({
+      success: true,
+      conversations: formattedConversations,
+    });
   } catch (error) {
     console.error('Get conversations error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Get or create conversation with specific user
-exports.getOrCreateConversation = async (req, res) => {
+// 3. Get messages in a specific conversation
+const getMessages = async (req, res) => {
   try {
+    const { conversationId } = req.params;
     const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
-    const { userId } = req.params; // Other user's Firebase UID
-    
+
     if (!firebaseUID) {
       return res.status(400).json({ message: 'firebaseUID is required' });
     }
 
-    if (firebaseUID === userId) {
-      return res.status(400).json({ message: 'Cannot create conversation with yourself' });
+    const currentUser = await User.findOne({ firebaseUID });
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Sort participants to ensure consistent ordering
-    const participants = [firebaseUID, userId].sort();
-
-    // Find or create conversation
-    let conversation = await Conversation.findOne({ participants });
+    const conversation = await Conversation.findById(conversationId)
+      .populate('participants', 'name email role')
+      .populate('messages.sender', 'name email role');
 
     if (!conversation) {
-      conversation = new Conversation({
-        participants,
-        unreadCount: new Map([[firebaseUID, 0], [userId, 0]])
-      });
-      await conversation.save();
+      return res.status(404).json({ message: 'Conversation not found' });
     }
 
-    res.json({ success: true, conversation });
-  } catch (error) {
-    console.error('Get or create conversation error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+    const isParticipant = conversation.participants.some(
+      (p) => p._id.toString() === currentUser._id.toString()
+    );
 
-// Get all messages in a conversation (paginated)
-exports.getMessages = async (req, res) => {
-  try {
-    const { conversationId } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const skip = (page - 1) * limit;
+    if (!isParticipant) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
 
-    const messages = await Message.find({ conversationId })
-      .sort({ createdAt: 1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Message.countDocuments({ conversationId });
-
-    res.json({
+    return res.json({
       success: true,
-      messages,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      conversation,
     });
   } catch (error) {
     console.error('Get messages error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
-// Mark messages as read
-exports.markMessagesAsRead = async (req, res) => {
+// 4. Mark messages as read
+const markAsRead = async (req, res) => {
   try {
-    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
     const { conversationId } = req.params;
-    
+    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
+
     if (!firebaseUID) {
       return res.status(400).json({ message: 'firebaseUID is required' });
     }
 
-    // Update all unread messages where current user is recipient
-    await Message.updateMany(
-      {
-        conversationId,
-        recipientId: firebaseUID,
-        readStatus: false
-      },
-      {
-        $set: { readStatus: true }
-      }
-    );
+    const currentUser = await User.findOne({ firebaseUID });
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    // Reset unread count in conversation
     const conversation = await Conversation.findById(conversationId);
-    if (conversation) {
-      conversation.unreadCount.set(firebaseUID, 0);
-      await conversation.save();
-    }
-
-    res.json({ success: true, message: 'Messages marked as read' });
-  } catch (error) {
-    console.error('Mark messages as read error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// Delete a message
-exports.deleteMessage = async (req, res) => {
-  try {
-    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
-    const { messageId } = req.params;
-    
-    if (!firebaseUID) {
-      return res.status(400).json({ message: 'firebaseUID is required' });
-    }
-
-    const message = await Message.findById(messageId);
-    
-    if (!message) {
-      return res.status(404).json({ message: 'Message not found' });
-    }
-
-    // Only sender can delete their message
-    if (message.senderId !== firebaseUID) {
-      return res.status(403).json({ message: 'Not authorized to delete this message' });
-    }
-
-    await Message.findByIdAndDelete(messageId);
-
-    res.json({ success: true, message: 'Message deleted' });
-  } catch (error) {
-    console.error('Delete message error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-
-// Get messages with a specific user (by userId, not conversationId)
-exports.getMessagesByUserId = async (req, res) => {
-  try {
-    const firebaseUID = req.query.firebaseUID || req.headers['x-firebase-uid'];
-    const { userId } = req.params; // Other user's Firebase UID
-    
-    if (!firebaseUID) {
-      return res.status(400).json({ message: 'firebaseUID is required' });
-    }
-
-    // Sort participants to ensure consistent ordering
-    const participants = [firebaseUID, userId].sort();
-
-    // Find conversation
-    const conversation = await Conversation.findOne({ participants });
-
     if (!conversation) {
-      // No conversation exists yet, return empty messages
-      return res.json({ success: true, messages: [], conversation: null });
+      return res.status(404).json({ message: 'Conversation not found' });
     }
 
-    // Get all messages in this conversation
-    const messages = await Message.find({ conversationId: conversation._id })
-      .sort({ createdAt: 1 });
+    conversation.messages.forEach((msg) => {
+      if (msg.sender.toString() !== currentUser._id.toString()) {
+        msg.isRead = true;
+      }
+    });
 
-    res.json({ success: true, messages, conversation });
+    await conversation.save();
+
+    return res.json({
+      success: true,
+      message: 'Messages marked as read',
+    });
   } catch (error) {
-    console.error('Get messages by userId error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Mark as read error:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
+};
+
+module.exports = {
+  sendMessage,
+  getConversations,
+  getMessages,
+  markAsRead,
 };

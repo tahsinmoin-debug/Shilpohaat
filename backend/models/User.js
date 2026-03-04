@@ -35,4 +35,8 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+// Query hot paths for auth/admin/artist lookups
+UserSchema.index({ role: 1, createdAt: -1 });
+UserSchema.index({ isSuspended: 1 });
+
 module.exports = mongoose.model('User', UserSchema);

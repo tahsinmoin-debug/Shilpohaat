@@ -8,6 +8,42 @@ const {
   getLatestPosts,
 } = require('../controllers/blogController.js');
 
+
+
+// POST: Create new blog (Add this route)
+router.post('/blogs', async (req, res) => {
+  try {
+    const { title, content, category, author, featuredImage, tags, isPublished } = req.body;
+    
+    const newBlog = new Blog({
+      title,
+      content,
+      category,
+      author,
+      featuredImage,
+      tags,
+      isPublished
+    });
+    
+    await newBlog.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Blog created successfully',
+      data: newBlog
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error creating blog',
+      error: error.message
+    });
+  }
+});
+
+
+
+
 // GET /api/blog (all posts with pagination)
 router.get('/', getAllPosts);
 

@@ -1,26 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const messageController = require('../controllers/messageController');
+const {
+  getConversations,
+  getMessages,
+  sendMessage,
+  markAsRead,
+} = require('../controllers/messageController');
 
-// Get conversation partners (users with existing message history)
-router.get('/partners', messageController.getConversationPartners);
+// GET /api/messages/conversations - Get all conversations for user
+router.get('/conversations', getConversations);
 
-// Get all conversations for current user
-router.get('/conversations', messageController.getConversations);
+// GET /api/messages/:conversationId - Get messages in a conversation
+router.get('/:conversationId', getMessages);
 
-// Get or create conversation with specific user (returns conversation object only)
-router.post('/conversation/:userId', messageController.getOrCreateConversation);
+// POST /api/messages/send - Send a message
+router.post('/send', sendMessage);
 
-// Get messages with a specific user (returns messages array)
-router.get('/conversation/:userId', messageController.getMessagesByUserId);
-
-// Get all messages in a conversation
-router.get('/:conversationId', messageController.getMessages);
-
-// Mark messages as read
-router.post('/:conversationId/mark-read', messageController.markMessagesAsRead);
-
-// Delete a message
-router.delete('/:messageId', messageController.deleteMessage);
+// PATCH /api/messages/:conversationId/read - Mark messages as read
+router.patch('/:conversationId/read', markAsRead);
 
 module.exports = router;

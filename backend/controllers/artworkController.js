@@ -2,6 +2,8 @@ const Artwork = require('../models/Artwork.js');
 const User = require('../models/User.js');
 const { uploadMultipleToCloudinary, replaceImages } = require('../utils/cloudinary.js');
 
+const escapeRegex = (text = '') => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Create new artwork (POST /api/artworks)
 const createArtwork = async (req, res) => {
   try {
@@ -85,26 +87,26 @@ const getAllArtworks = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    let artworks = await Artwork.find(query)
-      .populate('artist', 'name email')
+    if (search) {
+      const safe = escapeRegex(search);
+      query.$or = [
+        { title: { $regex: safe, $options: 'i' } },
+        { description: { $regex: safe, $options: 'i' } },
+      ];
+    }
+
+    const artworks = await Artwork.find(query)
+      .select('artist title description category price images arModelUrl status featured moderationStatus createdAt')
       .populate({
         path: 'artist',
+        select: 'name email artistProfile',
         populate: {
           path: 'artistProfile',
-          select: 'bio profilePicture specializations',
+          select: 'bio profilePicture specializations availability',
         },
       })
-      .sort({ createdAt: -1 });
-
-    // Search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      artworks = artworks.filter(
-        (art) =>
-          art.title.toLowerCase().includes(searchLower) ||
-          art.description.toLowerCase().includes(searchLower)
-      );
-    }
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json({
       success: true,
@@ -150,7 +152,8 @@ const getArtworksByArtist = async (req, res) => {
   try {
     const artworks = await Artwork.find({ artist: req.params.artistId })
       .populate('artist', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json({
       success: true,

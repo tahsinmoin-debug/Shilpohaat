@@ -133,5 +133,7 @@ const OrderSchema = new mongoose.Schema(
 // Index for faster queries
 OrderSchema.index({ userId: 1, createdAt: -1 });
 OrderSchema.index({ paymentStatus: 1 });
+OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
+OrderSchema.index({ 'items.artworkId': 1 });
 
 module.exports = mongoose.model('Order', OrderSchema);
