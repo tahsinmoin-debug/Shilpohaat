@@ -5,8 +5,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const Message = require('./models/Message');
-const Conversation = require('./models/Conversation');
+const Message = require('../models/Message');
+const Conversation = require('../models/Conversation');
 
 const SOCKET_URL = 'http://localhost:5000';
 const API_BASE_URL = 'http://localhost:5000/api';

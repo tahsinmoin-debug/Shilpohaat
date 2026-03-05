@@ -6,8 +6,8 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const Message = require('./models/Message');
-const Conversation = require('./models/Conversation');
+const Message = require('../models/Message');
+const Conversation = require('../models/Conversation');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

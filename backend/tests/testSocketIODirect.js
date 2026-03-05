@@ -4,8 +4,8 @@
 
 const io = require('socket.io-client');
 const mongoose = require('mongoose');
-const Message = require('./models/Message');
-const Conversation = require('./models/Conversation');
+const Message = require('../models/Message');
+const Conversation = require('../models/Conversation');
 require('dotenv').config();
 
 const SOCKET_SERVER_URL = 'http://localhost:5000';
