@@ -1,178 +1,341 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import io, { Socket } from 'socket.io-client';
 import Header from '../components/Header';
-import { auth } from '@/lib/firebase';
-import NewMessageModal from '../components/NewMessageModal';
+import { useAuth } from '../components/AuthProvider';
+import { API_BASE_URL } from '@/lib/config';
 
-interface Conversation {
-  _id: string;
-  otherParticipant: {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
+interface Contact {
+  id: string;
+  name: string;
+  isOnline: boolean;
 }
 
+interface ChatMessage {
+  senderId: string;
+  message: string;
+  timestamp: number;
+  isOwnMessage: boolean;
+  type?: 'text' | 'image';
+  imageUrl?: string | null;
+}
+
+const API_ROOT = `${API_BASE_URL}/api`;
+
 export default function MessagesPage() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
-  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectedContactRef = useRef<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Use onAuthStateChanged for more reliable login detection
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push('/login');
-      } else {
-        fetchConversations(user.uid);
-      }
+    selectedContactRef.current = selectedContactId;
+  }, [selectedContactId]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+
+    const socketInstance = io(API_BASE_URL, {
+      transports: ['websocket', 'polling'],
     });
 
-    return () => unsubscribe();
-  }, [router]);
+    socketInstance.on('connect', () => {
+      socketInstance.emit('registerUser', user.uid);
+    });
 
-  const fetchConversations = async (uid: string) => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/messages/conversations?firebaseUID=${uid}`
-      );
-      const data = await response.json();
+    socketInstance.on('onlineUsers', (users: string[]) => {
+      setOnlineUsers(users.filter((id) => id !== user.uid));
+    });
 
-      if (data.success) {
-        setConversations(data.conversations);
+    socketInstance.on('receiveMessage', (data: { senderId: string; message: string; timestamp?: number; type?: 'text' | 'image'; imageUrl?: string | null }) => {
+      if (data.senderId !== selectedContactRef.current) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          senderId: data.senderId,
+          message: data.message || '',
+          timestamp: data.timestamp || Date.now(),
+          isOwnMessage: false,
+          type: data.type || 'text',
+          imageUrl: data.imageUrl || null,
+        },
+      ]);
+    });
+
+    setSocket(socketInstance);
+    return () => socketInstance.disconnect();
+  }, [loading, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchContacts = async () => {
+      try {
+        const response = await fetch(`${API_ROOT}/artist/hub-artists`);
+        if (!response.ok) return;
+        const data: Contact[] = await response.json();
+        setContacts(
+          data
+            .filter((contact) => contact.id !== user.uid)
+            .map((contact) => ({ ...contact, isOnline: false }))
+        );
+      } catch (error) {
+        console.error('Failed to load contacts', error);
       }
+    };
+
+    fetchContacts();
+  }, [user]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const sortedContacts = useMemo(() => {
+    const filtered = contacts
+      .map((contact) => ({ ...contact, isOnline: onlineUsers.includes(contact.id) }))
+      .filter((contact) => contact.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return filtered.sort((a, b) => {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [contacts, onlineUsers, searchQuery]);
+
+  const selectedContact = sortedContacts.find((c) => c.id === selectedContactId) || contacts.find((c) => c.id === selectedContactId) || null;
+
+  const handleSelectContact = (contactId: string) => {
+    setSelectedContactId(contactId);
+    setMessages([]);
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedContactId || !socket || !user) return;
+
+    const payload = {
+      senderId: user.uid,
+      recipientId: selectedContactId,
+      message: newMessage.trim(),
+      timestamp: Date.now(),
+      type: 'text' as const,
+      imageUrl: null,
+    };
+
+    socket.emit('privateMessage', payload);
+    setMessages((prev) => [
+      ...prev,
+      {
+        senderId: user.uid,
+        message: payload.message,
+        timestamp: payload.timestamp,
+        isOwnMessage: true,
+        type: 'text',
+        imageUrl: null,
+      },
+    ]);
+    setNewMessage('');
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!selectedContactId || !socket || !user) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch(`${API_ROOT}/upload/message-image`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error('Failed to upload image');
+
+      const payload = {
+        senderId: user.uid,
+        recipientId: selectedContactId,
+        message: '',
+        timestamp: Date.now(),
+        type: 'image' as const,
+        imageUrl: data.url as string,
+      };
+
+      socket.emit('privateMessage', payload);
+      setMessages((prev) => [
+        ...prev,
+        {
+          senderId: user.uid,
+          message: '',
+          timestamp: payload.timestamp,
+          isOwnMessage: true,
+          type: 'image',
+          imageUrl: payload.imageUrl,
+        },
+      ]);
     } catch (error) {
-      console.error('Failed to fetch conversations:', error);
+      console.error(error);
     } finally {
-      setLoading(false);
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gray-950 text-white">
+        <Header />
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-maroon to-gray-900">
+    <main className="min-h-screen bg-[#0b1422] text-white">
       <Header />
-      <div className="container mx-auto px-4 py-8">
-        {/* Header with New Message Button */}
-        <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2 font-heading">Messages</h1>
-            <p className="text-gray-400">
-              Chat with artists and buyers about artworks
-            </p>
-          </div>
-          <button
-            onClick={() => setIsNewMessageOpen(true)}
-            className="bg-brand-gold text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-yellow-500 flex items-center gap-2 transition-all shadow-lg"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Message
-          </button>
-        </div>
 
-        {/* Conversations List */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold"></div>
-            <p className="text-gray-400 mt-4 font-medium">Loading your chats...</p>
+      <div className="h-[calc(100vh-84px)] border-t border-white/10 flex">
+        <aside className="w-[340px] md:w-[420px] border-r border-white/10 bg-[#1b2637] flex flex-col">
+          <div className="p-6 border-b border-white/10">
+            <h1 className="text-4xl font-heading text-white mb-2">Messages</h1>
+            <p className="text-3xl text-gray-400">{sortedContacts.length} contacts</p>
           </div>
-        ) : conversations.length === 0 ? (
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 text-center border border-white/5">
-            <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-               <svg className="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-2">No messages yet</h3>
-            <p className="text-gray-400 mb-8 max-w-sm mx-auto">
-              Connect with the art community. Start a conversation with an artist or buyer.
-            </p>
-            <button
-              onClick={() => setIsNewMessageOpen(true)}
-              className="bg-brand-gold text-gray-900 px-8 py-3 rounded-lg font-bold hover:bg-yellow-500 transition-colors"
-            >
-              Send Your First Message
-            </button>
+
+          <div className="px-4 py-3 border-b border-white/10">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search contacts..."
+              className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-xl text-gray-200 placeholder:text-gray-400 outline-none"
+            />
           </div>
-        ) : (
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/5">
-            {conversations.map((conv) => (
+
+          <div className="flex-1 overflow-y-auto">
+            {sortedContacts.map((contact) => (
               <button
-                key={conv._id}
-                onClick={() => router.push(`/messages/${conv._id}`)}
-                className="w-full p-5 hover:bg-white/5 transition-all border-b border-white/5 last:border-b-0 flex items-center gap-4 group"
+                key={contact.id}
+                onClick={() => handleSelectContact(contact.id)}
+                className={`w-full text-left p-5 border-b border-white/10 transition-colors ${
+                  selectedContactId === contact.id ? 'bg-white/10 border-l-4 border-l-cyan-400' : 'hover:bg-white/5'
+                }`}
               >
-                {/* Avatar */}
-                <div className="flex-shrink-0">
-                  <div className="w-14 h-14 rounded-full bg-brand-gold flex items-center justify-center text-gray-900 font-bold text-xl shadow-inner group-hover:scale-105 transition-transform">
-                    {conv.otherParticipant?.name?.charAt(0).toUpperCase() || '?'}
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-sky-400 text-black font-bold text-4xl flex items-center justify-center">
+                      {contact.name.charAt(0).toUpperCase()}
+                    </div>
                   </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 text-left min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-bold text-white truncate text-lg">
-                      {conv.otherParticipant?.name || 'Unknown User'}
-                    </h3>
-                    <span className="text-xs text-gray-400 whitespace-nowrap">
-                      {formatTime(conv.lastMessageTime)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <p className={`text-sm truncate flex-1 ${conv.unreadCount > 0 ? 'text-white font-medium' : 'text-gray-400'}`}>
-                      {conv.lastMessage || 'No messages yet'}
-                    </p>
-                    {conv.unreadCount > 0 && (
-                      <span className="bg-brand-gold text-gray-900 text-[10px] font-black rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center animate-pulse">
-                        {conv.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="mt-1">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 uppercase tracking-wider font-semibold">
-                      {conv.otherParticipant?.role || 'user'}
-                    </span>
+                  <div>
+                    <p className="text-4xl font-semibold leading-tight">{contact.name}</p>
+                    <p className="text-3xl text-gray-400">{contact.isOnline ? 'Online' : 'Offline'}</p>
                   </div>
                 </div>
               </button>
             ))}
           </div>
-        )}
-      </div>
+        </aside>
 
-      <NewMessageModal
-        isOpen={isNewMessageOpen}
-        onClose={() => setIsNewMessageOpen(false)}
-      />
+        <section className="flex-1 flex flex-col bg-[#111f33]">
+          <div className="h-28 border-b border-white/10 px-8 flex items-center gap-4">
+            {selectedContact ? (
+              <>
+                <div className="w-16 h-16 rounded-full bg-sky-400 text-black font-bold text-4xl flex items-center justify-center">
+                  {selectedContact.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="text-4xl font-heading">{selectedContact.name}</h2>
+                  <p className="text-3xl text-gray-400">{selectedContact.isOnline ? 'Online' : 'Offline'}</p>
+                </div>
+              </>
+            ) : (
+              <h2 className="text-3xl text-gray-500">Select a contact to start chatting</h2>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-8 bg-[#08152c]">
+            {!selectedContact ? (
+              <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <p className="text-4xl">No conversation selected</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                <p className="text-5xl mb-3">No messages yet</p>
+                <p className="text-3xl">Start the conversation!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[70%] rounded-2xl px-4 py-3 ${msg.isOwnMessage ? 'bg-sky-500 text-black' : 'bg-white/10 text-white'}`}>
+                      {msg.type === 'image' && msg.imageUrl ? (
+                        <img src={msg.imageUrl} alt="Message upload" className="max-h-72 rounded-lg mb-2" />
+                      ) : null}
+                      {msg.message ? <p className="text-xl">{msg.message}</p> : null}
+                      <p className="text-sm opacity-70 mt-1">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
+
+          <div className="h-28 border-t border-white/10 px-6 flex items-center gap-4 bg-[#1a2638]">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!selectedContactId || uploading}
+              className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center disabled:opacity-40"
+              title="Upload image"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-8-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file);
+              }}
+            />
+
+            <input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder={selectedContactId ? 'Type a message...' : 'Select a contact first'}
+              disabled={!selectedContactId}
+              className="flex-1 rounded-2xl bg-white/10 border border-white/10 px-5 py-4 text-2xl placeholder:text-gray-400 outline-none disabled:opacity-40"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!selectedContactId || !newMessage.trim()}
+              className="px-6 py-3 rounded-2xl bg-sky-500 text-black font-bold disabled:opacity-40"
+            >
+              Send
+            </button>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

@@ -1,5 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const http = require('http');
+const { Server } = require('socket.io');
 
 dotenv.config();
 
@@ -14,24 +16,88 @@ const uploadRoutes = require('./routes/upload.js');
 const workshopRoutes = require('./routes/workshops.js');
 const recommendationRoutes = require('./routes/recommendations.js');
 const adminRoutes = require('./routes/admin.js');
-
-// Import Message and Conversation models for database persistence
-const Message = require('./models/Message');
-const Conversation = require('./models/Conversation');
+const commissionRoutes = require('./routes/commissions.js');
+const messagesRoutes = require('./routes/messages');
+const promotionRoutes = require('./routes/promotionRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const verificationRoutes = require('./routes/verificationRoutes');
+const badgeRoutes = require('./routes/badgeRoutes');
+const wishlistRoutes = require('./routes/wishlistRoutes');
 
 connectDB();
 
 const app = express();
+const httpServer = http.createServer(app);
+const activeUsers = new Map();
 
-// Middleware - Increase body size limit for base64 images
-// Note: Stripe webhook needs raw body, so we handle it separately
+const allowedOriginsEnv = process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || '';
+const allowedOrigins = allowedOriginsEnv
+  ? allowedOriginsEnv.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : ['http://localhost:3000'];
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+io.on('connection', (socket) => {
+  socket.on('registerUser', (userId) => {
+    if (!userId) return;
+    activeUsers.set(userId, socket.id);
+    io.emit('onlineUsers', Array.from(activeUsers.keys()));
+  });
+
+  socket.on('privateMessage', ({ recipientId, senderId, message, timestamp, type, imageUrl }) => {
+    if (!recipientId || !senderId || (!message && !imageUrl)) return;
+
+    const recipientSocketId = activeUsers.get(recipientId);
+    const payload = {
+      senderId,
+      message: message || '',
+      timestamp: timestamp || Date.now(),
+      type: type || (imageUrl ? 'image' : 'text'),
+      imageUrl: imageUrl || null,
+    };
+
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit('receiveMessage', payload);
+    }
+
+    io.to(socket.id).emit('messageSent', {
+      recipientId,
+      timestamp: payload.timestamp,
+      type: payload.type,
+      imageUrl: payload.imageUrl,
+    });
+  });
+
+  socket.on('disconnect', () => {
+    for (const [userId, socketId] of activeUsers.entries()) {
+      if (socketId === socket.id) {
+        activeUsers.delete(userId);
+      }
+    }
+    io.emit('onlineUsers', Array.from(activeUsers.keys()));
+  });
+});
+
 app.post('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
-
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-firebase-uid');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   if (req.method === 'OPTIONS') {
@@ -58,15 +124,21 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/workshops', workshopRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/messages', messagesRoutes);
+app.use('/api/promotions', promotionRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/verify', verificationRoutes);
+app.use('/api/badges', badgeRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/commissions', commissionRoutes);
 
-
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Socket.IO enabled. CORS origins: ${allowedOrigins.join(', ')}`);
 });
