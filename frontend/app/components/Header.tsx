@@ -61,27 +61,27 @@ export default function Header() {
 
           {/* Center: Top Nav — Workshops intentionally NOT here, it lives in the sidebar */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+            <Link href="/" className="font-sans text-[0.98rem] font-medium text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.home') || 'Home'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/artworks" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+            <Link href="/artworks" className="font-sans text-[0.98rem] font-medium text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.artworks') || 'Artworks'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/artists" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+            <Link href="/artists" className="font-sans text-[0.98rem] font-medium text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.artists') || 'Artists'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/categories" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+            <Link href="/categories" className="font-sans text-[0.98rem] font-medium text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.categories') || 'Categories'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/blog" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+            <Link href="/blog" className="font-sans text-[0.98rem] font-medium text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.blog') || 'Blog'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/wishlist" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+            <Link href="/wishlist" className="font-sans text-[0.98rem] font-medium text-white hover:text-brand-gold transition-colors relative group">
               Wishlist
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>

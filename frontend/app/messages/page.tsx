@@ -205,8 +205,8 @@ export default function MessagesPage() {
       <div className="h-[calc(100vh-84px)] border-t border-white/10 flex">
         <aside className="w-[340px] md:w-[420px] border-r border-white/10 bg-[#1b2637] flex flex-col">
           <div className="p-6 border-b border-white/10">
-            <h1 className="text-4xl font-heading text-white mb-2">Messages</h1>
-            <p className="text-3xl text-gray-400">{sortedContacts.length} contacts</p>
+            <h1 className="text-2xl font-semibold text-white mb-1">Messages</h1>
+            <p className="text-base text-gray-400">{sortedContacts.length} contacts</p>
           </div>
 
           <div className="px-4 py-3 border-b border-white/10">
@@ -214,7 +214,7 @@ export default function MessagesPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search contacts..."
-              className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-xl text-gray-200 placeholder:text-gray-400 outline-none"
+              className="w-full rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-base text-gray-200 placeholder:text-gray-400 outline-none"
             />
           </div>
 
@@ -229,13 +229,13 @@ export default function MessagesPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-sky-400 text-black font-bold text-4xl flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-sky-400 text-black font-bold text-xl flex items-center justify-center">
                       {contact.name.charAt(0).toUpperCase()}
                     </div>
                   </div>
                   <div>
-                    <p className="text-4xl font-semibold leading-tight">{contact.name}</p>
-                    <p className="text-3xl text-gray-400">{contact.isOnline ? 'Online' : 'Offline'}</p>
+                    <p className="text-lg font-semibold leading-tight">{contact.name}</p>
+                    <p className="text-sm text-gray-400">{contact.isOnline ? 'Online' : 'Offline'}</p>
                   </div>
                 </div>
               </button>
@@ -244,31 +244,31 @@ export default function MessagesPage() {
         </aside>
 
         <section className="flex-1 flex flex-col bg-[#111f33]">
-          <div className="h-28 border-b border-white/10 px-8 flex items-center gap-4">
+          <div className="h-24 border-b border-white/10 px-8 flex items-center gap-4">
             {selectedContact ? (
               <>
-                <div className="w-16 h-16 rounded-full bg-sky-400 text-black font-bold text-4xl flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-sky-400 text-black font-bold text-xl flex items-center justify-center">
                   {selectedContact.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="text-4xl font-heading">{selectedContact.name}</h2>
-                  <p className="text-3xl text-gray-400">{selectedContact.isOnline ? 'Online' : 'Offline'}</p>
+                  <h2 className="text-xl font-semibold">{selectedContact.name}</h2>
+                  <p className="text-sm text-gray-400">{selectedContact.isOnline ? 'Online' : 'Offline'}</p>
                 </div>
               </>
             ) : (
-              <h2 className="text-3xl text-gray-500">Select a contact to start chatting</h2>
+              <h2 className="text-lg text-gray-500">Select a contact to start chatting</h2>
             )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-8 bg-[#08152c]">
             {!selectedContact ? (
               <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                <p className="text-4xl">No conversation selected</p>
+                <p className="text-2xl">No conversation selected</p>
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                <p className="text-5xl mb-3">No messages yet</p>
-                <p className="text-3xl">Start the conversation!</p>
+                <p className="text-2xl mb-2">No messages yet</p>
+                <p className="text-base">Start the conversation!</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -278,7 +278,7 @@ export default function MessagesPage() {
                       {msg.type === 'image' && msg.imageUrl ? (
                         <img src={msg.imageUrl} alt="Message upload" className="max-h-72 rounded-lg mb-2" />
                       ) : null}
-                      {msg.message ? <p className="text-xl">{msg.message}</p> : null}
+                      {msg.message ? <p className="text-base">{msg.message}</p> : null}
                       <p className="text-sm opacity-70 mt-1">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -324,7 +324,7 @@ export default function MessagesPage() {
               }}
               placeholder={selectedContactId ? 'Type a message...' : 'Select a contact first'}
               disabled={!selectedContactId}
-              className="flex-1 rounded-2xl bg-white/10 border border-white/10 px-5 py-4 text-2xl placeholder:text-gray-400 outline-none disabled:opacity-40"
+              className="flex-1 rounded-2xl bg-white/10 border border-white/10 px-5 py-4 text-base placeholder:text-gray-400 outline-none disabled:opacity-40"
             />
             <button
               onClick={handleSendMessage}

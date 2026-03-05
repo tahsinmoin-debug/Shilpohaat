@@ -64,10 +64,10 @@ export default function BlogPage() {
       {/* Hero Section */}
       <section className="py-16 md:py-20 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-heading text-white mb-6">
+          <h1 className="text-3xl md:text-4xl font-heading text-white mb-4">
             Stories & Insights
           </h1>
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
+          <p className="text-base md:text-lg text-gray-200 max-w-3xl mx-auto">
             Discover artist interviews, Bengali heritage stories, and insights into the creative process
           </p>
         </div>
@@ -81,7 +81,7 @@ export default function BlogPage() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full font-medium transition-all duration-300 ${
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                   selectedCategory === category
                     ? 'bg-brand-gold text-gray-900 shadow-lg scale-105'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -136,10 +136,10 @@ export default function BlogPage() {
 
                 {/* Post Content */}
                 <div className="p-6">
-                  <h2 className="text-2xl font-heading text-white mb-3 line-clamp-2 group-hover:text-brand-gold transition-colors">
+                  <h2 className="text-xl font-semibold text-white mb-2 line-clamp-2 group-hover:text-brand-gold transition-colors">
                     {post.title}
                   </h2>
-                  <p className="text-gray-400 mb-4 line-clamp-3">
+                  <p className="text-sm text-gray-400 mb-4 line-clamp-3">
                     {post.excerpt}
                   </p>
 

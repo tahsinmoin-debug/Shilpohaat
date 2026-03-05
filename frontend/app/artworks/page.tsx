@@ -108,8 +108,8 @@ export default function ArtworksPage() {
 
       <section className="text-white py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-heading mb-4">Discover Authentic Artworks</h1>
-          <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto">Explore unique creations by talented Bengali artists</p>
+          <h1 className="text-3xl md:text-4xl font-heading mb-3">Discover Authentic Artworks</h1>
+          <p className="text-base md:text-lg text-gray-200 max-w-2xl mx-auto">Explore unique creations by talented Bengali artists</p>
         </div>
       </section>
 
@@ -118,7 +118,7 @@ export default function ArtworksPage() {
       )}
 
       <div className="container mx-auto px-4 py-6">
-        <p className="text-gray-300">
+        <p className="text-sm text-gray-300">
           {loading ? 'Loading...' : `${filteredArtworks.length} ${filteredArtworks.length === 1 ? 'artwork' : 'artworks'} found`}
         </p>
       </div>
@@ -170,7 +170,7 @@ export default function ArtworksPage() {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors">
+                  <h3 className="text-base font-semibold text-white mb-2 line-clamp-1 group-hover:text-brand-gold transition-colors">
                     {artwork.title}
                   </h3>
 
@@ -200,7 +200,7 @@ export default function ArtworksPage() {
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <p className="text-xl font-bold text-brand-gold">Tk {artwork.price.toLocaleString()}</p>
+                    <p className="text-lg font-bold text-brand-gold">Tk {artwork.price.toLocaleString()}</p>
                     <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">{artwork.category}</span>
                   </div>
                 </div>

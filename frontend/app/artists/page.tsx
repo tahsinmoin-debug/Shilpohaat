@@ -103,10 +103,10 @@ export default function ArtistsPage() {
         <div className="container mx-auto px-4">
           {/* Page Header */}
           <div className="mb-8 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border border-white/10 rounded-xl p-6 shadow-xl">
-            <h1 className="text-4xl md:text-5xl font-heading text-white mb-3">
+            <h1 className="text-3xl md:text-4xl font-heading text-white mb-2">
               Featured Artists
             </h1>
-            <p className="text-gray-200 text-lg">
+            <p className="text-gray-200 text-base md:text-lg">
               Browse over {totalArtists || artists.length} artists
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function ArtistsPage() {
             <div className="flex flex-wrap gap-2 justify-center">
               <button
                 onClick={() => setSelectedLetter(null)}
-                className={`px-3 py-1 rounded font-semibold transition-colors ${
+                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
                   selectedLetter === null
                     ? 'bg-brand-gold text-gray-900'
                     : 'text-gray-300 hover:text-brand-gold'
@@ -128,7 +128,7 @@ export default function ArtistsPage() {
                 <button
                   key={letter}
                   onClick={() => setSelectedLetter(letter)}
-                  className={`px-3 py-1 rounded font-semibold transition-colors ${
+                  className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
                     selectedLetter === letter
                       ? 'bg-brand-gold text-gray-900'
                       : 'text-gray-300 hover:text-brand-gold'
@@ -209,7 +209,7 @@ export default function ArtistsPage() {
 
                       <div className="flex-1 min-w-0">
                         <Link href={`/artist/${artist._id}`}>
-                          <h3 className="text-xl font-heading text-white mb-1 hover:text-brand-gold transition-colors truncate">
+                          <h3 className="text-lg font-semibold text-white mb-1 hover:text-brand-gold transition-colors truncate">
                             {artist.bio}
                           </h3>
                         </Link>
