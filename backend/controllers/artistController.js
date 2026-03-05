@@ -182,7 +182,7 @@ const getHubArtists = async (req, res) => {
             .select('firebaseUID name email role')
             .lean();
 
-        const artistList = artists.map(artist => ({
+        const artistList = users.map(artist => ({
             id: artist.firebaseUID,
             name: artist.name || artist.email?.split('@')[0] || 'Artist'
         }));
