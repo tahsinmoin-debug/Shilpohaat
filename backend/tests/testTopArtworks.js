@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const Order = require('./models/Order');
+const Order = require('../models/Order');
 
 async function testTopArtworks() {
   try {
