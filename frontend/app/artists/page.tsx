@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { API_BASE_URL } from '@/lib/config';
 import Header from '../components/Header';
+import CloudinaryResponsiveImage from '../components/CloudinaryResponsiveImage';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const PAGE_SIZE = 18;
 
 interface Artist {
   _id: string;
@@ -24,33 +26,62 @@ interface Artist {
 export default function ArtistsPage() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [followedArtists, setFollowedArtists] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalArtists, setTotalArtists] = useState(0);
 
-  useEffect(() => {
-    fetchArtists();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLetter]);
+  const fetchArtists = async (pageToLoad = 1, append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
 
-  const fetchArtists = async () => {
-    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (selectedLetter) {
         params.append('letter', selectedLetter);
       }
+      params.append('fields', 'card');
+      params.append('thumbnailOnly', 'true');
+      params.append('page', String(pageToLoad));
+      params.append('limit', String(PAGE_SIZE));
 
       const res = await fetch(`${API_BASE_URL}/api/artist/all?${params.toString()}`);
       const data = await res.json();
-      
+
       if (data.success) {
-        setArtists(data.artists);
+        const pageArtists = data.artists || [];
+        setArtists((prev) => (append ? [...prev, ...pageArtists] : pageArtists));
+        setCurrentPage(pageToLoad);
+        setTotalArtists(Number(data.total) || pageArtists.length);
+        setHasMore(pageToLoad < (Number(data.pages) || 1));
       }
     } catch (error) {
       console.error('Failed to fetch artists:', error);
+      if (!append) {
+        setArtists([]);
+        setTotalArtists(0);
+      }
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
+  };
+
+  useEffect(() => {
+    fetchArtists(1, false);
+  }, [selectedLetter]);
+
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchArtists(currentPage + 1, true);
   };
 
   const toggleFollow = (artistId: string) => {
@@ -76,7 +107,7 @@ export default function ArtistsPage() {
               Featured Artists
             </h1>
             <p className="text-gray-200 text-lg">
-              Browse over {artists.length} artists
+              Browse over {totalArtists || artists.length} artists
             </p>
           </div>
 
@@ -131,10 +162,12 @@ export default function ArtistsPage() {
                   <Link href={`/artist/${artist._id}`}>
                     <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
                       {artist.portfolioImages?.[0] ? (
-                        <img
+                        <CloudinaryResponsiveImage
                           src={artist.portfolioImages[0]}
                           alt={artist.bio}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                          widths={[320, 480, 640, 800]}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -153,10 +186,12 @@ export default function ArtistsPage() {
                       <Link href={`/artist/${artist._id}`}>
                         <div className="relative flex-shrink-0">
                           {artist.profilePicture ? (
-                            <img
+                            <CloudinaryResponsiveImage
                               src={artist.profilePicture}
                               alt={artist.bio}
                               className="w-16 h-16 rounded-full object-cover border-2 border-gray-700"
+                              sizes="64px"
+                              widths={[64, 96, 128]}
                             />
                           ) : (
                             <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600">
@@ -201,6 +236,18 @@ export default function ArtistsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {!loading && hasMore && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="px-6 py-3 bg-brand-gold text-[#0b1926] font-semibold rounded-lg hover:bg-brand-gold-antique transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loadingMore ? 'Loading more...' : 'Load More Artists'}
+              </button>
             </div>
           )}
         </div>

@@ -5,6 +5,12 @@ const { uploadToCloudinary, uploadMultipleToCloudinary, replaceImages } = requir
 
 const escapeRegex = (text = '') => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const parsePositiveInt = (value, fallback, max = 200) => {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(parsed, max);
+};
+
 // Update artist profile (PATCH /api/artist/profile)
 const updateArtistProfile = async (req, res) => {
   try {
@@ -85,7 +91,13 @@ const updateArtistProfile = async (req, res) => {
 // Get all artist profiles (public)
 const getAllArtists = async (req, res) => {
   try {
-    const { letter, search } = req.query;
+    const { letter, search, page, limit, fields, thumbnailOnly } = req.query;
+    const pageNum = parsePositiveInt(page, 1, 10000);
+    const limitNum = parsePositiveInt(limit, 0, 200);
+    const skipNum = limitNum > 0 ? (pageNum - 1) * limitNum : 0;
+    const isCardFields = fields === 'card';
+    const useThumbnailOnly = thumbnailOnly === 'true';
+
     const profileQuery = { isProfileComplete: true };
 
     if (letter) {
@@ -100,8 +112,12 @@ const getAllArtists = async (req, res) => {
       ];
     }
 
-    const profiles = await ArtistProfile.find(profileQuery)
-      .select('bio specializations profilePicture portfolioImages availability isFeatured rating totalReviews profileViews totalArtworks user createdAt')
+    const selectFields = isCardFields
+      ? 'bio specializations profilePicture portfolioImages availability isFeatured rating totalReviews profileViews totalArtworks user createdAt'
+      : 'bio specializations profilePicture portfolioImages availability isFeatured rating totalReviews profileViews totalArtworks user createdAt';
+
+    const baseQuery = ArtistProfile.find(profileQuery)
+      .select(selectFields)
       .populate({
         path: 'user',
         select: 'name email role',
@@ -110,9 +126,37 @@ const getAllArtists = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const artists = profiles.filter((p) => p.user);
+    if (limitNum > 0) {
+      baseQuery.skip(skipNum).limit(limitNum);
+    }
 
-    return res.json({ success: true, count: artists.length, artists });
+    const [profiles, total] = await Promise.all([
+      baseQuery,
+      ArtistProfile.countDocuments(profileQuery),
+    ]);
+
+    const artists = profiles
+      .filter((p) => p.user)
+      .map((artist) => {
+        if (!useThumbnailOnly) return artist;
+
+        return {
+          ...artist,
+          portfolioImages: Array.isArray(artist.portfolioImages) ? artist.portfolioImages.slice(0, 1) : [],
+        };
+      });
+
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+
+    return res.json({
+      success: true,
+      count: artists.length,
+      total,
+      page: limitNum > 0 ? pageNum : 1,
+      limit: limitNum > 0 ? limitNum : total,
+      pages: limitNum > 0 ? Math.ceil(total / limitNum) : 1,
+      artists,
+    });
   } catch (error) {
     console.error('Get artists error:', error);
     return res.status(500).json({ message: 'Server error.' });
@@ -123,6 +167,7 @@ const getAllArtists = async (req, res) => {
 const getFeaturedArtists = async (req, res) => {
   try {
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 6, 1), 24);
+    const useThumbnailOnly = req.query.thumbnailOnly !== 'false';
 
     const profiles = await ArtistProfile.find({ isProfileComplete: true })
       .select('bio specializations profilePicture portfolioImages availability isFeatured rating totalReviews profileViews totalArtworks user')
@@ -135,7 +180,18 @@ const getFeaturedArtists = async (req, res) => {
       .limit(limit * 2)
       .lean();
 
-    const featuredArtists = profiles.filter((p) => p.user).slice(0, limit);
+    const featuredArtists = profiles
+      .filter((p) => p.user)
+      .slice(0, limit)
+      .map((artist) => {
+        if (!useThumbnailOnly) return artist;
+        return {
+          ...artist,
+          portfolioImages: Array.isArray(artist.portfolioImages) ? artist.portfolioImages.slice(0, 1) : [],
+        };
+      });
+
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=180');
     return res.json({ success: true, count: featuredArtists.length, artists: featuredArtists });
   } catch (error) {
     console.error('Get featured artists error:', error);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
+import CloudinaryResponsiveImage from '../../components/CloudinaryResponsiveImage';
 import { useCart } from '../../components/CartProvider';
 import ArtworkReviews from '../../components/Reviews/ArtworkReviews';
 import ARViewer from '../../components/ARViewer';
@@ -137,10 +138,12 @@ export default function ArtworkDetailPage({ params }: PageProps) {
       {/* Hero banner */}
       <section className="relative h-[340px] w-full overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <CloudinaryResponsiveImage
             src={mainImage}
             alt={artwork.title}
             className="w-full h-full object-cover blur-sm scale-105"
+            sizes="100vw"
+            widths={[640, 960, 1200, 1600, 1920]}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent" />
         </div>
@@ -157,10 +160,12 @@ export default function ArtworkDetailPage({ params }: PageProps) {
             <div className="flex flex-wrap items-center gap-3 text-gray-200">
               <Link href={`/artist/${artist._id}`} className="flex items-center gap-2 group">
                 <div className="relative">
-                  <img
+                  <CloudinaryResponsiveImage
                     src={artist.artistProfile?.profilePicture || 'https://placehold.co/48x48/666/fff.png'}
                     alt={artist.name}
                     className="w-10 h-10 rounded-full object-cover border-2 border-gray-700"
+                    sizes="40px"
+                    widths={[40, 64, 96]}
                   />
                   <span
                     className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-900 ${
@@ -191,10 +196,13 @@ export default function ArtworkDetailPage({ params }: PageProps) {
           {/* Gallery */}
           <div className="lg:col-span-2 bg-gray-800 rounded-xl p-4 shadow-2xl border border-gray-700">
             <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-gray-900">
-              <img
+              <CloudinaryResponsiveImage
                 src={mainImage}
                 alt={artwork.title}
                 className="w-full h-full object-contain"
+                sizes="(max-width: 1024px) 100vw, 66vw"
+                widths={[480, 640, 960, 1200]}
+                crop="fit"
               />
             </div>
             {artwork.images?.length > 1 && (
@@ -209,7 +217,13 @@ export default function ArtworkDetailPage({ params }: PageProps) {
                         : 'border-gray-700 hover:border-brand-gold/60'
                     }`}
                   >
-                    <img src={img} alt={`Artwork ${idx + 1}`} className="w-full h-full object-cover" />
+                    <CloudinaryResponsiveImage
+                      src={img}
+                      alt={`Artwork ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      sizes="(max-width: 768px) 25vw, 12vw"
+                      widths={[120, 180, 240, 320]}
+                    />
                   </button>
                 ))}
               </div>

@@ -4,6 +4,12 @@ const { uploadMultipleToCloudinary, replaceImages } = require('../utils/cloudina
 
 const escapeRegex = (text = '') => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const parsePositiveInt = (value, fallback, max = 200) => {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(parsed, max);
+};
+
 // Create new artwork (POST /api/artworks)
 const createArtwork = async (req, res) => {
   try {
@@ -58,7 +64,27 @@ const createArtwork = async (req, res) => {
 // Get all artworks (GET /api/artworks)
 const getAllArtworks = async (req, res) => {
   try {
-    const { category, minPrice, maxPrice, status, featured, search, artistId } = req.query;
+    const {
+      category,
+      minPrice,
+      maxPrice,
+      status,
+      featured,
+      search,
+      artistId,
+      page,
+      limit,
+      fields,
+      includeArtistProfile,
+      thumbnailOnly,
+    } = req.query;
+
+    const pageNum = parsePositiveInt(page, 1, 10000);
+    const limitNum = parsePositiveInt(limit, 0, 200);
+    const skipNum = limitNum > 0 ? (pageNum - 1) * limitNum : 0;
+    const isCardFields = fields === 'card';
+    const shouldIncludeArtistProfile = includeArtistProfile !== 'false';
+    const useThumbnailOnly = thumbnailOnly === 'true';
 
     let query = {};
 
@@ -89,29 +115,67 @@ const getAllArtworks = async (req, res) => {
 
     if (search) {
       const safe = escapeRegex(search);
-      query.$or = [
+      const searchClause = [
         { title: { $regex: safe, $options: 'i' } },
         { description: { $regex: safe, $options: 'i' } },
       ];
+
+      if (query.$or) {
+        query = { $and: [{ $or: query.$or }, { $or: searchClause }] };
+      } else {
+        query.$or = searchClause;
+      }
     }
 
-    const artworks = await Artwork.find(query)
-      .select('artist title description category price images arModelUrl status featured moderationStatus createdAt')
-      .populate({
+    let selectFields = 'artist title description category price images arModelUrl status featured moderationStatus createdAt';
+    if (isCardFields) {
+      selectFields = 'artist title category price images status featured moderationStatus createdAt';
+    }
+
+    const baseQuery = Artwork.find(query).select(selectFields).sort({ createdAt: -1 }).lean();
+
+    if (shouldIncludeArtistProfile) {
+      baseQuery.populate({
         path: 'artist',
         select: 'name email artistProfile',
         populate: {
           path: 'artistProfile',
-          select: 'bio profilePicture specializations availability',
+          select: 'profilePicture availability',
         },
-      })
-      .sort({ createdAt: -1 })
-      .lean();
+      });
+    } else {
+      baseQuery.populate({
+        path: 'artist',
+        select: 'name',
+      });
+    }
+
+    if (limitNum > 0) {
+      baseQuery.skip(skipNum).limit(limitNum);
+    }
+
+    const [artworks, total] = await Promise.all([
+      baseQuery,
+      Artwork.countDocuments(query),
+    ]);
+
+    const normalizedArtworks = useThumbnailOnly
+      ? artworks.map((artwork) => ({
+          ...artwork,
+          images: Array.isArray(artwork.images) ? artwork.images.slice(0, 1) : [],
+        }))
+      : artworks;
+
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
 
     return res.json({
       success: true,
-      count: artworks.length,
-      artworks,
+      count: normalizedArtworks.length,
+      total,
+      page: limitNum > 0 ? pageNum : 1,
+      limit: limitNum > 0 ? limitNum : total,
+      pages: limitNum > 0 ? Math.ceil(total / limitNum) : 1,
+      artworks: normalizedArtworks,
     });
   } catch (error) {
     console.error('Get artworks error:', error);

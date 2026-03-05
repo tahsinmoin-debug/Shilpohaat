@@ -18,18 +18,25 @@ type ArtistDoc = { _id: string; isFeatured: boolean; isSuspended: boolean; user?
 type BlogDoc = { _id: string; title: string; slug: string; category: string };
 type ArtistSales = { artistId: string; name: string; email: string; revenue: number; sales: number; orders: number };
 
+const ADMIN_PAGE_SIZE = 20;
+
 export default function AdminPage() {
   const router = useRouter();
   const { user, appUser, loading } = useAuth();
 
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [users, setUsers] = useState<UserDoc[]>([]);
-  const [artists, setArtists] = useState<ArtistDoc[]>([]);
   const [blogs, setBlogs] = useState<BlogDoc[]>([]);
   const [artistSales, setArtistSales] = useState<ArtistSales[]>([]);
   const [busy, setBusy] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [artworksPage, setArtworksPage] = useState(1);
+  const [artworksHasMore, setArtworksHasMore] = useState(false);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersHasMore, setUsersHasMore] = useState(false);
+  const [loadingMoreArtworks, setLoadingMoreArtworks] = useState(false);
+  const [loadingMoreUsers, setLoadingMoreUsers] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -50,6 +57,42 @@ export default function AdminPage() {
 
   const authHeaders = () => ({ 'x-firebase-uid': user?.uid || '' });
 
+  const fetchArtworksPage = async (page: number, append = false) => {
+    const headers = authHeaders();
+    const response = await fetch(
+      `${API_BASE_URL}/api/artworks?includeAll=true&fields=card&thumbnailOnly=true&includeArtistProfile=false&page=${page}&limit=${ADMIN_PAGE_SIZE}`,
+      { headers }
+    );
+    if (!response.ok) throw new Error('Failed to load artworks');
+    const data = await response.json();
+    const list = data.artworks || [];
+
+    setArtworks((prev) => (append ? [...prev, ...list] : list));
+    setArtworksPage(page);
+    setArtworksHasMore(page < (Number(data.pages) || 1));
+  };
+
+  const fetchUsersPage = async (page: number, append = false) => {
+    const headers = authHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/admin/users?page=${page}&limit=${ADMIN_PAGE_SIZE}`, { headers });
+    if (!response.ok) throw new Error('Failed to load users');
+    const data = await response.json();
+    const list = data.users || [];
+
+    setUsers((prev) => (append ? [...prev, ...list] : list));
+    setUsersPage(page);
+    setUsersHasMore(page < (Number(data.pages) || 1));
+  };
+
+  const fetchArtistsPage = async (page: number) => {
+    const headers = authHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/admin/artists?page=${page}&limit=${ADMIN_PAGE_SIZE}`, { headers });
+    if (!response.ok) throw new Error('Failed to load artists');
+    const data = await response.json();
+    const list = data.artists || [];
+    return list;
+  };
+
   const loadAll = async () => {
     setDataLoading(true);
     setError('');
@@ -58,57 +101,21 @@ export default function AdminPage() {
       const headers = authHeaders();
       console.log('Auth headers:', headers);
       
-      const [aw, u, ar, bl, as] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/artworks?includeAll=true`, { headers }),
-        fetch(`${API_BASE_URL}/api/admin/users`, { headers }),
-        fetch(`${API_BASE_URL}/api/admin/artists`, { headers }),
+      const [bl, as] = await Promise.all([
         fetch(`${API_BASE_URL}/api/blog?limit=100`, { headers }),
         fetch(`${API_BASE_URL}/api/admin/analytics/artists-sales`, { headers }),
       ]);
-      
-      console.log('Artworks response:', aw.status, aw.ok);
-      if (aw.ok) {
-        const awData = await aw.json();
-        console.log('Artworks data:', awData);
-        setArtworks(awData.artworks || []);
-      } else {
-        console.error('Artworks error:', await aw.text());
-      }
-      
-      console.log('Users response:', u.status, u.ok);
-      if (u.ok) {
-        const uData = await u.json();
-        console.log('Users data:', uData);
-        setUsers(uData.users || []);
-      } else {
-        console.error('Users error:', await u.text());
-      }
-      
-      console.log('Artists response:', ar.status, ar.ok);
-      if (ar.ok) {
-        const artistsData = (await ar.json()).artists || [];
-        console.log('Artists data:', artistsData.length);
-        setArtists(artistsData);
-        
-        // Generate demo sales data from artists
-        if (as.ok) {
-          const sales = (await as.json()).artists || [];
-          if (sales.length === 0 && artistsData.length > 0) {
-            const demo = artistsData.slice(0, 8).map((a, idx) => ({
-              artistId: a._id,
-              name: a.user?.name || `Demo Artist ${idx + 1}`,
-              email: a.user?.email || `demo${idx + 1}@example.com`,
-              revenue: Math.round((Math.random() * 50000 + 5000) * 100) / 100,
-              sales: Math.floor(Math.random() * 120) + 5,
-              orders: Math.floor(Math.random() * 40) + 3,
-            }));
-            setArtistSales(demo);
-          } else {
-            setArtistSales(sales);
-          }
-        } else {
-          console.log('Analytics failed, generating demo data');
-          const demo = artistsData.slice(0, 8).map((a, idx) => ({
+
+      const artistsData: ArtistDoc[] = await fetchArtistsPage(1);
+      await Promise.all([
+        fetchArtworksPage(1, false),
+        fetchUsersPage(1, false),
+      ]);
+
+      if (as.ok) {
+        const sales = (await as.json()).artists || [];
+        if (sales.length === 0 && artistsData.length > 0) {
+          const demo = artistsData.slice(0, 8).map((a: ArtistDoc, idx: number) => ({
             artistId: a._id,
             name: a.user?.name || `Demo Artist ${idx + 1}`,
             email: a.user?.email || `demo${idx + 1}@example.com`,
@@ -117,9 +124,19 @@ export default function AdminPage() {
             orders: Math.floor(Math.random() * 40) + 3,
           }));
           setArtistSales(demo);
+        } else {
+          setArtistSales(sales);
         }
       } else {
-        console.error('Artists error:', await ar.text());
+        const demo = artistsData.slice(0, 8).map((a: ArtistDoc, idx: number) => ({
+          artistId: a._id,
+          name: a.user?.name || `Demo Artist ${idx + 1}`,
+          email: a.user?.email || `demo${idx + 1}@example.com`,
+          revenue: Math.round((Math.random() * 50000 + 5000) * 100) / 100,
+          sales: Math.floor(Math.random() * 120) + 5,
+          orders: Math.floor(Math.random() * 40) + 3,
+        }));
+        setArtistSales(demo);
       }
       
       console.log('Blogs response:', bl.status, bl.ok);
@@ -150,6 +167,31 @@ export default function AdminPage() {
       setBusy(false);
     }
   };
+
+  const loadMoreArtworks = async () => {
+    if (loadingMoreArtworks || !artworksHasMore) return;
+    setLoadingMoreArtworks(true);
+    try {
+      await fetchArtworksPage(artworksPage + 1, true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMoreArtworks(false);
+    }
+  };
+
+  const loadMoreUsers = async () => {
+    if (loadingMoreUsers || !usersHasMore) return;
+    setLoadingMoreUsers(true);
+    try {
+      await fetchUsersPage(usersPage + 1, true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMoreUsers(false);
+    }
+  };
+
 
   return (
     <main>
@@ -240,6 +282,17 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+          {artworksHasMore && (
+            <div className="mt-3 flex justify-center">
+              <button
+                onClick={loadMoreArtworks}
+                disabled={loadingMoreArtworks}
+                className="px-4 py-2 rounded bg-brand-gold text-[#0b1926] font-semibold disabled:opacity-60"
+              >
+                {loadingMoreArtworks ? 'Loading...' : 'Load More Artworks'}
+              </button>
+            </div>
+          )}
         </section>
 
         {/* Users management */}
@@ -274,6 +327,17 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+          {usersHasMore && (
+            <div className="mt-3 flex justify-center">
+              <button
+                onClick={loadMoreUsers}
+                disabled={loadingMoreUsers}
+                className="px-4 py-2 rounded bg-brand-gold text-[#0b1926] font-semibold disabled:opacity-60"
+              >
+                {loadingMoreUsers ? 'Loading...' : 'Load More Users'}
+              </button>
+            </div>
+          )}
         </section>
 
         {/* Blogs */}

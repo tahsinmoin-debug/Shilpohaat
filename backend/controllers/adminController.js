@@ -7,6 +7,12 @@ const BlogPost = require('../models/BlogPost');
 const { deleteFromCloudinary, extractPublicId } = require('../utils/cloudinary');
 const Order = require('../models/Order');
 
+const parsePositiveInt = (value, fallback, max = 200) => {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(parsed, max);
+};
+
 // Overview counts
 const getOverview = async (req, res) => {
   try {
@@ -96,11 +102,27 @@ const removeArtwork = async (req, res) => {
 // Users management
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({})
+    const pageNum = parsePositiveInt(req.query.page, 1, 10000);
+    const limitNum = parsePositiveInt(req.query.limit, 20, 200);
+    const skipNum = (pageNum - 1) * limitNum;
+
+    const [users, total] = await Promise.all([
+      User.find({})
       .select('name email role isSuspended')
       .sort({ createdAt: -1 })
-      .lean();
-    res.json({ users });
+      .skip(skipNum)
+      .limit(limitNum)
+      .lean(),
+      User.countDocuments({}),
+    ]);
+
+    res.json({
+      users,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum),
+    });
   } catch (err) {
     console.error('Get users error:', err);
     res.status(500).json({ message: 'Server error.' });
@@ -123,12 +145,28 @@ const suspendUser = async (req, res) => {
 // Artists management
 const getArtists = async (req, res) => {
   try {
-    const artists = await ArtistProfile.find({})
+    const pageNum = parsePositiveInt(req.query.page, 1, 10000);
+    const limitNum = parsePositiveInt(req.query.limit, 20, 200);
+    const skipNum = (pageNum - 1) * limitNum;
+
+    const [artists, total] = await Promise.all([
+      ArtistProfile.find({})
       .select('user bio isFeatured isSuspended availability rating totalArtworks createdAt')
       .populate('user', 'name email role')
       .sort({ createdAt: -1 })
-      .lean();
-    res.json({ artists });
+      .skip(skipNum)
+      .limit(limitNum)
+      .lean(),
+      ArtistProfile.countDocuments({}),
+    ]);
+
+    res.json({
+      artists,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum),
+    });
   } catch (err) {
     console.error('Get artists error:', err);
     res.status(500).json({ message: 'Server error.' });

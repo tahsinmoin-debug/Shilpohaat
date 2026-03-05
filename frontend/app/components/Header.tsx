@@ -73,8 +73,16 @@ export default function Header() {
               {t('nav.artists') || 'Artists'}
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
+            <Link href="/categories" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+              {t('nav.categories') || 'Categories'}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
             <Link href="/blog" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
               {t('nav.blog') || 'Blog'}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link href="/wishlist" className="font-sans text-white hover:text-brand-gold transition-colors relative group">
+              Wishlist
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </nav>
@@ -94,6 +102,16 @@ export default function Header() {
               <Link href="/artist/dashboard" className="hidden lg:block bg-brand-gold text-[#0b1926] px-4 py-1.5 rounded-full text-xs font-bold hover:bg-yellow-500 transition-all shadow-md">
                 ARTIST STUDIO
               </Link>
+            )}
+
+            {!loading && user && (
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Link href="/messages" className="relative text-white hover:text-brand-gold transition-colors" aria-label="Messages">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </Link>
+              </motion.div>
             )}
 
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>

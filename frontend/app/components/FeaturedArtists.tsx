@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useI18n } from './LanguageProvider';
+import CloudinaryResponsiveImage from './CloudinaryResponsiveImage';
 import { API_BASE_URL } from '@/lib/config';
 
 interface Artist {
@@ -33,7 +33,7 @@ export default function FeaturedArtists() {
   React.useEffect(() => {
     const fetchFeaturedArtists = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/artist/featured?limit=6`);
+        const res = await fetch(`${API_BASE_URL}/api/artist/featured?limit=6&thumbnailOnly=true`);
         const data = await res.json();
         setArtists(data.artists || []);
       } catch (error) {
@@ -88,12 +88,12 @@ export default function FeaturedArtists() {
               {/* Artist Cover Image */}
               <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
                 {artist.portfolioImages?.[0] ? (
-                  <Image
+                  <CloudinaryResponsiveImage
                     src={artist.portfolioImages[0]}
                     alt={artist.bio}
-                    width={400}
-                    height={256}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    widths={[320, 480, 640, 800]}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -120,12 +120,12 @@ export default function FeaturedArtists() {
                   {/* Profile Picture */}
                   <div className="relative flex-shrink-0">
                     {artist.profilePicture ? (
-                      <Image
+                      <CloudinaryResponsiveImage
                         src={artist.profilePicture}
                         alt={artist.bio}
-                        width={64}
-                        height={64}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-700"
+                        sizes="64px"
+                        widths={[64, 96, 128]}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600">

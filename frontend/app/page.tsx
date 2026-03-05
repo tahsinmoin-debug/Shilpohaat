@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import Header from './components/Header';
 import FeaturedArtists from './components/FeaturedArtists';
+import CloudinaryResponsiveImage from './components/CloudinaryResponsiveImage';
 import { useI18n } from './components/LanguageProvider';
 import { motion } from 'framer-motion';
 
@@ -93,9 +93,9 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   React.useEffect(() => {
     const fetchFeaturedArtworks = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/artworks?featured=true`);
+        const res = await fetch(`${API_BASE_URL}/api/artworks?featured=true&limit=4&fields=card&thumbnailOnly=true&includeArtistProfile=false`);
         const data = await res.json();
-        setArtworks(data.artworks?.slice(0, 4) || []);
+        setArtworks(data.artworks || []);
       } catch (error) {
         console.error('Failed to fetch featured artworks:', error);
         setArtworks([]);
@@ -167,12 +167,12 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
               >
                 {/* Artwork Image with AR Badge */}
                 <div className="relative h-[320px] w-full overflow-hidden">
-                  <Image
+                  <CloudinaryResponsiveImage
                     src={artwork.images?.[0] || 'https://placehold.co/400x400/555/FFF.png'}
                     alt={artwork.title}
-                    width={400}
-                    height={320}
                     className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    widths={[320, 480, 640, 800]}
                   />
                   {/* AR Badge */}
                   {artwork.category && (
@@ -270,7 +270,13 @@ function CategoriesShowcase() {
             >
               <Link href={`/artworks?category=${encodeURIComponent(cat.name)}`} className="group rounded-xl overflow-hidden relative block">
                 <div className="h-56 w-full overflow-hidden">
-                  <Image src={cat.image} alt={cat.name} width={600} height={300} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <CloudinaryResponsiveImage
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    widths={[320, 480, 640, 960]}
+                  />
                 </div>
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
                 <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between">
@@ -382,7 +388,13 @@ function BlogPreview() {
             >
               <Link href={`/blog/${post.slug}`} className="glass-card rounded-xl overflow-hidden hover:shadow-2xl block group">
                 <div className="relative h-56 w-full overflow-hidden">
-                  <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <CloudinaryResponsiveImage
+                    src={post.coverImage}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    widths={[320, 480, 640, 800]}
+                  />
                 </div>
                 <div className="p-5">
                   <h3 className="text-white font-heading text-xl mb-2 line-clamp-2 group-hover:text-brand-gold transition-colors">{post.title}</h3>

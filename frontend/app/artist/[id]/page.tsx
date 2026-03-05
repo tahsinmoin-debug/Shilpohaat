@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_BASE_URL } from '@/lib/config';
 import Header from '../../components/Header';
+import CloudinaryResponsiveImage from '../../components/CloudinaryResponsiveImage';
 
 interface ArtistProfile {
   _id: string;
@@ -115,19 +116,23 @@ export default function ArtistDetailPage({ params }: PageProps) {
 
       {/* Hero */}
       <section className="relative h-[320px] w-full overflow-hidden">
-        <img
+        <CloudinaryResponsiveImage
           src={coverImage}
           alt={artist.user.name}
           className="w-full h-full object-cover blur-sm scale-105"
+          sizes="100vw"
+          widths={[640, 960, 1200, 1600, 1920]}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/70 to-transparent" />
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4 flex items-center gap-6">
             <div className="relative w-24 h-24">
-              <img
+              <CloudinaryResponsiveImage
                 src={artist.profilePicture || 'https://placehold.co/200x200/555/fff.png?text=Artist'}
                 alt={artist.user.name}
                 className="w-24 h-24 rounded-full object-cover border-4 border-gray-900 shadow-xl"
+                sizes="96px"
+                widths={[96, 128, 192]}
               />
               <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-900 ${availabilityColor}`}></span>
             </div>
@@ -205,7 +210,13 @@ export default function ArtistDetailPage({ params }: PageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {artist.portfolioImages.map((img, idx) => (
                 <div key={idx} className="relative aspect-square overflow-hidden rounded-lg border border-gray-700">
-                  <img src={img} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
+                  <CloudinaryResponsiveImage
+                    src={img}
+                    alt={`Portfolio ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 33vw, 25vw"
+                    widths={[320, 480, 640, 800]}
+                  />
                 </div>
               ))}
             </div>
@@ -230,10 +241,12 @@ export default function ArtistDetailPage({ params }: PageProps) {
                   className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700 hover:border-brand-gold/70 transition-all group"
                 >
                   <div className="relative aspect-square overflow-hidden bg-gray-800">
-                    <img
+                    <CloudinaryResponsiveImage
                       src={art.images?.[0] || 'https://placehold.co/400x400/444/fff.png'}
                       alt={art.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                      widths={[320, 480, 640, 768]}
                     />
                     {art.status !== 'available' && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full uppercase">

@@ -6,7 +6,10 @@ import Header from '../components/Header';
 import WishlistButton from '../components/WishlistButton';
 import { ArtworkCardSkeleton } from '../components/Skeleton';
 import SearchInterface from '../components/Filters/SearchInterface';
+import CloudinaryResponsiveImage from '../components/CloudinaryResponsiveImage';
 import { API_BASE_URL } from '@/lib/config';
+
+const PAGE_SIZE = 24;
 
 interface Artwork {
   _id: string;
@@ -38,27 +41,48 @@ export default function ArtworksPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [filteredArtworks, setFilteredArtworks] = useState<Artwork[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    const fetchArtworks = async () => {
-      try {
+  const fetchArtworks = useCallback(async (pageToLoad: number, append: boolean) => {
+    try {
+      if (append) {
+        setLoadingMore(true);
+      } else {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/api/artworks`);
-        const data = await res.json();
-        const allArtworks = data.artworks || [];
-        setArtworks(allArtworks);
-        setFilteredArtworks(allArtworks);
-      } catch (error) {
-        console.error('Failed to fetch artworks:', error);
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/artworks?fields=card&thumbnailOnly=true&includeArtistProfile=true&page=${pageToLoad}&limit=${PAGE_SIZE}`);
+      const data = await res.json();
+      const pageArtworks = data.artworks || [];
+
+      setArtworks((prev) => (append ? [...prev, ...pageArtworks] : pageArtworks));
+      if (!append) {
+        setFilteredArtworks(pageArtworks);
+      }
+
+      const totalPages = Number(data.pages) || 1;
+      setCurrentPage(pageToLoad);
+      setHasMore(pageToLoad < totalPages);
+    } catch (error) {
+      console.error('Failed to fetch artworks:', error);
+      if (!append) {
         setArtworks([]);
         setFilteredArtworks([]);
-      } finally {
+      }
+    } finally {
+      if (append) {
+        setLoadingMore(false);
+      } else {
         setLoading(false);
       }
-    };
-
-    fetchArtworks();
+    }
   }, []);
+
+  useEffect(() => {
+    fetchArtworks(1, false);
+  }, [fetchArtworks]);
 
   const handleArtworkClick = (id: string) => {
     router.push(`/artworks/${id}`);
@@ -72,6 +96,11 @@ export default function ArtworksPage() {
   const handleFilteredResultsChange = useCallback((filtered: Artwork[]) => {
     setFilteredArtworks(filtered);
   }, []);
+
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchArtworks(currentPage + 1, true);
+  };
 
   return (
     <main className="min-h-screen">
@@ -114,10 +143,12 @@ export default function ArtworksPage() {
                 className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
               >
                 <div className="relative aspect-square overflow-hidden bg-gray-700">
-                  <img
+                  <CloudinaryResponsiveImage
                     src={artwork.images[0] || 'https://placehold.co/400x400/333/fff.png'}
                     alt={artwork.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                    widths={[320, 480, 640, 768]}
                   />
 
                   <div className="absolute top-3 right-3 z-10" onClick={(e) => e.stopPropagation()}>
@@ -148,10 +179,12 @@ export default function ArtworksPage() {
                     className="flex items-center gap-2 mb-3 hover:text-brand-gold transition-colors"
                   >
                     <div className="relative">
-                      <img
+                      <CloudinaryResponsiveImage
                         src={artwork.artist.artistProfile?.profilePicture || 'https://placehold.co/32x32/666/fff.png'}
                         alt={artwork.artist.name}
                         className="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
+                        sizes="32px"
+                        widths={[32, 48, 64]}
                       />
                       <span
                         className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${
@@ -173,6 +206,18 @@ export default function ArtworksPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {!loading && hasMore && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-6 py-3 bg-brand-gold text-[#0b1926] font-semibold rounded-lg hover:bg-brand-gold-antique transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loadingMore ? 'Loading more...' : 'Load More Artworks'}
+            </button>
           </div>
         )}
       </div>

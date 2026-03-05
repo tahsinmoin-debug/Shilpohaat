@@ -39,8 +39,10 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
     shop: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>,
     workshop: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.069A1 1 0 0121 8.869v6.262a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" /></svg>,
     artists: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+    categories: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h8V3H3v4zm0 14h8v-10H3v10zm10 0h8v-4h-8v4zm0-8h8V3h-8v10z" /></svg>,
     blog: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h8M7 16h6" /></svg>,
     cart: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+    messages: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
     heart: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>,
     about: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>,
     dashboard: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2" /></svg>,
@@ -180,11 +182,23 @@ export default function SidebarNav({ isOpen, onClose }: SidebarNavProps) {
               <span className="text-brand-gold">{icons.artists}</span>
               <span className="text-base text-white">{t('nav.artists') || 'Artists'}</span>
             </Link>
+            {/* Categories */}
+            <Link href="/categories" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 transition-colors" onClick={onClose}>
+              <span className="text-brand-gold">{icons.categories}</span>
+              <span className="text-base text-white">{t('nav.categories') || 'Categories'}</span>
+            </Link>
             {/* Blog */}
             <Link href="/blog" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 transition-colors" onClick={onClose}>
               <span className="text-brand-gold">{icons.blog}</span>
               <span className="text-base text-white">{t('nav.blog') || 'Blog'}</span>
             </Link>
+            {/* Messages */}
+            {user && (
+              <Link href="/messages" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 transition-colors" onClick={onClose}>
+                <span className="text-brand-gold">{icons.messages}</span>
+                <span className="text-base text-white">Messages</span>
+              </Link>
+            )}
             {/* Cart */}
             <Link href="/cart" className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/10 transition-colors" onClick={onClose}>
               <span className="text-brand-gold">{icons.cart}</span>
