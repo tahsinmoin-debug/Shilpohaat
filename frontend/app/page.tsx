@@ -24,24 +24,33 @@ interface Artwork {
 
 
 // HERO COMPONENT
-function Hero({ t }: { t: (key: string) => string }) {
+function Hero() {
   // Keep the hero headline in Bengali regardless of language selection
   const headingBn = 'প্রতিটি তুলির টানে, একটি নতুন গল্প';
   const subheadingBn = 'বাংলাদেশের স্থানীয় শিল্পীদের অসাধারণ সৃজনশীলতা আবিষ্কার করুন';
   return (
-    <section className="relative h-[560px] md:h-[620px] w-full overflow-hidden">
+    <section className="relative h-[560px] sm:h-[620px] md:h-[680px] w-full overflow-hidden">
       {/* Softer overlay so the artwork stays visible */}
       <div className="absolute inset-0 bg-[rgba(6,21,35,0.28)] backdrop-blur-[1.5px]"></div>
 
       {/* Content */}
       <div className="relative h-full container mx-auto px-4 flex items-center justify-center">
-        <div className="max-w-3xl md:max-w-4xl text-center">
+        <div className="max-w-4xl text-center rounded-2xl border border-white/20 bg-[rgba(6,21,35,0.34)] px-4 py-8 sm:px-6 sm:py-10 md:px-10 md:py-14 shadow-2xl backdrop-blur-sm">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="font-sans inline-flex items-center gap-2 text-xs md:text-sm uppercase tracking-[0.18em] text-brand-gold mb-5 font-semibold"
+          >
+            Crafted in Bangladesh
+          </motion.p>
+
           {/* Heading - Bold & Emotional */}
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="font-heading text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold mb-6 md:mb-8 leading-tight tracking-tight drop-shadow-2xl"
+            className="font-heading text-4xl md:text-6xl lg:text-7xl text-white font-bold mb-5 md:mb-6 leading-tight tracking-tight drop-shadow-2xl"
           >
             {headingBn}
           </motion.h1>
@@ -51,7 +60,7 @@ function Hero({ t }: { t: (key: string) => string }) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="font-sans text-xl md:text-2xl text-gray-100 mb-10 md:mb-12 leading-relaxed max-w-2xl mx-auto drop-shadow-lg"
+            className="font-sans text-base md:text-xl text-gray-100 mb-8 md:mb-10 leading-relaxed max-w-2xl mx-auto drop-shadow-lg"
           >
             {subheadingBn}
           </motion.p>
@@ -61,20 +70,40 @@ function Hero({ t }: { t: (key: string) => string }) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row gap-5 justify-center"
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link
               href="/artworks"
-              className="font-sans inline-flex items-center justify-center px-12 md:px-14 py-4 bg-brand-gold text-[#0b1926] font-extrabold rounded-lg hover:bg-brand-gold-antique hover:scale-105 transition-all duration-300 text-center shadow-2xl text-lg ring-2 ring-white/10"
+              className="font-sans inline-flex items-center justify-center px-10 md:px-12 py-3.5 bg-brand-gold text-[#0b1926] font-extrabold rounded-lg hover:bg-brand-gold-antique hover:scale-105 transition-all duration-300 text-center shadow-2xl text-base md:text-lg ring-2 ring-white/10"
             >
               Explore Artworks
             </Link>
             <Link
               href="/artists"
-              className="font-sans inline-block px-12 md:px-14 py-4 bg-transparent text-white font-semibold rounded-lg border-2 border-white/80 hover:bg-white/10 hover:border-white transition-all duration-300 text-center text-lg"
+              className="font-sans inline-block px-10 md:px-12 py-3.5 bg-transparent text-white font-semibold rounded-lg border-2 border-white/80 hover:bg-white/10 hover:border-white transition-all duration-300 text-center text-base md:text-lg"
             >
               Meet the Artists
             </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}
+            className="mt-6 hidden sm:grid grid-cols-3 gap-3 text-left"
+          >
+            <div className="rounded-lg border border-white/15 bg-[rgba(11,36,56,0.55)] px-4 py-3">
+              <p className="text-brand-gold text-sm font-semibold">500+ Artworks</p>
+              <p className="text-gray-200 text-sm">Curated originals</p>
+            </div>
+            <div className="rounded-lg border border-white/15 bg-[rgba(11,36,56,0.55)] px-4 py-3">
+              <p className="text-brand-gold text-sm font-semibold">Local Artists</p>
+              <p className="text-gray-200 text-sm">Across Bangladesh</p>
+            </div>
+            <div className="rounded-lg border border-white/15 bg-[rgba(11,36,56,0.55)] px-4 py-3">
+              <p className="text-brand-gold text-sm font-semibold">Secure Checkout</p>
+              <p className="text-gray-200 text-sm">Trusted transactions</p>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -86,7 +115,7 @@ function Hero({ t }: { t: (key: string) => string }) {
 
 import { API_BASE_URL } from '@/lib/config';
 
-function FeaturedArtworks({ t }: { t: (key: string) => string }) {
+function FeaturedArtworks() {
   const [artworks, setArtworks] = React.useState<Artwork[]>([]); // ← Fixed type
   const [loading, setLoading] = React.useState(true);
 
@@ -127,7 +156,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-t border-b border-white/10">
+    <section className="py-12 md:py-20 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         {/* Heading */}
         <motion.h2 
@@ -152,7 +181,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
         </motion.p>
 
         {/* Artworks Grid - Show 6 max */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 max-w-6xl mx-auto">
           {artworks.slice(0, 6).map((artwork, index) => (
             <motion.div
               key={artwork._id}
@@ -166,7 +195,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
                 className="glass-card rounded-xl overflow-hidden hover:shadow-2xl group block"
               >
                 {/* Artwork Image with AR Badge */}
-                <div className="relative h-[320px] w-full overflow-hidden">
+                <div className="relative h-72 sm:h-[320px] w-full overflow-hidden">
                   <CloudinaryResponsiveImage
                     src={artwork.images?.[0] || 'https://placehold.co/400x400/555/FFF.png'}
                     alt={artwork.title}
@@ -177,8 +206,10 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
                   {/* AR Badge */}
                   {artwork.category && (
                     <div className="absolute top-3 right-3 bg-brand-gold/95 text-gray-900 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg backdrop-blur-sm">
-                      <span className="text-sm">🔥</span>
-                      AR Ready
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2l1.5 4.5L18 8l-3 3 .7 4.5L12 13l-3.7 2.5L9 11 6 8l4.5-1.5L12 2z" />
+                      </svg>
+                      Spotlight
                     </div>
                   )}
                 </div>
@@ -198,15 +229,9 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
                     ৳{artwork.price?.toLocaleString()}
                   </p>
                   
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Cart functionality coming soon!');
-                    }}
-                    className="w-full bg-brand-gold text-[#0b1926] font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg"
-                  >
+                  <div className="w-full bg-brand-gold text-[#0b1926] font-bold py-3 px-4 rounded-lg hover:bg-brand-gold-antique transition-colors shadow-lg text-center">
                     View Details
-                  </button>
+                  </div>
                 </div>
               </Link>
             </motion.div>
@@ -225,7 +250,7 @@ function FeaturedArtworks({ t }: { t: (key: string) => string }) {
             href="/artworks"
             className="inline-block px-8 py-3 bg-transparent text-white font-semibold rounded-lg border-2 border-brand-gold hover:bg-brand-gold hover:text-gray-900 transition-all duration-300"
           >
-            View All Artworks →
+            View All Artworks
           </Link>
         </motion.div>
       </div>
@@ -245,8 +270,82 @@ const HOMEPAGE_CATEGORIES: CategoryTile[] = [
 ];
 
 function CategoriesShowcase() {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [visibleCount, setVisibleCount] = React.useState(3);
+  const [isPaused, setIsPaused] = React.useState(false);
+  const touchStartXRef = React.useRef<number | null>(null);
+  const touchDeltaXRef = React.useRef(0);
+  const total = HOMEPAGE_CATEGORIES.length;
+  const maxIndex = Math.max(0, total - visibleCount);
+
+  const goNext = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  }, [maxIndex]);
+
+  const goPrev = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  }, [maxIndex]);
+
+  React.useEffect(() => {
+    const updateVisibleCount = () => {
+      if (window.innerWidth < 768) {
+        setVisibleCount(1);
+      } else if (window.innerWidth < 1024) {
+        setVisibleCount(2);
+      } else {
+        setVisibleCount(3);
+      }
+    };
+
+    updateVisibleCount();
+    window.addEventListener('resize', updateVisibleCount);
+    return () => window.removeEventListener('resize', updateVisibleCount);
+  }, []);
+
+  React.useEffect(() => {
+    setCurrentIndex(0);
+  }, [visibleCount]);
+
+  React.useEffect(() => {
+    if (total <= visibleCount) return;
+    if (isPaused) return;
+
+    const intervalId = setInterval(() => {
+      goNext();
+    }, 3200);
+
+    return () => clearInterval(intervalId);
+  }, [goNext, isPaused, total, visibleCount]);
+
+  const cardBasis = visibleCount === 1 ? '100%' : visibleCount === 2 ? '50%' : '33.3333%';
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchDeltaXRef.current = 0;
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartXRef.current === null) return;
+    touchDeltaXRef.current = e.touches[0].clientX - touchStartXRef.current;
+  };
+
+  const handleTouchEnd = () => {
+    const threshold = 50;
+    if (Math.abs(touchDeltaXRef.current) > threshold) {
+      if (touchDeltaXRef.current < 0) {
+        goNext();
+      } else {
+        goPrev();
+      }
+    }
+    touchStartXRef.current = null;
+    touchDeltaXRef.current = 0;
+    setIsPaused(false);
+  };
+
   return (
-    <section className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-b border-white/10">
+    <section className="py-14 md:py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -259,34 +358,54 @@ function CategoriesShowcase() {
           <p className="font-sans text-gray-300 max-w-xl mx-auto">Find artworks by style and medium</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {HOMEPAGE_CATEGORIES.map((cat, index) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Link href={`/artworks?category=${encodeURIComponent(cat.name)}`} className="group rounded-xl overflow-hidden relative block">
-                <div className="h-56 w-full overflow-hidden">
-                  <CloudinaryResponsiveImage
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                    widths={[320, 480, 640, 960]}
-                  />
-                </div>
-                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
-                <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between">
-                  <h3 className="text-white font-heading text-xl">{cat.name}</h3>
-                  <span className="px-4 py-1.5 bg-brand-gold text-gray-900 text-sm font-semibold rounded-full group-hover:scale-110 transition-transform">Browse</span>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+        <div
+          className="max-w-6xl mx-auto overflow-hidden touch-pan-y"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <motion.div
+            animate={{ x: `-${(currentIndex * 100) / visibleCount}%` }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="flex -mx-2"
+          >
+            {HOMEPAGE_CATEGORIES.map((cat) => (
+              <div key={cat.id} className="shrink-0 px-2" style={{ flexBasis: cardBasis }}>
+                <Link href={`/artworks?category=${encodeURIComponent(cat.name)}`} className="group rounded-xl overflow-hidden relative block">
+                  <div className="h-48 sm:h-56 w-full overflow-hidden">
+                    <CloudinaryResponsiveImage
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      widths={[320, 480, 640, 960]}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+                  <div className="absolute inset-x-0 bottom-0 p-5 flex items-center justify-between">
+                    <h3 className="text-white font-heading text-xl">{cat.name}</h3>
+                    <span className="px-4 py-1.5 bg-brand-gold text-gray-900 text-sm font-semibold rounded-full group-hover:scale-110 transition-transform">Browse</span>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </motion.div>
         </div>
+
+        {maxIndex > 0 && (
+          <div className="flex justify-center mt-6 gap-2">
+            {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                aria-label={`Go to category slide ${idx + 1}`}
+                className={`h-2 rounded-full transition-all ${idx === currentIndex ? 'w-8 bg-brand-gold' : 'w-2 bg-white/40 hover:bg-white/70'}`}
+              />
+            ))}
+          </div>
+        )}
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -295,7 +414,7 @@ function CategoriesShowcase() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mt-10"
         >
-          <Link href="/categories" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Browse All Categories →</Link>
+          <Link href="/categories" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Browse All Categories</Link>
         </motion.div>
       </div>
     </section>
@@ -305,13 +424,13 @@ function CategoriesShowcase() {
 // TRUST SECTION
 function TrustSection() {
   const items = [
-    { icon: '✔', title: 'Verified Local Artists', desc: 'Profiles reviewed for authenticity' },
-    { icon: '✔', title: 'Secure Payments', desc: 'Protected checkout experience' },
-    { icon: '✔', title: 'Handcrafted Originals', desc: 'Unique pieces, no mass copies' },
-    { icon: '✔', title: 'AR Preview Before Buying', desc: 'See art in your space' },
+    { title: 'Verified Local Artists', desc: 'Profiles reviewed for authenticity' },
+    { title: 'Secure Payments', desc: 'Protected checkout experience' },
+    { title: 'Handcrafted Originals', desc: 'Unique pieces, no mass copies' },
+    { title: 'AR Preview Before Buying', desc: 'See art in your space' },
   ];
   return (
-    <section className="py-20 bg-[rgba(6,21,35,0.26)] backdrop-blur-sm border-t border-b border-white/10">
+    <section className="py-14 md:py-20 bg-[rgba(6,21,35,0.26)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -332,7 +451,11 @@ function TrustSection() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="glass-card rounded-xl p-6 text-center"
             >
-              <div className="text-2xl mb-3 text-brand-gold">{it.icon}</div>
+              <div className="mb-3 text-brand-gold inline-flex">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
               <p className="text-white font-semibold mb-2">{it.title}</p>
               <p className="text-gray-400 text-sm">{it.desc}</p>
             </motion.div>
@@ -354,7 +477,7 @@ function BlogPreview() {
         const res = await fetch(`${API_BASE_URL}/api/blog`);
         const data = await res.json();
         setPosts((data.posts || []).slice(0, 3));
-      } catch (e) {
+      } catch {
         setPosts([]);
       } finally {
         setLoading(false);
@@ -365,7 +488,7 @@ function BlogPreview() {
   if (loading) return null;
   if (posts.length === 0) return null;
   return (
-    <section className="py-20 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
+    <section className="py-14 md:py-20 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -411,7 +534,7 @@ function BlogPreview() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mt-10"
         >
-          <Link href="/blog" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Read Stories →</Link>
+          <Link href="/blog" className="inline-block px-8 py-3 border-2 border-brand-gold text-white rounded-lg hover:bg-brand-gold hover:text-gray-900 transition-all">Read Stories</Link>
         </motion.div>
       </div>
     </section>
@@ -421,7 +544,7 @@ function BlogPreview() {
 // FOOTER COMPONENT
 function Footer({ t }: { t: (key: string) => string }) {
   return (
-    <footer className="py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-white/10">
+    <footer className="py-14 md:py-20 bg-[rgba(6,21,35,0.34)] backdrop-blur-sm border-t border-white/10">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Column 1: Logo and Mission */}
@@ -533,13 +656,15 @@ export default function Home() {
   return (
     <main>
       <Header />
-      <Hero t={t} />
+      <Hero />
       <CategoriesShowcase />
       <FeaturedArtists /> {/* NEW: Featured Artists Section */}
-      <FeaturedArtworks t={t} />
+      <FeaturedArtworks />
       <TrustSection />
       <BlogPreview />
       <Footer t={t} />
     </main>
   );
 }
+
+

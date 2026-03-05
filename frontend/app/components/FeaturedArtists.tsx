@@ -62,23 +62,23 @@ export default function FeaturedArtists() {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
+    <section className="py-14 md:py-20 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-t border-b border-white/10">
       <div className="container mx-auto px-4">
         {/* Section Header - More Emotional */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10 md:mb-12">
           <p className="font-sans text-brand-gold text-sm uppercase tracking-wider mb-3 font-semibold">
             Meet the Creators
           </p>
-          <h2 className="font-heading text-4xl md:text-5xl text-white mb-4">
+          <h2 className="font-heading text-3xl md:text-4xl text-white mb-3">
             Meet the creators behind the canvas
           </h2>
-          <p className="font-sans text-gray-300 text-lg max-w-2xl mx-auto">
+          <p className="font-sans text-gray-300 text-base md:text-lg max-w-2xl mx-auto">
             Discover the artists bringing these masterpieces to life
           </p>
         </div>
 
         {/* Artists Grid - Show 6 max */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 max-w-6xl mx-auto">
           {artists.slice(0, 6).map((artist) => (
             <Link
               key={artist._id}
@@ -86,14 +86,17 @@ export default function FeaturedArtists() {
               className="glass-card rounded-xl overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 group hover:border-brand-gold/50"
             >
               {/* Artist Cover Image */}
-              <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
+              <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
                 {artist.portfolioImages?.[0] ? (
                   <CloudinaryResponsiveImage
                     src={artist.portfolioImages[0]}
-                    alt={artist.bio}
+                    alt={artist.user?.name || 'Artist portfolio'}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     widths={[320, 480, 640, 800]}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -115,17 +118,20 @@ export default function FeaturedArtists() {
               </div>
 
               {/* Artist Info */}
-              <div className="p-6">
+              <div className="p-5 sm:p-6">
                 <div className="flex items-start gap-4 mb-4">
                   {/* Profile Picture */}
                   <div className="relative flex-shrink-0">
                     {artist.profilePicture ? (
                       <CloudinaryResponsiveImage
                         src={artist.profilePicture}
-                        alt={artist.bio}
+                        alt={artist.user?.name || 'Artist'}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-700"
                         sizes="64px"
                         widths={[64, 96, 128]}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600">
@@ -217,3 +223,4 @@ export default function FeaturedArtists() {
     </section>
   );
 }
+
