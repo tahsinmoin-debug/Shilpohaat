@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const compression = require('compression');
 
@@ -90,6 +91,7 @@ app.post('/api/payments/stripe/webhook', express.raw({ type: 'application/json' 
 app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;

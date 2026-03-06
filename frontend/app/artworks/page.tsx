@@ -106,9 +106,9 @@ export default function ArtworksPage() {
     <main className="min-h-screen">
       <Header />
 
-      <section className="text-white py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10">
+      <section className="text-white py-10 md:py-16 bg-[rgba(6,21,35,0.3)] backdrop-blur-sm border-b border-white/10">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-4xl font-heading mb-3">Discover Authentic Artworks</h1>
+          <h1 className="text-2xl md:text-4xl font-heading mb-3">Discover Authentic Artworks</h1>
           <p className="text-base md:text-lg text-gray-200 max-w-2xl mx-auto">Explore unique creations by talented Bengali artists</p>
         </div>
       </section>
@@ -117,15 +117,15 @@ export default function ArtworksPage() {
         <SearchInterface artworks={artworks} onFilteredResultsChange={handleFilteredResultsChange} />
       )}
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 md:py-6">
         <p className="text-sm text-gray-300">
           {loading ? 'Loading...' : `${filteredArtworks.length} ${filteredArtworks.length === 1 ? 'artwork' : 'artworks'} found`}
         </p>
       </div>
 
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-4 pb-24 md:pb-16">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <ArtworkCardSkeleton key={index} />
             ))}
@@ -135,12 +135,12 @@ export default function ArtworksPage() {
             <p className="text-gray-400 text-lg">No artworks found matching your criteria</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredArtworks.map((artwork) => (
               <div
                 key={artwork._id}
                 onClick={() => handleArtworkClick(artwork._id)}
-                className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
+                className="bg-gray-800 rounded-lg overflow-hidden shadow-lg md:hover:shadow-2xl md:hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               >
                 <div className="relative aspect-square overflow-hidden bg-gray-700">
                   <CloudinaryResponsiveImage
@@ -199,9 +199,8 @@ export default function ArtworksPage() {
                     <p className="text-sm text-gray-400">{artwork.artist.name}</p>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center">
                     <p className="text-lg font-bold text-brand-gold">Tk {artwork.price.toLocaleString()}</p>
-                    <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">{artwork.category}</span>
                   </div>
                 </div>
               </div>

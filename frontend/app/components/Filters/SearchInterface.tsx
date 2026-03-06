@@ -152,21 +152,18 @@ export default function SearchInterface({
   }, []);
 
   return (
-    <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
-      <div className="container mx-auto px-4 py-4">
+    <div className="bg-[rgba(6,21,35,0.45)] backdrop-blur-md border-b border-white/10 md:sticky md:top-20 z-40">
+      <div className="container mx-auto px-4 py-3 md:py-4">
         {/* Basic Filters */}
         <BasicFilters
           searchQuery={filters.searchQuery}
           onSearchChange={handleSearchChange}
           sortBy={filters.sortBy}
           onSortChange={handleSortChange}
-          category={filters.category}
-          onCategoryChange={handleCategoryChange}
-          categories={CATEGORIES}
         />
 
         {/* Advanced Filters Toggle and Clear Button */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3 md:mt-4">
           <AdvancedFiltersToggle
             isOpen={isAdvancedPanelOpen}
             onToggle={handleToggleAdvanced}
@@ -200,6 +197,9 @@ export default function SearchInterface({
           onStatusChange={handleStatusChange}
           dimensions={filters.dimensions}
           onDimensionsChange={handleDimensionsChange}
+          categories={CATEGORIES}
+          selectedCategory={filters.category}
+          onCategoryChange={handleCategoryChange}
         />
       </div>
     </div>

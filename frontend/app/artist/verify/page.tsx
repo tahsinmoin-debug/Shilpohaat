@@ -95,12 +95,28 @@ export default function VerificationPage() {
         body: formData
       });
 
-      if (!res.ok) throw new Error('Upload failed');
-      
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = null;
+
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const raw = await res.text();
+        const preview = raw.slice(0, 120);
+        throw new Error(`Invalid response from upload API (${res.status}). ${preview}`);
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || `Upload failed (${res.status})`);
+      }
+
+      if (!data?.url) {
+        throw new Error('Upload completed but no file URL was returned');
+      }
+
       return data.url;
-    } catch (err) {
-      throw new Error('Failed to upload NID document');
+    } catch (err: any) {
+      throw new Error(err?.message || 'Failed to upload NID document');
     } finally {
       setIsUploading(false);
     }
@@ -136,7 +152,15 @@ export default function VerificationPage() {
         })
       });
 
-      const data = await res.json();
+      const submitContentType = res.headers.get('content-type') || '';
+      let data: any = null;
+      if (submitContentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const raw = await res.text();
+        const preview = raw.slice(0, 120);
+        throw new Error(`Invalid response from verification API (${res.status}). ${preview}`);
+      }
 
       if (!res.ok) {
         throw new Error(data.message || 'Submission failed');
@@ -279,7 +303,6 @@ export default function VerificationPage() {
                       onChange={handleFileChange}
                       className="hidden"
                       id="nid-upload"
-                      required
                     />
                     <label htmlFor="nid-upload" className="cursor-pointer">
                       <svg className="w-12 h-12 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -4,19 +4,23 @@ interface CategoryChipsProps {
   categories: string[];
   selected: string;
   onSelect: (category: string) => void;
+  showLabel?: boolean;
 }
 
 export default function CategoryChips({
   categories,
   selected,
   onSelect,
+  showLabel = true,
 }: CategoryChipsProps) {
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="text-gray-300 text-sm font-semibold shrink-0">
-        Categories:
-      </span>
-      <div className="flex flex-wrap md:flex-wrap gap-2 overflow-x-auto md:overflow-x-visible scrollbar-hide">
+    <div className="space-y-2">
+      {showLabel && (
+        <span className="text-gray-300 text-sm font-semibold shrink-0 block">
+          Categories:
+        </span>
+      )}
+      <div className="flex flex-wrap gap-2 overflow-x-auto md:overflow-x-visible scrollbar-hide">
         {categories.map((cat) => (
           <button
             key={cat}

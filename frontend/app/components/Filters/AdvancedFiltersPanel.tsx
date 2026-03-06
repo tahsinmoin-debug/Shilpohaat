@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { useIsMobile } from '@/app/hooks/useMediaQuery';
 import { useFocusTrap } from '@/app/hooks/useFocusTrap';
+import CategoryChips from './CategoryChips';
 import PriceRangeFilter from './PriceRangeFilter';
 import MaterialFilter from './MaterialFilter';
 import StatusFilter from './StatusFilter';
@@ -24,6 +25,9 @@ interface AdvancedFiltersPanelProps {
     height: { min: string; max: string };
   };
   onDimensionsChange: (dims: typeof dimensions) => void;
+  categories: string[];
+  selectedCategory: string;
+  onCategoryChange: (category: string) => void;
 }
 
 export default function AdvancedFiltersPanel({
@@ -39,6 +43,9 @@ export default function AdvancedFiltersPanel({
   onStatusChange,
   dimensions,
   onDimensionsChange,
+  categories,
+  selectedCategory,
+  onCategoryChange,
 }: AdvancedFiltersPanelProps) {
   const isMobile = useIsMobile();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -102,7 +109,14 @@ export default function AdvancedFiltersPanel({
           </div>
         )}
 
-        {/* Filter Grid */}
+        <div className="px-4 pt-4">
+          <CategoryChips
+            categories={categories}
+            selected={selectedCategory}
+            onSelect={onCategoryChange}
+          />
+        </div>
+
         <div
           className={`
             p-4 space-y-4

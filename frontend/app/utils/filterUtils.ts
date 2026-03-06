@@ -132,6 +132,9 @@ export function applyFilters(
 export function calculateActiveFilters(filters: FilterState): number {
   let count = 0;
 
+  // Category
+  if (filters.category !== 'All') count++;
+
   // Price range
   if (filters.priceRange.min || filters.priceRange.max) count++;
 

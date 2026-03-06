@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { API_BASE_URL } from '@/lib/config';
 import Header from '../components/Header';
 import CloudinaryResponsiveImage from '../components/CloudinaryResponsiveImage';
 
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const PAGE_SIZE = 18;
 
 interface Artist {
@@ -27,13 +26,18 @@ export default function ArtistsPage() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [followedArtists, setFollowedArtists] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [totalArtists, setTotalArtists] = useState(0);
 
-  const fetchArtists = async (pageToLoad = 1, append = false) => {
+  const fetchArtists = useCallback(async (
+    pageToLoad = 1,
+    append = false,
+    query = searchTerm
+  ) => {
     if (append) {
       setLoadingMore(true);
     } else {
@@ -42,8 +46,9 @@ export default function ArtistsPage() {
 
     try {
       const params = new URLSearchParams();
-      if (selectedLetter) {
-        params.append('letter', selectedLetter);
+      const trimmedQuery = query.trim();
+      if (trimmedQuery) {
+        params.append('search', trimmedQuery);
       }
       params.append('fields', 'card');
       params.append('thumbnailOnly', 'true');
@@ -73,15 +78,33 @@ export default function ArtistsPage() {
         setLoading(false);
       }
     }
-  };
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchArtists(1, false);
-  }, [selectedLetter]);
+  }, [fetchArtists]);
 
   const handleLoadMore = () => {
     if (!hasMore || loadingMore) return;
     fetchArtists(currentPage + 1, true);
+  };
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = searchInput.trim();
+
+    if (trimmed === searchTerm) {
+      fetchArtists(1, false, trimmed);
+      return;
+    }
+
+    setSearchTerm(trimmed);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    if (!searchTerm) return;
+    setSearchTerm('');
   };
 
   const toggleFollow = (artistId: string) => {
@@ -99,48 +122,47 @@ export default function ArtistsPage() {
   return (
     <main className="min-h-screen">
       <Header />
-      <div className="min-h-screen py-12">
+      <div className="min-h-screen py-8 md:py-12">
         <div className="container mx-auto px-4">
-          {/* Page Header */}
-          <div className="mb-8 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border border-white/10 rounded-xl p-6 shadow-xl">
-            <h1 className="text-3xl md:text-4xl font-heading text-white mb-2">
+          <div className="mb-6 md:mb-8 bg-[rgba(6,21,35,0.32)] backdrop-blur-sm border border-white/10 rounded-xl p-4 md:p-6 shadow-xl">
+            <h1 className="text-2xl md:text-4xl font-heading text-white mb-2">
               Featured Artists
             </h1>
             <p className="text-gray-200 text-base md:text-lg">
-              Browse over {totalArtists || artists.length} artists
+              {searchTerm ? `Showing results for "${searchTerm}"` : `Browse over ${totalArtists || artists.length} artists`}
             </p>
           </div>
 
-          {/* Alphabet Filter */}
-          <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border border-white/10 rounded-lg p-4 mb-8 sticky top-20 z-40 shadow-lg">
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button
-                onClick={() => setSelectedLetter(null)}
-                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-                  selectedLetter === null
-                    ? 'bg-brand-gold text-gray-900'
-                    : 'text-gray-300 hover:text-brand-gold'
-                }`}
-              >
-                All
-              </button>
-              {ALPHABET.map((letter) => (
+          <div className="bg-[rgba(6,21,35,0.32)] backdrop-blur-md border border-white/10 rounded-lg p-3 md:p-4 mb-6 md:mb-8 shadow-lg">
+            <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Search artists by name or specialization..."
+                aria-label="Search artists"
+                className="flex-1 px-4 py-2.5 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold min-h-[44px]"
+              />
+              <div className="flex gap-2 sm:gap-3">
                 <button
-                  key={letter}
-                  onClick={() => setSelectedLetter(letter)}
-                  className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-                    selectedLetter === letter
-                      ? 'bg-brand-gold text-gray-900'
-                      : 'text-gray-300 hover:text-brand-gold'
-                  }`}
+                  type="submit"
+                  className="flex-1 sm:flex-none px-5 py-2.5 bg-brand-gold text-[#0b1926] rounded-lg font-semibold hover:bg-brand-gold-antique transition-colors min-h-[44px]"
                 >
-                  {letter}
+                  Search
                 </button>
-              ))}
-            </div>
+                {(searchInput || searchTerm) && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-gray-700 text-gray-200 border border-gray-600 rounded-lg font-semibold hover:bg-gray-600 transition-colors min-h-[44px]"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
 
-          {/* Artists Grid */}
           {loading ? (
             <div className="text-center py-12">
               <p className="text-white text-lg">Loading artists...</p>
@@ -148,23 +170,22 @@ export default function ArtistsPage() {
           ) : artists.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-400 text-lg">
-                No artists found {selectedLetter ? `starting with "${selectedLetter}"` : ''}
+                No artists found {searchTerm ? `for "${searchTerm}"` : ''}
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {artists.map((artist) => (
                 <div
                   key={artist._id}
-                  className="bg-gray-800 rounded-lg overflow-hidden hover:shadow-2xl transition-shadow group"
+                  className="bg-gray-800 rounded-lg overflow-hidden md:hover:shadow-2xl transition-shadow group"
                 >
-                  {/* Artist Cover Image */}
                   <Link href={`/artist/${artist._id}`}>
-                    <div className="relative h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
+                    <div className="relative h-52 sm:h-64 w-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-900">
                       {artist.portfolioImages?.[0] ? (
                         <CloudinaryResponsiveImage
                           src={artist.portfolioImages[0]}
-                          alt={artist.bio}
+                          alt={artist.user?.name || 'Artist artwork preview'}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                           widths={[320, 480, 640, 800]}
@@ -179,22 +200,20 @@ export default function ArtistsPage() {
                     </div>
                   </Link>
 
-                  {/* Artist Info */}
-                  <div className="p-6">
-                    <div className="flex items-start gap-4 mb-4">
-                      {/* Profile Picture */}
+                  <div className="p-4 md:p-6">
+                    <div className="flex items-start gap-3 md:gap-4 mb-4">
                       <Link href={`/artist/${artist._id}`}>
                         <div className="relative flex-shrink-0">
                           {artist.profilePicture ? (
                             <CloudinaryResponsiveImage
                               src={artist.profilePicture}
-                              alt={artist.bio}
-                              className="w-16 h-16 rounded-full object-cover border-2 border-gray-700"
+                              alt={artist.user?.name || 'Artist profile'}
+                              className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-gray-700"
                               sizes="64px"
                               widths={[64, 96, 128]}
                             />
                           ) : (
-                            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600">
+                            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-gray-600">
                               <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
@@ -210,22 +229,21 @@ export default function ArtistsPage() {
                       <div className="flex-1 min-w-0">
                         <Link href={`/artist/${artist._id}`}>
                           <h3 className="text-lg font-semibold text-white mb-1 hover:text-brand-gold transition-colors truncate">
-                            {artist.bio}
+                            {artist.user?.name || 'Artist'}
                           </h3>
                         </Link>
-                        <p className="text-sm text-gray-400 mb-2">
-                          {artist.user?.name || 'Artist'}
+                        <p className="text-sm text-gray-400 mb-2 line-clamp-2">
+                          {artist.bio || 'No artist bio available yet.'}
                         </p>
                         <p className="text-sm text-gray-400 line-clamp-1">
-                          {artist.specializations.join(', ')}
+                          {artist.specializations.length > 0 ? artist.specializations.join(', ') : 'No specializations listed'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Follow Button */}
                     <button
                       onClick={() => toggleFollow(artist._id)}
-                      className={`w-full py-2 px-4 rounded-md font-semibold transition-colors ${
+                      className={`w-full py-2.5 px-4 rounded-md font-semibold transition-colors min-h-[44px] ${
                         followedArtists.has(artist._id)
                           ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           : 'bg-brand-gold text-gray-900 hover:bg-brand-gold-antique'

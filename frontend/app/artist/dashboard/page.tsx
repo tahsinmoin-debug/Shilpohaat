@@ -6,20 +6,65 @@ import { useAuth } from '@/app/components/AuthProvider';
 import Header from '@/app/components/Header';
 import { API_BASE_URL } from '@/lib/config';
 
+type ArtistBadge = {
+  _id?: string;
+  badgeName: string;
+  badgeIcon: string;
+  badgeCategory: string;
+};
+
 export default function ArtistDashboard() {
   const { user, appUser } = useAuth();
   const [workshops, setWorkshops] = useState<any[]>([]);
+  const [badges, setBadges] = useState<ArtistBadge[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    fetch(`${API_BASE_URL}/api/workshops/instructor/my-workshops?firebaseUID=${user.uid}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setWorkshops(data.workshops);
-      })
-      .catch(() => null)
-      .finally(() => setLoading(false));
+
+    const loadDashboardData = async () => {
+      try {
+        const [workshopsRes, badgesRes, verificationRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/workshops/instructor/my-workshops?firebaseUID=${user.uid}`),
+          fetch(`${API_BASE_URL}/api/badges/${user.uid}`),
+          fetch(`${API_BASE_URL}/api/verify/status/${user.uid}`),
+        ]);
+
+        if (workshopsRes.ok) {
+          const workshopsData = await workshopsRes.json();
+          if (workshopsData.success) {
+            setWorkshops(workshopsData.workshops || []);
+          }
+        }
+
+        const fetchedBadges: ArtistBadge[] = badgesRes.ok ? await badgesRes.json() : [];
+        const verificationData = verificationRes.ok ? await verificationRes.json() : null;
+
+        const hasVerificationBadge = fetchedBadges.some(
+          (badge) => badge.badgeCategory === 'Verification' || badge.badgeName === 'Verified Artist'
+        );
+
+        if (verificationData?.nidStatus === 'approved' && !hasVerificationBadge) {
+          setBadges([
+            ...fetchedBadges,
+            {
+              badgeName: 'Verified Artist',
+              badgeIcon: '✅',
+              badgeCategory: 'Verification',
+            },
+          ]);
+        } else {
+          setBadges(fetchedBadges);
+        }
+      } catch {
+        setWorkshops([]);
+        setBadges([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadDashboardData();
   }, [user]);
 
   if (loading) {
@@ -60,6 +105,28 @@ export default function ArtistDashboard() {
             + Create New Workshop
           </Link>
         </div>
+
+        <section className="mb-8 bg-[#152635] rounded-xl p-4 border border-gray-700">
+          <h2 className="text-lg font-semibold text-white mb-3">My Badges</h2>
+          {badges.length === 0 ? (
+            <p className="text-gray-400 text-sm">No badges yet. Complete milestones and verification to earn badges.</p>
+          ) : (
+            <div className="flex flex-wrap gap-3">
+              {badges.map((badge, index) => (
+                <div
+                  key={`${badge.badgeName}-${index}`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1a2739] border border-white/10"
+                >
+                  <span className="text-lg" aria-hidden="true">{badge.badgeIcon}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{badge.badgeName}</p>
+                    <p className="text-xs text-gray-400">{badge.badgeCategory}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <div className="bg-[#152635] rounded-xl p-4 border border-gray-700">

@@ -17,6 +17,19 @@ type UserDoc = { _id: string; name: string; email: string; role: string; isSuspe
 type ArtistDoc = { _id: string; isFeatured: boolean; isSuspended: boolean; user?: { name: string; email: string } };
 type BlogDoc = { _id: string; title: string; slug: string; category: string };
 type ArtistSales = { artistId: string; name: string; email: string; revenue: number; sales: number; orders: number };
+type VerificationDoc = {
+  _id: string;
+  userId: string;
+  nidNumber?: string;
+  nidDocumentUrl?: string;
+  nidStatus: 'unsubmitted' | 'pending' | 'approved' | 'rejected';
+  updatedAt: string;
+  user?: {
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
+};
 
 const ADMIN_PAGE_SIZE = 20;
 
@@ -28,6 +41,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserDoc[]>([]);
   const [blogs, setBlogs] = useState<BlogDoc[]>([]);
   const [artistSales, setArtistSales] = useState<ArtistSales[]>([]);
+  const [verificationRequests, setVerificationRequests] = useState<VerificationDoc[]>([]);
   const [busy, setBusy] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -101,9 +115,10 @@ export default function AdminPage() {
       const headers = authHeaders();
       console.log('Auth headers:', headers);
       
-      const [bl, as] = await Promise.all([
+      const [bl, as, vr] = await Promise.all([
         fetch(`${API_BASE_URL}/api/blog?limit=100`, { headers }),
         fetch(`${API_BASE_URL}/api/admin/analytics/artists-sales`, { headers }),
+        fetch(`${API_BASE_URL}/api/verify/admin/requests?status=pending`, { headers }),
       ]);
 
       const artistsData: ArtistDoc[] = await fetchArtistsPage(1);
@@ -137,6 +152,13 @@ export default function AdminPage() {
           orders: Math.floor(Math.random() * 40) + 3,
         }));
         setArtistSales(demo);
+      }
+
+      if (vr.ok) {
+        const verificationData = await vr.json();
+        setVerificationRequests(verificationData.requests || []);
+      } else {
+        setVerificationRequests([]);
       }
       
       console.log('Blogs response:', bl.status, bl.ok);
@@ -338,6 +360,70 @@ export default function AdminPage() {
               </button>
             </div>
           )}
+        </section>
+
+        {/* Identity Verification Requests */}
+        <section className="mb-10">
+          <h2 className="text-2xl font-heading text-white mb-3">NID Verification Requests</h2>
+          <div className="overflow-x-auto rounded border border-gray-700">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-800 text-gray-300">
+                <tr>
+                  <th className="p-2 text-left">Artist</th>
+                  <th className="p-2 text-left">Email</th>
+                  <th className="p-2 text-left">NID Number</th>
+                  <th className="p-2 text-left">Document</th>
+                  <th className="p-2 text-left">Submitted</th>
+                  <th className="p-2 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {verificationRequests.map((request) => (
+                  <tr key={request._id} className="border-t border-gray-700">
+                    <td className="p-2 text-white">{request.user?.name || 'Unknown'}</td>
+                    <td className="p-2 text-gray-300">{request.user?.email || '-'}</td>
+                    <td className="p-2 text-white">{request.nidNumber || '-'}</td>
+                    <td className="p-2">
+                      {request.nidDocumentUrl ? (
+                        <a
+                          href={request.nidDocumentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-brand-gold hover:underline"
+                        >
+                          View Document
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-2 text-gray-300">{new Date(request.updatedAt).toLocaleString()}</td>
+                    <td className="p-2 text-center">
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          className="px-3 py-1 rounded bg-green-700 text-white text-xs"
+                          onClick={() => act(`${API_BASE_URL}/api/verify/admin/requests/${request._id}/approve`, { method: 'PATCH' })}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="px-3 py-1 rounded bg-red-700 text-white text-xs"
+                          onClick={() => act(`${API_BASE_URL}/api/verify/admin/requests/${request._id}/reject`, { method: 'PATCH' })}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {verificationRequests.length === 0 && (
+                  <tr>
+                    <td className="p-3 text-gray-400" colSpan={6}>No pending verification requests.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Blogs */}
