@@ -14,6 +14,7 @@ interface Review {
     rating: number;
     comment: string;
     createdAt: string;
+    verifiedBuyer?: boolean;
 }
 
 interface Props {
@@ -77,19 +78,21 @@ export default function ArtworkReviews({ artworkId }: Props) {
     }, [artworkId]);
 
     // Calculate Average Rating
-    const { averageRating, roundedAverageRating } = useMemo(() => {
+    const { averageRating, roundedAverageRating, verifiedCount } = useMemo(() => {
         const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
         const avg = reviews.length > 0 ? (totalRating / reviews.length) : 0;
+        const verified = reviews.filter((review) => review.verifiedBuyer).length;
         
         return {
             averageRating: avg > 0 ? avg.toFixed(1) : 'N/A',
             roundedAverageRating: Math.round(avg),
+            verifiedCount: verified,
         };
     }, [reviews]);
 
     // Sort reviews
     const sortedReviews = useMemo(() => {
-        let sorted = [...reviews];
+        const sorted = [...reviews];
         
         switch (sortBy) {
             case 'newest':
@@ -196,6 +199,9 @@ export default function ArtworkReviews({ artworkId }: Props) {
                                 {averageRating} ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
                             </span>
                         </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                            {verifiedCount} verified {verifiedCount === 1 ? 'buyer' : 'buyers'}
+                        </p>
                     </div>
                 </div>
 
@@ -352,7 +358,14 @@ export default function ArtworkReviews({ artworkId }: Props) {
                                             {review.reviewerName.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="text-white font-semibold text-sm">{review.reviewerName}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-white font-semibold text-sm">{review.reviewerName}</p>
+                                                {review.verifiedBuyer && (
+                                                    <span className="text-[10px] font-semibold uppercase tracking-wide bg-green-500/15 text-green-300 px-2 py-0.5 rounded-full border border-green-500/30">
+                                                        Verified Buyer
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-gray-500">
                                                 {new Date(review.createdAt).toLocaleDateString('en-US', { 
                                                     year: 'numeric', 

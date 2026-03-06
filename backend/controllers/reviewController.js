@@ -1,4 +1,7 @@
 const Review = require('../models/Review');
+const ArtworkReview = require('../models/ArtworkReview');
+const Artwork = require('../models/Artwork');
+const Order = require('../models/Order');
 const Enrollment = require('../models/Enrollment');
 const Workshop = require('../models/Workshop');
 const User = require('../models/User');
@@ -335,6 +338,115 @@ exports.getFlaggedReviews = async (req, res) => {
     res.json({ success: true, reviews });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get artwork reviews
+exports.getArtworkReviews = async (req, res) => {
+  try {
+    const { artworkId } = req.params;
+    const artworkExists = await Artwork.exists({ _id: artworkId });
+    if (!artworkExists) {
+      return res.status(404).json({ success: false, message: 'Artwork not found' });
+    }
+
+    const reviews = await ArtworkReview.find({ artwork: artworkId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const reviewerIds = [...new Set(reviews.map((review) => review.reviewerId).filter(Boolean))];
+    let verifiedSet = new Set();
+    if (reviewerIds.length > 0) {
+      const buyers = await User.find({ firebaseUID: { $in: reviewerIds } }).select('_id firebaseUID').lean();
+      const buyerByFirebaseUID = new Map(buyers.map((buyer) => [buyer.firebaseUID, String(buyer._id)]));
+      const buyerIds = buyers.map((buyer) => buyer._id);
+
+      if (buyerIds.length > 0) {
+        const paidOrders = await Order.find({
+          userId: { $in: buyerIds },
+          paymentStatus: 'paid',
+          'items.artworkId': artworkId,
+        })
+          .select('userId')
+          .lean();
+
+        const verifiedUserIds = new Set(paidOrders.map((order) => String(order.userId)));
+        verifiedSet = new Set(
+          reviewerIds.filter((firebaseUID) => {
+            const userId = buyerByFirebaseUID.get(firebaseUID);
+            return userId ? verifiedUserIds.has(userId) : false;
+          })
+        );
+      }
+    }
+
+    const enriched = reviews.map((review) => ({
+      ...review,
+      verifiedBuyer: verifiedSet.has(review.reviewerId),
+    }));
+
+    return res.json({ success: true, reviews: enriched });
+  } catch (error) {
+    console.error('Get artwork reviews error:', error);
+    return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// Create artwork review
+exports.createArtworkReview = async (req, res) => {
+  try {
+    const { artworkId } = req.params;
+    const { rating, comment, reviewerId, reviewerName } = req.body;
+
+    const artworkExists = await Artwork.exists({ _id: artworkId });
+    if (!artworkExists) {
+      return res.status(404).json({ success: false, message: 'Artwork not found' });
+    }
+
+    if (!reviewerId || !reviewerName) {
+      return res.status(400).json({ success: false, message: 'Reviewer identity is required.' });
+    }
+
+    const parsedRating = Number(rating);
+    if (!Number.isFinite(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+      return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5.' });
+    }
+
+    const trimmedComment = String(comment || '').trim();
+    if (trimmedComment.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Review comment must be at least 10 characters.',
+      });
+    }
+
+    const existingReview = await ArtworkReview.findOne({ artwork: artworkId, reviewerId });
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already reviewed this artwork.',
+      });
+    }
+
+    const review = await ArtworkReview.create({
+      artwork: artworkId,
+      reviewerId: String(reviewerId).trim(),
+      reviewerName: String(reviewerName).trim(),
+      rating: parsedRating,
+      comment: trimmedComment,
+    });
+
+    return res.status(201).json({ success: true, review });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already reviewed this artwork.',
+      });
+    }
+
+    console.error('Create artwork review error:', error);
+    return res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
 

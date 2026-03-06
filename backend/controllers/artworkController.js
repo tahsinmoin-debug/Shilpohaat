@@ -27,10 +27,68 @@ const createArtwork = async (req, res) => {
       return res.status(403).json({ message: 'Only artists can create artworks' });
     }
 
-    const { title, description, category, price, images, dimensions, materials } = req.body;
+    const {
+      title,
+      description,
+      inspiration,
+      creationYear,
+      category,
+      price,
+      images,
+      dimensions,
+      materials,
+      framingStatus,
+      shippingInfo,
+    } = req.body;
+
+    const trimmedDescription = String(description || '').trim();
+    const trimmedInspiration = String(inspiration || '').trim();
+    const parsedYear = Number(creationYear);
+    const parsedPrice = Number(price);
+    const width = Number(dimensions?.width);
+    const height = Number(dimensions?.height);
+    const dispatchDays = Number(shippingInfo?.dispatchDays);
 
     if (!title || !category || !price) {
       return res.status(400).json({ message: 'Title, category, and price are required' });
+    }
+
+    if (!trimmedDescription || trimmedDescription.length < 80) {
+      return res.status(400).json({
+        message: 'Description is required and should be at least 80 characters.',
+      });
+    }
+
+    if (!trimmedInspiration || trimmedInspiration.length < 20) {
+      return res.status(400).json({
+        message: 'Inspiration is required and should be at least 20 characters.',
+      });
+    }
+
+    if (!Number.isFinite(parsedYear) || parsedYear < 1000 || parsedYear > new Date().getFullYear()) {
+      return res.status(400).json({
+        message: 'A valid creation year is required.',
+      });
+    }
+
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({ message: 'A valid price is required.' });
+    }
+
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+      return res.status(400).json({
+        message: 'Valid width and height are required in dimensions.',
+      });
+    }
+
+    if (!Array.isArray(materials) || materials.length === 0) {
+      return res.status(400).json({ message: 'At least one material is required.' });
+    }
+
+    if (!shippingInfo?.scope || !Number.isFinite(dispatchDays) || dispatchDays <= 0) {
+      return res.status(400).json({
+        message: 'Shipping scope and dispatch time are required.',
+      });
     }
 
     // Upload images to Cloudinary
@@ -44,12 +102,20 @@ const createArtwork = async (req, res) => {
     const artwork = new Artwork({
       artist: user._id,
       title,
-      description,
+      description: trimmedDescription,
+      inspiration: trimmedInspiration,
+      creationYear: parsedYear,
       category,
-      price,
+      price: parsedPrice,
       images: cloudinaryUrls,
       dimensions: dimensions || {},
       materials: materials || [],
+      framingStatus: framingStatus || 'unframed',
+      shippingInfo: {
+        scope: shippingInfo.scope,
+        dispatchDays,
+        notes: String(shippingInfo.notes || '').trim(),
+      },
     });
 
     await artwork.save();
@@ -127,7 +193,8 @@ const getAllArtworks = async (req, res) => {
       }
     }
 
-    let selectFields = 'artist title description category price images arModelUrl status featured moderationStatus createdAt';
+    let selectFields =
+      'artist title description inspiration creationYear category price images arModelUrl status featured moderationStatus dimensions materials framingStatus shippingInfo createdAt';
     if (isCardFields) {
       selectFields = 'artist title category price images status featured moderationStatus createdAt';
     }

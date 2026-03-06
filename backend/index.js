@@ -24,6 +24,7 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const verificationRoutes = require('./routes/verificationRoutes');
 const badgeRoutes = require('./routes/badgeRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 connectDB();
 
@@ -119,6 +120,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/artist', artistRoutes);
 app.use('/api/artworks', artworkRoutes);
+app.use('/api/artworks', reviewRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/blog', blogRoutes);

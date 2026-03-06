@@ -40,6 +40,8 @@ export default function UploadArtworkPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    inspiration: '',
+    creationYear: '',
     category: 'Abstract',
     price: '',
     images: [] as string[],
@@ -51,6 +53,12 @@ export default function UploadArtworkPage() {
       unit: 'cm',
     },
     materials: [] as string[],
+    framingStatus: 'unframed',
+    shippingInfo: {
+      scope: 'domestic',
+      dispatchDays: '7',
+      notes: '',
+    },
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -90,6 +98,16 @@ export default function UploadArtworkPage() {
         materials: [...formData.materials, material],
       });
     }
+  };
+
+  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      shippingInfo: {
+        ...formData.shippingInfo,
+        [e.target.name]: e.target.value,
+      },
+    });
   };
 
   const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,6 +228,42 @@ export default function UploadArtworkPage() {
         return;
       }
 
+      if (formData.description.trim().length < 80) {
+        setError('Description must be at least 80 characters.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (formData.inspiration.trim().length < 20) {
+        setError('Inspiration must be at least 20 characters.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.creationYear) {
+        setError('Creation year is required.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.dimensions.width || !formData.dimensions.height) {
+        setError('Width and height are required.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (formData.materials.length === 0) {
+        setError('Select at least one material.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.shippingInfo.scope || !formData.shippingInfo.dispatchDays) {
+        setError('Shipping scope and dispatch time are required.');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Upload AR model if provided
       let arModelUrl = '';
       if (arModelFile) {
@@ -229,12 +283,18 @@ export default function UploadArtworkPage() {
       const artworkData = {
         ...formData,
         price: Number(formData.price),
+        creationYear: Number(formData.creationYear),
         arModelUrl: arModelUrl || undefined,
         dimensions: {
           width: formData.dimensions.width ? Number(formData.dimensions.width) : undefined,
           height: formData.dimensions.height ? Number(formData.dimensions.height) : undefined,
           depth: formData.dimensions.depth ? Number(formData.dimensions.depth) : undefined,
           unit: formData.dimensions.unit,
+        },
+        shippingInfo: {
+          scope: formData.shippingInfo.scope,
+          dispatchDays: Number(formData.shippingInfo.dispatchDays),
+          notes: formData.shippingInfo.notes.trim(),
         },
       };
 
@@ -337,7 +397,7 @@ export default function UploadArtworkPage() {
             {/* Description */}
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-200 mb-2">
-                Description
+                Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="description"
@@ -345,9 +405,66 @@ export default function UploadArtworkPage() {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
+                required
+                minLength={80}
                 className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
-                placeholder="Describe your artwork, inspiration, techniques used..."
+                placeholder="Tell the story behind this piece, your process, and what viewers should notice (minimum 80 characters)."
               />
+              <p className="text-xs text-gray-400 mt-1">Minimum 80 characters for a meaningful listing.</p>
+            </div>
+
+            <div>
+              <label htmlFor="inspiration" className="block text-sm font-medium text-gray-200 mb-2">
+                Inspiration <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="inspiration"
+                name="inspiration"
+                value={formData.inspiration}
+                onChange={handleInputChange}
+                rows={3}
+                required
+                minLength={20}
+                className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                placeholder="What inspired you to create this artwork?"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="creationYear" className="block text-sm font-medium text-gray-200 mb-2">
+                  Creation Year <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="creationYear"
+                  name="creationYear"
+                  value={formData.creationYear}
+                  onChange={handleInputChange}
+                  required
+                  min="1000"
+                  max={new Date().getFullYear()}
+                  className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                  placeholder="2026"
+                />
+              </div>
+              <div>
+                <label htmlFor="framingStatus" className="block text-sm font-medium text-gray-200 mb-2">
+                  Framing Status <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="framingStatus"
+                  name="framingStatus"
+                  value={formData.framingStatus}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                >
+                  <option value="framed">Framed</option>
+                  <option value="unframed">Unframed</option>
+                  <option value="not-applicable">Not Applicable</option>
+                </select>
+              </div>
             </div>
 
             {/* Dimensions */}
@@ -361,6 +478,7 @@ export default function UploadArtworkPage() {
                   name="width"
                   value={formData.dimensions.width}
                   onChange={handleDimensionChange}
+                  required
                   placeholder="Width"
                   className="px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
                 />
@@ -369,6 +487,7 @@ export default function UploadArtworkPage() {
                   name="height"
                   value={formData.dimensions.height}
                   onChange={handleDimensionChange}
+                  required
                   placeholder="Height"
                   className="px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
                 />
@@ -396,7 +515,7 @@ export default function UploadArtworkPage() {
             {/* Materials */}
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-2">
-                Materials Used
+                Materials Used <span className="text-red-500">*</span>
               </label>
               <div className="bg-gray-700 rounded-md p-4 grid grid-cols-2 md:grid-cols-4 gap-2">
                 {MATERIALS.map((material) => (
@@ -410,6 +529,46 @@ export default function UploadArtworkPage() {
                     <span className="ml-2 text-gray-200 text-sm">{material}</span>
                   </label>
                 ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Select at least one medium/material.</p>
+            </div>
+
+            {/* Shipping Info */}
+            <div>
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Shipping Information <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select
+                  name="scope"
+                  value={formData.shippingInfo.scope}
+                  onChange={handleShippingChange}
+                  required
+                  className="px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                >
+                  <option value="domestic">Domestic Shipping</option>
+                  <option value="international">International Shipping</option>
+                  <option value="pickup-only">Pickup Only</option>
+                </select>
+                <input
+                  type="number"
+                  name="dispatchDays"
+                  value={formData.shippingInfo.dispatchDays}
+                  onChange={handleShippingChange}
+                  required
+                  min="1"
+                  max="90"
+                  placeholder="Dispatch in days"
+                  className="px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                />
+                <input
+                  type="text"
+                  name="notes"
+                  value={formData.shippingInfo.notes}
+                  onChange={handleShippingChange}
+                  placeholder="Shipping notes (optional)"
+                  className="px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-gold"
+                />
               </div>
             </div>
 

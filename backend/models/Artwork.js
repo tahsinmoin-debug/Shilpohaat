@@ -15,6 +15,15 @@ const ArtworkSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    inspiration: {
+      type: String,
+      default: '',
+    },
+    creationYear: {
+      type: Number,
+      min: 1000,
+      max: 9999,
+    },
     category: {
       type: String,
       enum: [
@@ -45,6 +54,28 @@ const ArtworkSchema = new mongoose.Schema(
     materials: {
       type: [String],
       default: [],
+    },
+    framingStatus: {
+      type: String,
+      enum: ['framed', 'unframed', 'not-applicable'],
+      default: 'unframed',
+    },
+    shippingInfo: {
+      scope: {
+        type: String,
+        enum: ['domestic', 'international', 'pickup-only'],
+        default: 'domestic',
+      },
+      dispatchDays: {
+        type: Number,
+        min: 1,
+        max: 90,
+        default: 7,
+      },
+      notes: {
+        type: String,
+        default: '',
+      },
     },
     status: {
       type: String,

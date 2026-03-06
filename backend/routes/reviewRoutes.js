@@ -1,11 +1,11 @@
 const express = require('express');
-const { getArtworkReviews, createReview } = require('../controllers/reviewController');
+const { getArtworkReviews, createArtworkReview } = require('../controllers/reviewController');
 
 const router = express.Router({ mergeParams: true }); // Merge params for routing
 
 // Route for reviews: /:artworkId/reviews
 router.route('/:artworkId/reviews')
     .get(getArtworkReviews)   
-    .post(createReview);      
+    .post(createArtworkReview);      
 
 module.exports = router;
