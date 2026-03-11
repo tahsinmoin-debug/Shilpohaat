@@ -235,12 +235,13 @@ const getHubArtists = async (req, res) => {
     try {
         // Get ALL users regardless of role
         const users = await User.find({})
-            .select('firebaseUID name email role')
+      .select('_id firebaseUID name email role')
             .lean();
 
         const artistList = users.map(artist => ({
             id: artist.firebaseUID,
-            name: artist.name || artist.email?.split('@')[0] || 'Artist'
+      mongoId: artist._id,
+      name: artist.name || artist.email?.split('@')[0] || 'Artist'
         }));
 
         // Return array directly

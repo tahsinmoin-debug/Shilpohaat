@@ -468,6 +468,7 @@ function TrustSection() {
 
 // BLOG PREVIEW SECTION
 interface BlogPost { _id: string; title: string; slug: string; excerpt: string; coverImage: string; }
+const BLOG_IMAGE_FALLBACK = 'https://placehold.co/1200x800/0b2438/ffffff?text=ShilpoHaat+Blog';
 function BlogPreview() {
   const [posts, setPosts] = React.useState<BlogPost[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -512,7 +513,7 @@ function BlogPreview() {
               <Link href={`/blog/${post.slug}`} className="glass-card rounded-xl overflow-hidden hover:shadow-2xl block group">
                 <div className="relative h-56 w-full overflow-hidden">
                   <CloudinaryResponsiveImage
-                    src={post.coverImage}
+                    src={post.coverImage || BLOG_IMAGE_FALLBACK}
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     sizes="(max-width: 768px) 100vw, 33vw"

@@ -1,5 +1,6 @@
 const Conversation = require('../models/Conversation');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 // 1. Send a message
 const sendMessage = async (req, res) => {
@@ -15,15 +16,43 @@ const sendMessage = async (req, res) => {
     const sender = await User.findOne({ firebaseUID });
     if (!sender) return res.status(404).json({ message: 'Sender not found' });
 
+    if (!recipientId) {
+      return res.status(400).json({ success: false, message: 'recipientId is required' });
+    }
+
+    if (!content || !String(content).trim()) {
+      return res.status(400).json({ success: false, message: 'content is required' });
+    }
+
+    let resolvedRecipientId = null;
+
+    if (mongoose.Types.ObjectId.isValid(recipientId)) {
+      const recipient = await User.findById(recipientId).select('_id');
+      if (recipient) {
+        resolvedRecipientId = recipient._id;
+      }
+    }
+
+    if (!resolvedRecipientId) {
+      const recipientByFirebase = await User.findOne({ firebaseUID: recipientId }).select('_id');
+      if (recipientByFirebase) {
+        resolvedRecipientId = recipientByFirebase._id;
+      }
+    }
+
+    if (!resolvedRecipientId) {
+      return res.status(404).json({ success: false, message: 'Recipient not found' });
+    }
+
     // Check if conversation already exists between these two participants
     let conversation = await Conversation.findOne({
-      participants: { $all: [sender._id, recipientId] }
+      participants: { $all: [sender._id, resolvedRecipientId] }
     });
 
     // If no conversation exists, create a new one
     if (!conversation) {
       conversation = new Conversation({ 
-        participants: [sender._id, recipientId], 
+        participants: [sender._id, resolvedRecipientId], 
         messages: [] 
       });
     }
@@ -47,7 +76,7 @@ const sendMessage = async (req, res) => {
     const conversationData = await Conversation.findById(conversation._id)
       .populate({
         path: 'messages.sender',
-        select: 'name email role'
+        select: 'name email role firebaseUID'
       });
     
     const addedMessage = conversationData.messages[conversationData.messages.length - 1];
@@ -132,8 +161,8 @@ const getMessages = async (req, res) => {
     }
 
     const conversation = await Conversation.findById(conversationId)
-      .populate('participants', 'name email role')
-      .populate('messages.sender', 'name email role');
+      .populate('participants', 'name email role firebaseUID')
+      .populate('messages.sender', 'name email role firebaseUID');
 
     if (!conversation) {
       return res.status(404).json({ message: 'Conversation not found' });

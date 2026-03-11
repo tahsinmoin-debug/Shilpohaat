@@ -1,6 +1,44 @@
 const BlogPost = require('../models/BlogPost.js');
 const { uploadToCloudinary } = require('../utils/cloudinary.js');
 
+const BLOG_IMAGE_FALLBACK = 'https://placehold.co/1200x800/0b2438/ffffff?text=ShilpoHaat+Blog';
+
+const normalizeBlogCoverImage = (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== 'string') return BLOG_IMAGE_FALLBACK;
+
+  const trimmed = imageUrl.trim();
+  if (!trimmed) return BLOG_IMAGE_FALLBACK;
+
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
+
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+
+  if (/^http:\/\//i.test(trimmed)) {
+    return trimmed.replace(/^http:\/\//i, 'https://');
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  if (/^res\.cloudinary\.com\//i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  if (cloudName && !trimmed.startsWith('/')) {
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${trimmed.replace(/^\/+/, '')}`;
+  }
+
+  return trimmed;
+};
+
+const serializePost = (post) => {
+  const plain = post && typeof post.toObject === 'function' ? post.toObject() : post;
+  return {
+    ...plain,
+    coverImage: normalizeBlogCoverImage(plain?.coverImage),
+  };
+};
+
 // Create a new blog post
 const createPost = async (req, res) => {
   try {
@@ -27,6 +65,8 @@ const createPost = async (req, res) => {
       }
     }
 
+    coverImageUrl = normalizeBlogCoverImage(coverImageUrl);
+
     // 4. Create the new post object
     const newPost = new BlogPost({
       title,
@@ -48,7 +88,7 @@ const createPost = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      post: savedPost,
+      post: serializePost(savedPost),
       message: 'Blog post created successfully!'
     });
 
@@ -90,7 +130,7 @@ const getAllPosts = async (req, res) => {
 
     return res.json({
       success: true,
-      posts,
+      posts: posts.map(serializePost),
       pagination: {
         total,
         page: parseInt(page),
@@ -120,7 +160,7 @@ const getPostBySlug = async (req, res) => {
 
     return res.json({
       success: true,
-      post,
+      post: serializePost(post),
     });
   } catch (error) {
     console.error('Get post error:', error);
@@ -142,7 +182,7 @@ const getFeaturedPosts = async (req, res) => {
 
     return res.json({
       success: true,
-      posts,
+      posts: posts.map(serializePost),
     });
   } catch (error) {
     console.error('Get featured posts error:', error);
@@ -161,7 +201,7 @@ const getLatestPosts = async (req, res) => {
 
     return res.json({
       success: true,
-      posts,
+      posts: posts.map(serializePost),
     });
   } catch (error) {
     console.error('Get latest posts error:', error);

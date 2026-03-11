@@ -59,12 +59,12 @@ export default function ChatPage() {
           setCurrentUserId(userData.user._id);
           
           // 2. Initialize Socket
-          socketRef.current = io(API_BASE_URL);
-          socketRef.current.emit('join', userData.user._id);
+          socketRef.current = io(API_BASE_URL, { transports: ['websocket', 'polling'] });
+          socketRef.current.emit('registerUser', user.uid);
         }
 
         // 3. Fetch Conversation
-        const res = await fetch(`http://localhost:5000/api/messages/${conversationId}?firebaseUID=${user.uid}`);
+        const res = await fetch(`${API_BASE_URL}/api/messages/${conversationId}?firebaseUID=${user.uid}`);
         const data = await res.json();
         if (data.success) {
           setConversation(data.conversation);
@@ -94,7 +94,7 @@ export default function ChatPage() {
     setSending(true);
     try {
       const recipient = conversation.participants.find(p => p._id !== currentUserId);
-      const res = await fetch(`http://localhost:5000/api/messages/send?firebaseUID=${user.uid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/messages/send?firebaseUID=${user.uid}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

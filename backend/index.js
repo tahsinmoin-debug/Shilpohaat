@@ -20,6 +20,8 @@ const recommendationRoutes = require('./routes/recommendations.js');
 const adminRoutes = require('./routes/admin.js');
 const commissionRoutes = require('./routes/commissions.js');
 const messagesRoutes = require('./routes/messages');
+const Conversation = require('./models/Conversation');
+const User = require('./models/User');
 const promotionRoutes = require('./routes/promotionRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const verificationRoutes = require('./routes/verificationRoutes');
@@ -53,17 +55,57 @@ io.on('connection', (socket) => {
     io.emit('onlineUsers', Array.from(activeUsers.keys()));
   });
 
-  socket.on('privateMessage', ({ recipientId, senderId, message, timestamp, type, imageUrl }) => {
+  socket.on('privateMessage', async ({ recipientId, senderId, message, timestamp, type, imageUrl, skipPersistence }) => {
     if (!recipientId || !senderId || (!message && !imageUrl)) return;
 
     const recipientSocketId = activeUsers.get(recipientId);
+    const safeTimestamp = timestamp || Date.now();
     const payload = {
       senderId,
       message: message || '',
-      timestamp: timestamp || Date.now(),
+      timestamp: safeTimestamp,
       type: type || (imageUrl ? 'image' : 'text'),
       imageUrl: imageUrl || null,
     };
+
+    if (!skipPersistence) {
+      try {
+        const [senderUser, recipientUser] = await Promise.all([
+          User.findOne({ firebaseUID: senderId }).select('_id').lean(),
+          User.findOne({ firebaseUID: recipientId }).select('_id').lean(),
+        ]);
+
+        if (senderUser && recipientUser) {
+          let conversation = await Conversation.findOne({
+            participants: { $all: [senderUser._id, recipientUser._id] },
+          });
+
+          if (!conversation) {
+            conversation = new Conversation({
+              participants: [senderUser._id, recipientUser._id],
+              messages: [],
+            });
+          }
+
+          const contentToStore = payload.type === 'image'
+            ? (payload.imageUrl || '[image]')
+            : (payload.message || '').trim();
+
+          if (contentToStore) {
+            conversation.messages.push({
+              sender: senderUser._id,
+              content: contentToStore,
+              isRead: false,
+            });
+            conversation.lastMessage = payload.type === 'image' ? '📷 Image' : contentToStore;
+            conversation.lastMessageTime = new Date(safeTimestamp);
+            await conversation.save();
+          }
+        }
+      } catch (error) {
+        console.error('Socket message persistence error:', error);
+      }
+    }
 
     if (recipientSocketId) {
       io.to(recipientSocketId).emit('receiveMessage', payload);
@@ -143,8 +185,31 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Socket.IO enabled. CORS origins: ${allowedOrigins.join(', ')}`);
-});
+const DEFAULT_PORT = Number(process.env.PORT) || 5000;
+const MAX_PORT_RETRIES = 10;
+
+function startServer(port, attempt = 0) {
+  const onListening = () => {
+    console.log(`Server is running on port ${port}`);
+    console.log(`Socket.IO enabled. CORS origins: ${allowedOrigins.join(', ')}`);
+  };
+
+  const onError = (error) => {
+    if (error.code === 'EADDRINUSE' && attempt < MAX_PORT_RETRIES) {
+      const nextPort = port + 1;
+      console.warn(`Port ${port} is in use. Retrying on port ${nextPort}...`);
+      httpServer.off('listening', onListening);
+      httpServer.off('error', onError);
+      return startServer(nextPort, attempt + 1);
+    }
+
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
+  };
+
+  httpServer.once('listening', onListening);
+  httpServer.once('error', onError);
+  httpServer.listen(port);
+}
+
+startServer(DEFAULT_PORT);
